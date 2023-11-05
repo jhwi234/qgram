@@ -4,7 +4,6 @@ import kenlm
 import heapq
 from functools import lru_cache
 import numpy as np
-import os
 from pathlib import Path
 from datetime import datetime
 import re
@@ -29,16 +28,21 @@ class LanguageModel:
         self.training_corpora = {}
         self.loaded_corpora = False 
 
-    @staticmethod
-    def download_nltk():
-        nltk_resources = [
-            'corpora/cmudict', 'tokenizers/punkt', 'corpora/brown'
-        ]
-        for resource in nltk_resources:
-            try:
-                nltk.data.find(resource)
-            except LookupError:
-                nltk.download(resource.split('/')[-1])
+    nltk_resources_downloaded = False
+
+    @classmethod
+    def download_nltk(cls):
+        if not cls.nltk_resources_downloaded:
+            nltk_resources = [
+                'corpora/cmudict', 'tokenizers/punkt', 'corpora/brown'
+            ]
+            for resource in nltk_resources:
+                try:
+                    nltk.data.find(resource)
+                except LookupError:
+                    nltk.download(resource.split('/')[-1])
+            # Set the flag to True after downloading
+            cls.nltk_resources_downloaded = True
 
     def clean_word(self, word):
         return [
@@ -104,7 +108,7 @@ class LanguageModel:
             return self.formatted_corpora_cache[corpus_name]
 
         # If not cached, proceed to check if the file exists
-        if not os.path.exists(path):
+        if not Path(path).exists():
             # If the file does not exist, create and cache it
             with open(path, 'w') as f:
                 formatted_corpus = ' '.join(
@@ -217,7 +221,7 @@ class LanguageModel:
             correct = {1: 0, 3: 0, 5: 0}
             directory = Path(f"./results/{corpus_name}")
             directory.mkdir(parents=True, exist_ok=True)
-            
+
             # Write predictions to a file
             result_lines = []
             for original_word, test_word in test_words.items():
