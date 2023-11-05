@@ -7,8 +7,16 @@ import numpy as np
 import os
 from pathlib import Path
 from datetime import datetime
+import re
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+# Set random seed for reproducibility
+np.random.seed(42)
 
 class LanguageModel:
+
     def __init__(self, q_range=(2, 6)):
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.models = {}
@@ -34,8 +42,8 @@ class LanguageModel:
 
     def clean_word(self, word):
         return [
-            ''.join(filter(str.isalpha, w)).lower()
-            for w in word.split(" ") if len(w) >= 4
+            ''.join(filter(str.isalpha, part)).lower()
+            for part in re.split(r"[-\s]", word)
         ]
 
     def load_corpora(self, use_test_set=True):
@@ -172,6 +180,10 @@ class LanguageModel:
             left_context_joined = ' '.join(left_context)
             right_context_joined = ' '.join(right_context)
 
+            # Calculate weights based on the amount of context available
+            left_weight = len(left_context) / (len(left_context) + len(right_context)) if len(left_context) + len(right_context) > 0 else 0.5
+            right_weight = len(right_context) / (len(left_context) + len(right_context)) if len(left_context) + len(right_context) > 0 else 0.5
+
             for letter in 'abcdefghijklmnopqrstuvwxyz':
                 # Create sequences for before and after the missing letter
                 sequence_before = f"{left_context_joined} {letter}" if left_context_joined else letter
@@ -181,9 +193,9 @@ class LanguageModel:
                 log_prob_before = self.cached_score(model, sequence_before)
                 log_prob_after = self.cached_score(model, sequence_after)
 
-                # Take the average of the log probabilities for the context before and after the missing letter
-                average_log_prob = (log_prob_before + log_prob_after) / 2
-                log_probabilities[letter].append(average_log_prob)
+                # Use the weights to take a weighted average of the log probabilities
+                weighted_average_log_prob = (log_prob_before * left_weight + log_prob_after * right_weight)
+                log_probabilities[letter].append(weighted_average_log_prob)
 
         # Now average the log probabilities across all q values
         averaged_log_probabilities = {letter: sum(log_probs)/len(log_probs) for letter, log_probs in log_probabilities.items() if log_probs}
@@ -194,10 +206,10 @@ class LanguageModel:
         # Convert only the top log probabilities to probabilities
         top_predictions = [(letter, np.exp(log_prob)) for letter, log_prob in top_log_predictions]
 
-        # Return predictions with probabilities for more informed decision-making
+        # Return predictions with probabilities
         return top_predictions
 
-    def evaluate_predictions(self):
+    def evaluate_predictions(self, iteration_number):
         today = datetime.now().strftime('%Y%m%d')
         results = {}
 
@@ -219,6 +231,7 @@ class LanguageModel:
                         correct[k] += 1
 
                 result_lines.append(
+                    f"Iteration: {iteration_number}\n"
                     f"Test Word: {test_word}\n"
                     f"Correct Word: {original_word}\n"
                     "Top 5 Predictions:\n" +
@@ -226,8 +239,9 @@ class LanguageModel:
                             for rank, (letter, prob) in enumerate(predictions, 1))
                 )
 
-            with (directory / f"results_{today}.txt").open('w') as f:
-                f.write("\n\n".join(result_lines))
+            # Open the file in append mode ('a') instead of write mode ('w')
+            with (directory / f"results_{today}.txt").open('a') as f:
+                f.write("\n\n".join(result_lines) + "\n\n")
 
             # Calculate accuracies
             total_words = len(test_words)
@@ -236,6 +250,7 @@ class LanguageModel:
                 'top3': correct[3] / total_words,
                 'top5': correct[5] / total_words,
             }
+
         return results
 
 def save_results_to_file(results, iteration, folder="results"):
@@ -299,7 +314,7 @@ if __name__ == "__main__":
             lm.generate_and_load_models(corpus_name, corpus_path)
         
         # Evaluate predictions and accumulate accuracies
-        accuracies = lm.evaluate_predictions()
+        accuracies = lm.evaluate_predictions(iteration + 1)
         for corpus_name, accuracy in accuracies.items():
             for acc_type, acc_value in accuracy.items():
                 total_accuracy[corpus_name][acc_type] += acc_value
