@@ -103,32 +103,31 @@ class LanguageModel:
         return model.score(sequence, bos=False, eos=False)
 
     def generate_formatted_corpus(self, corpus_name, path='formatted_corpus.txt', use_test_set=True):
-        # First, check if the corpus is already cached in memory
+        # Check for cached corpus first
         if corpus_name in self.formatted_corpora_cache:
             return self.formatted_corpora_cache[corpus_name]
 
-        # If not cached, proceed to check if the file exists
-        if not Path(path).exists():
-            # If the file does not exist, create and cache it
-            with open(path, 'w') as f:
-                formatted_corpus = ' '.join(
-                    f'<w> {" ".join(word)} </w>' for word in self.corpora[corpus_name])  # Space between each letter
-                f.write(formatted_corpus)
-            self.formatted_corpora_cache[corpus_name] = formatted_corpus
-        else:
-            # If the file exists, read and cache it
-            with open(path, 'r') as f:
-                formatted_corpus = f.read()
+        # Helper function to format the corpus
+        def format_corpus(words):
+            return ' '.join(f'<w> {" ".join(word)} </w>' for word in words)
 
+        # Determine which set of words to format
+        words_to_format = self.corpora[corpus_name]
         if use_test_set and corpus_name in self.test_set:
-            training_words = self.corpora[corpus_name] - set(self.test_set[corpus_name].values())
-            formatted_corpus = ' '.join(
-                f'<w> {" ".join(word)} </w>' for word in training_words)  # Space between each letter
-        else:
-            formatted_corpus = ' '.join(
-                f'<w> {" ".join(word)} </w>' for word in self.corpora[corpus_name])  # Space between each letter
+            words_to_format = words_to_format - set(self.test_set[corpus_name].values())
 
-        # Cache the corpus content in memory whether it was read from file or written to file
+        # Check if the file exists and read from it if so
+        corpus_path = Path(path)
+        if corpus_path.exists():
+            with corpus_path.open('r') as f:
+                formatted_corpus = f.read()
+        else:
+            # File doesn't exist, so format the corpus and write it to a new file
+            formatted_corpus = format_corpus(words_to_format)
+            with corpus_path.open('w') as f:
+                f.write(formatted_corpus)
+
+        # Cache and return the formatted corpus
         self.formatted_corpora_cache[corpus_name] = formatted_corpus
         return path
 
