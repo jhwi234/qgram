@@ -5,6 +5,7 @@ import heapq
 from functools import lru_cache
 import numpy as np
 import os
+from pathlib import Path
 from datetime import datetime
 
 class LanguageModel:
@@ -16,6 +17,9 @@ class LanguageModel:
             'cmu': set(),
         }
         self.formatted_corpora_cache = {}
+        self.test_set = {}
+        self.training_corpora = {}
+        self.loaded_corpora = False 
 
     @staticmethod
     def download_nltk():
@@ -35,9 +39,12 @@ class LanguageModel:
         ]
 
     def load_corpora(self, use_test_set=True):
-        self.download_nltk()
-        self.corpora['cmu'].update(self.load_cmu())
-        self.corpora['brown'].update(self.load_brown())
+        if not self.loaded_corpora:
+            self.download_nltk()
+            self.corpora['cmu'].update(self.load_cmu())
+            self.corpora['brown'].update(self.load_brown())
+            self.loaded_corpora = True
+
         if use_test_set:
             self.prepare_test_set() 
 
@@ -79,7 +86,7 @@ class LanguageModel:
                 word: self.replace_random_letter(word) for word in test_words
             }
 
-    @lru_cache(maxsize=1000)
+    @lru_cache(maxsize=10000)
     def cached_score(self, model, sequence):
         return model.score(sequence, bos=False, eos=False)
 
@@ -112,7 +119,6 @@ class LanguageModel:
         # Cache the corpus content in memory whether it was read from file or written to file
         self.formatted_corpora_cache[corpus_name] = formatted_corpus
         return path
-
 
     def generate_and_load_models(self, corpus_name, corpus_path):
         self.models[corpus_name] = {}  # Initialize a dictionary for this corpus
@@ -192,65 +198,57 @@ class LanguageModel:
         return top_predictions
 
     def evaluate_predictions(self):
-        """
-        Evaluate the model's predictions on the test set.
-        """
-        # Get today's date to use in the filename
         today = datetime.now().strftime('%Y%m%d')
         results = {}
 
         for corpus_name, test_words in self.test_set.items():
-            correct_top1 = 0
-            correct_top3 = 0
-            correct_top5 = 0
-            # Create a directory to store the results if it doesn't exist
-            directory = f"./results/{corpus_name}"
-            os.makedirs(directory, exist_ok=True)
-
+            correct = {1: 0, 3: 0, 5: 0}
+            directory = Path(f"./results/{corpus_name}")
+            directory.mkdir(parents=True, exist_ok=True)
+            
+            # Write predictions to a file
+            result_lines = []
             for original_word, test_word in test_words.items():
                 predictions = self.predict_missing_letter(corpus_name, test_word)
                 correct_letter = original_word[test_word.index('_')]
                 
                 # Check if the correct prediction is in top 1, top 3, and top 5
                 top_predictions = [p[0] for p in predictions]
-                if correct_letter in top_predictions[:1]:
-                    correct_top1 += 1
-                if correct_letter in top_predictions[:3]:
-                    correct_top3 += 1
-                if correct_letter in top_predictions[:5]:
-                    correct_top5 += 1
+                for k in correct.keys():
+                    if correct_letter in top_predictions[:k]:
+                        correct[k] += 1
 
-                # Write predictions to a file
-                with open(f'{directory}/{test_word}_results_{today}.txt', 'w') as f:
-                    f.write(f"Test Word: {test_word}\n")
-                    f.write(f"Correct Word: {original_word}\n")
-                    f.write("Top 5 Predictions:\n")
-                    for rank, (letter, prob) in enumerate(predictions, 1):
-                        f.write(f"Rank {rank}: '{letter}' with probability {prob:.5f}\n")
+                result_lines.append(
+                    f"Test Word: {test_word}\n"
+                    f"Correct Word: {original_word}\n"
+                    "Top 5 Predictions:\n" +
+                    "".join(f"Rank {rank}: '{letter}' with probability {prob:.5f}\n"
+                            for rank, (letter, prob) in enumerate(predictions, 1))
+                )
+
+            with (directory / f"results_{today}.txt").open('w') as f:
+                f.write("\n\n".join(result_lines))
 
             # Calculate accuracies
-            accuracy_top1 = correct_top1 / len(test_words)
-            accuracy_top3 = correct_top3 / len(test_words)
-            accuracy_top5 = correct_top5 / len(test_words)
-
-            # Store the accuracies in the results dictionary
+            total_words = len(test_words)
             results[corpus_name] = {
-                'top1': accuracy_top1,
-                'top3': accuracy_top3,
-                'top5': accuracy_top5,
+                'top1': correct[1] / total_words,
+                'top3': correct[3] / total_words,
+                'top5': correct[5] / total_words,
             }
         return results
 
 def save_results_to_file(results, iteration, folder="results"):
     # Ensure the folder exists
-    if not os.path.exists(folder):
-        os.makedirs(folder)
+    folder_path = Path(folder)
+    folder_path.mkdir(parents=True, exist_ok=True)
     
     # Create a filename with the iteration number and today's date
+    today = datetime.now().strftime("%Y%m%d")  # Format for: YYYYMMDD
     filename = f"results_iteration_{iteration}_{today}.txt"
-    filepath = os.path.join(folder, filename)
+    filepath = folder_path / filename
     
-    with open(filepath, 'w') as file:
+    with filepath.open('w') as file:
         for corpus_name, accuracies in results.items():
             file.write(f"{corpus_name.capitalize()} Corpus:\n")
             for acc_type, acc_value in accuracies.items():
@@ -259,38 +257,54 @@ def save_results_to_file(results, iteration, folder="results"):
     
     print(f"Results saved to {filepath}")
 
-def print_predictions(word, predictions):
+def print_predictions(word: str, predictions: list[tuple[str, float]]) -> None:
+    """
+    Print predictions for a given word, showing the rank and probability as a percentage of the top 5.
+    
+    :param word: The word to print predictions for.
+    :param predictions: A list of tuples containing predicted letters and their probabilities.
+    """
     print(f"Word: {word}")
     
     # Calculate total probability of top 5 to normalize and show as percentages
     total_prob = sum(prob for _, prob in predictions)
+    if total_prob == 0:
+        print("No predictions to display.")
+        return
+
     for rank, (letter, prob) in enumerate(predictions, 1):
         percentage = (prob / total_prob) * 100  # Convert to percentage of the total
         print(f"Rank {rank}: '{letter}' with {percentage:.2f}% of the top 5 confidence")
 
 if __name__ == "__main__":
-    iterations = 5
-    total_accuracy = {corpus_name: {'top1': 0, 'top3': 0, 'top5': 0} for corpus_name in ['brown', 'cmu']}
-    today = datetime.now().strftime('%Y%m%d')  # Today's date for filenames
+    iterations = 2
+    corpora = ['brown', 'cmu']
+    total_accuracy = {corpus_name: {'top1': 0, 'top3': 0, 'top5': 0} for corpus_name in corpora}
+    today = datetime.now().strftime('%Y%m%d')
+
+    # Initialize LanguageModel outside the loop to keep the corpora loaded
+    lm = LanguageModel(q_range=(2, 6))
+    lm.load_corpora(use_test_set=False)  # Load corpora without preparing the test set
+
+    formatted_corpus_paths = {
+        corpus_name: lm.generate_formatted_corpus(corpus_name, path=f'{corpus_name}_formatted_corpus.txt')
+        for corpus_name in corpora
+    }
 
     for iteration in range(iterations):
-        lm = LanguageModel(q_range=(2, 6))
-        lm.load_corpora(use_test_set=True)
+        lm.prepare_test_set()  # Prepare the test set before each iteration
         
-        # Generate and load models for each corpus
-        corpus_path_brown = lm.generate_formatted_corpus('brown', path='brown_formatted_corpus.txt')
-        lm.generate_and_load_models('brown', corpus_path_brown)
-        
-        corpus_path_cmu = lm.generate_formatted_corpus('cmu', path='cmu_formatted_corpus.txt')
-        lm.generate_and_load_models('cmu', corpus_path_cmu)
+        # Load models for each pre-generated formatted corpus
+        for corpus_name, corpus_path in formatted_corpus_paths.items():
+            lm.generate_and_load_models(corpus_name, corpus_path)
         
         # Evaluate predictions and accumulate accuracies
         accuracies = lm.evaluate_predictions()
         for corpus_name, accuracy in accuracies.items():
-            for acc_type in total_accuracy[corpus_name]:
-                total_accuracy[corpus_name][acc_type] += accuracy[acc_type]
+            for acc_type, acc_value in accuracy.items():
+                total_accuracy[corpus_name][acc_type] += acc_value
         
-        # Format and print the accuracies for this iteration
+        # Print the accuracies for this iteration
         formatted_accuracies = "\n".join(
             f"{corpus_name.capitalize()} Corpus: " +
             ", ".join(f"{acc_type.upper()} Accuracy: {acc_value:.2%}" for acc_type, acc_value in corpus_accuracies.items())
@@ -301,19 +315,14 @@ if __name__ == "__main__":
         # Save the results to a file
         save_results_to_file(accuracies, iteration + 1)
 
-    # Averaging the accuracy over the iterations
-    averaged_accuracy = {
-        corpus_name: {
-            acc_type: acc_value / iterations
-            for acc_type, acc_value in acc_types.items()
-        }
-        for corpus_name, acc_types in total_accuracy.items()
-    }
+    # Calculate averaged accuracy
+    averaged_accuracy = {corpus_name: {acc_type: acc_value / iterations
+                                       for acc_type, acc_value in acc_types.items()}
+                         for corpus_name, acc_types in total_accuracy.items()}
     
     # Print final averaged accuracies
     print("Averaged accuracy over iterations:")
     for corpus_name, acc_types in averaged_accuracy.items():
-        print(f"{corpus_name.capitalize()} Corpus:")
-        for acc_type, acc_value in acc_types.items():
-            print(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}")
-        print()
+        accuracies_formatted = "\n".join(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}"
+                                         for acc_type, acc_value in acc_types.items())
+        print(f"{corpus_name.capitalize()} Corpus:\n{accuracies_formatted}\n")
