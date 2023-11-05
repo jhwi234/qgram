@@ -79,7 +79,6 @@ class LanguageModel:
 
     @staticmethod
     def replace_random_letter(word):
-        """Replace a random letter in a word with an underscore '_'"""
         letter_index = np.random.randint(0, len(word))
         return word[:letter_index] + '_' + word[letter_index+1:]
 
@@ -276,12 +275,6 @@ def save_results_to_file(results, iteration, folder="results"):
     print(f"Results saved to {filepath}")
 
 def print_predictions(word: str, predictions: list[tuple[str, float]]) -> None:
-    """
-    Print predictions for a given word, showing the rank and probability as a percentage of the top 5.
-    
-    :param word: The word to print predictions for.
-    :param predictions: A list of tuples containing predicted letters and their probabilities.
-    """
     print(f"Word: {word}")
     
     # Calculate total probability of top 5 to normalize and show as percentages
@@ -295,7 +288,7 @@ def print_predictions(word: str, predictions: list[tuple[str, float]]) -> None:
         print(f"Rank {rank}: '{letter}' with {percentage:.2f}% of the top 5 confidence")
 
 if __name__ == "__main__":
-    iterations = 2
+    iterations = 100
     corpora = ['brown', 'cmu']
     total_accuracy = {corpus_name: {'top1': 0, 'top3': 0, 'top5': 0} for corpus_name in corpora}
     today = datetime.now().strftime('%Y%m%d')
