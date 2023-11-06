@@ -112,7 +112,7 @@ class LanguageModel:
                 word: self.replace_random_letter(word) for word in test_words
             }
 
-    @lru_cache(maxsize=10000)
+   # @lru_cache(maxsize=10000)
     def cached_score(self, model, sequence):
         return model.score(sequence, bos=False, eos=False)
 
@@ -353,7 +353,7 @@ def print_predictions(word: str, predictions: list[tuple[str, float]]) -> None:
 def main():
     random.seed(42)
     np.random.seed(42)
-    iterations = 2
+    iterations = 100
     corpora = ['brown', 'cmu']
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
 
