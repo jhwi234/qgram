@@ -205,15 +205,11 @@ class LanguageModel:
             entropy_weights.append(entropy)
 
             for letter in 'abcdefghijklmnopqrstuvwxyz':
-                # Create sequences for before and after the missing letter
-                sequence_before = f"{left_context_joined} {letter}" if left_context_joined else letter
-                sequence_after = f"{letter} {right_context_joined}" if right_context_joined else letter
-
-                # Get the log scores from the cached method instead of the model directly
-                log_prob_before = self.cached_score(model, sequence_before)
-                log_prob_after = self.cached_score(model, sequence_after)
-
-                log_probabilities[letter].append((log_prob_before, log_prob_after))
+                # Create the full sequence with the candidate letter filled in
+                full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
+                # Get the log score for the full sequence
+                log_prob_full = self.cached_score(model, full_sequence)
+                log_probabilities[letter].append(log_prob_full)
 
         # Normalize entropy weights
         entropy_weights = np.exp(entropy_weights - np.max(entropy_weights))
@@ -224,11 +220,11 @@ class LanguageModel:
         for letter, log_probs_list in log_probabilities.items():
             if log_probs_list:
                 # Weighted sum of log probabilities using entropy weights
-                weighted_log_probs = np.sum([entropy_weights[i] * (log_probs[0] + log_probs[1]) / 2
-                                            for i, log_probs in enumerate(log_probs_list)], axis=0)
+                weighted_log_probs = np.sum([entropy_weights[i] * log_probs
+                                             for i, log_probs in enumerate(log_probs_list)], axis=0)
                 averaged_log_probabilities[letter] = weighted_log_probs
 
-        # Apply heapq.nlargest on log probabilities directly
+        # Apply heapq.nlargest to find the top log probabilities
         top_log_predictions = heapq.nlargest(3, averaged_log_probabilities.items(), key=lambda item: item[1])
 
         # Convert only the top log probabilities to probabilities
