@@ -8,11 +8,28 @@ import subprocess
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor
+import concurrent.futures
 
 import kenlm
 import nltk
 import numpy as np
 from nltk.corpus import brown, cmudict
+
+def model_task(corpus_name, q, corpus_path, model_directory):
+    arpa_file = model_directory / f'{corpus_name}_{q}gram.arpa'
+    binary_file = model_directory / f'{corpus_name}_{q}gram.klm'
+
+    try:
+        subprocess.run(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
+                       check=True, capture_output=True)
+        subprocess.run(['build_binary', '-s', str(arpa_file), str(binary_file)],
+                       check=True, capture_output=True)
+        return q, str(binary_file)  # Returning the path instead of the loaded model to avoid pickling issues.
+    except subprocess.CalledProcessError as e:
+        logging.error(f"An error occurred while generating/loading the model for {q}-gram: {e.output.decode()}")
+        logging.error(f"Stderr: {e.stderr.decode()}")
+        return q, None
 
 logging.basicConfig(level=logging.INFO)
 split_pattern = re.compile(r"[-\s]")
@@ -139,22 +156,18 @@ class LanguageModel:
         model_directory = Path(f'{corpus_name}_models')
         model_directory.mkdir(parents=True, exist_ok=True)
 
-        for q in self.q_range:
-            arpa_file = model_directory / f'{corpus_name}_{q}gram.arpa'
-            binary_file = model_directory / f'{corpus_name}_{q}gram.klm'
+        with ProcessPoolExecutor() as executor:
+            # We can now pass all necessary arguments to model_task.
+            futures = {executor.submit(model_task, corpus_name, q, corpus_path, model_directory): q for q in self.q_range}
 
-            try:
-                subprocess.run(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
-                            check=True, capture_output=True)
-                subprocess.run(['build_binary', '-s', str(arpa_file), str(binary_file)],
-                            check=True, capture_output=True)
-            except subprocess.CalledProcessError as e:
-                logging.error(f"An error occurred while generating/loading the model for {q}-gram: {e.output.decode()}")
-                logging.error(f"Stderr: {e.stderr.decode()}")
-                continue
-
-            self.models[corpus_name][q] = kenlm.Model(str(binary_file))
-            logging.info(f"Model for {q}-gram loaded for {corpus_name} corpus.")
+            for future in concurrent.futures.as_completed(futures):
+                q = futures[future]
+                result = future.result()
+                if result:
+                    q_gram, binary_file = result
+                    if binary_file:
+                        self.models[corpus_name][q_gram] = kenlm.Model(binary_file)
+                        logging.info(f"Model for {q_gram}-gram loaded for {corpus_name} corpus.")
 
     def predict_missing_letter(self, corpus_name, oov_word):
         missing_letter_index = oov_word.index('_')
