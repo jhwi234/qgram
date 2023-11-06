@@ -8,6 +8,7 @@ import subprocess
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 import kenlm
 import nltk
@@ -111,37 +112,30 @@ class LanguageModel:
         # Determine which set of words to format
         words_to_format = self.corpora[corpus_name]
         if use_test_set and corpus_name in self.test_set:
-            words_to_format = words_to_format - set(self.test_set[corpus_name].values())
+            words_to_format = words_to_format - set(self.test_set[corpus_name])
 
         formatted_corpus = format_corpus(words_to_format)
-        # Use SHA-1 instead of SHA-256
         corpus_hash = hashlib.sha1(formatted_corpus.encode('utf-8')).hexdigest()
-
-        # Define the path object for the corpus
         corpus_path = Path(path)
 
         # Attempt to read the existing file and compare hashes
         try:
-            if corpus_path.exists():
-                with corpus_path.open('r') as f:
-                    existing_corpus = f.read()
-                    # Use SHA-1 instead of SHA-256 for existing corpus
-                    existing_hash = hashlib.sha1(existing_corpus.encode('utf-8')).hexdigest()
-                    if existing_hash == corpus_hash:
-                        self.formatted_corpora_cache[corpus_name] = existing_corpus
-                        return path
+            if corpus_path.is_file():
+                existing_corpus = corpus_path.read_text()
+                existing_hash = hashlib.sha1(existing_corpus.encode('utf-8')).hexdigest()
+                if existing_hash == corpus_hash:
+                    self.formatted_corpora_cache[corpus_name] = existing_corpus
+                    return path
 
-            # If the file doesn't exist or the hash doesn't match, write the updated corpus
-            with corpus_path.open('w') as f:
-                f.write(formatted_corpus)
+            # Write the updated corpus if the file doesn't exist or the hash doesn't match
+            corpus_path.write_text(formatted_corpus)
+            self.formatted_corpora_cache[corpus_name] = formatted_corpus
+            return path
 
         except IOError as e:
             logging.error(f"An I/O error occurred: {e}")
-            # Handle the error as appropriate, such as retrying or aborting the operation
-
-        # Cache and return the formatted corpus
-        self.formatted_corpora_cache[corpus_name] = formatted_corpus
-        return path
+            # Handle the error as appropriate
+            raise e
 
     def generate_and_load_models(self, corpus_name, corpus_path):
         self.models[corpus_name] = {}
@@ -318,22 +312,28 @@ class LanguageModel:
 
         return results
         
-def save_results_to_file(results, iteration, folder="results") -> None:
+def save_results_to_file(results, iteration, folder="results", today=None) -> None:
+    # Calculate the date once and reuse it if not provided
+    if today is None:
+        today = datetime.now().strftime("%Y%m%d")
+
     # Ensure the folder exists
     folder_path = Path(folder)
     folder_path.mkdir(parents=True, exist_ok=True)
     
-    # Create a filename with the iteration number and today's date
-    today = datetime.now().strftime("%Y%m%d")
     filename = f"results_iteration_{iteration}_{today}.txt"
     filepath = folder_path / filename
     
-    with filepath.open('w') as file:
-        for corpus_name, accuracies in results.items():
-            file.write(f"{corpus_name.capitalize()} Corpus:\n")
-            for acc_type, acc_value in accuracies.items():
-                file.write(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}\n")
-            file.write("\n")
+    # Construct result content before writing to the file
+    result_lines = []
+    for corpus_name, accuracies in results.items():
+        result_lines.append(f"{corpus_name.capitalize()} Corpus:\n" + "\n".join(
+            f"  {acc_type.upper()} Accuracy: {acc_value:.2%}" for acc_type, acc_value in accuracies.items()
+        ) + "\n")
+
+    # Write all lines to file in one go
+    with open(filepath, 'w') as file:
+        file.write("\n".join(result_lines))
     
     print(f"Results saved to {filepath}")
 
@@ -356,25 +356,26 @@ def main():
     np.random.seed(42)
     iterations = 2
     corpora = ['brown', 'cmu']
-    # Include 'precision' and 'recall' in the total_accuracy initialization
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
-    today = datetime.now().strftime('%Y%m%d')
 
-    # Initialize LanguageModel outside the loop to keep the corpora loaded
+    # Initialize LanguageModel outside the loop
     lm = LanguageModel(q_range=(2, 6))
     lm.load_corpora(use_test_set=False)
 
+    # Generate paths for formatted corpora outside the iteration loop
     formatted_corpus_paths = {
         corpus_name: lm.generate_formatted_corpus(corpus_name, path=f'{corpus_name}_formatted_corpus.txt')
         for corpus_name in corpora
     }
 
+    # Generate and load models outside the iteration loop if they do not change per iteration
+    with ThreadPoolExecutor(max_workers=len(corpora)) as executor:
+        for corpus_name, corpus_path in formatted_corpus_paths.items():
+            executor.submit(lm.generate_and_load_models, corpus_name, corpus_path)
+
+    # Start the iterations
     for iteration in range(iterations):
         lm.prepare_test_set()
-
-        # Load models for each pre-generated formatted corpus
-        for corpus_name, corpus_path in formatted_corpus_paths.items():
-            lm.generate_and_load_models(corpus_name, corpus_path)
 
         # Evaluate predictions and accumulate accuracies
         accuracies = lm.evaluate_predictions(iteration + 1)
@@ -392,7 +393,7 @@ def main():
             for acc_type, acc_value in accuracy.items():
                 total_accuracy[corpus_name][acc_type] += acc_value
 
-        # Save the results to a file
+        # Save the results to a file (assuming this is a function that saves to file)
         save_results_to_file(accuracies, iteration + 1)
 
     # Calculate averaged accuracy
