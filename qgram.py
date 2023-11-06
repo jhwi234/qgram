@@ -13,12 +13,7 @@ import hashlib
 import random
 
 logging.basicConfig(level=logging.INFO)
-
-np.random.seed(42)
-random.seed(42)
-
 split_pattern = re.compile(r"[-\s]")
-
 class LanguageModel:
 
     def __init__(self, q_range=(2, 6)):
@@ -32,8 +27,6 @@ class LanguageModel:
         self.test_set = {}
         self.training_corpora = {}
         self.loaded_corpora = False 
-
-    nltk_resources_downloaded = False
 
     def clean_word(self, word):
         parts = split_pattern.split(word)
@@ -75,6 +68,7 @@ class LanguageModel:
         This method now has access to the instance scope (self), 
         which allows it to use or modify instance variables if needed.
         """
+        np.random.seed(42)
         letter_index = np.random.randint(0, len(word))
         return word[:letter_index] + '_' + word[letter_index+1:]
 
@@ -84,6 +78,7 @@ class LanguageModel:
         and replacing a random letter with an underscore '_'.
         Does not remove words from the original corpora.
         """
+        random.seed(42)
         self.test_set = {}
         self.training_corpora = {corpus: set(words) for corpus, words in self.corpora.items()}
         for corpus_name, words in self.corpora.items():
@@ -112,8 +107,8 @@ class LanguageModel:
             words_to_format = words_to_format - set(self.test_set[corpus_name].values())
 
         formatted_corpus = format_corpus(words_to_format)
-        # Use SHA-256 instead of MD5
-        corpus_hash = hashlib.sha256(formatted_corpus.encode('utf-8')).hexdigest()
+        # Use SHA-1 instead of SHA-256
+        corpus_hash = hashlib.sha1(formatted_corpus.encode('utf-8')).hexdigest()
 
         # Define the path object for the corpus
         corpus_path = Path(path)
@@ -123,8 +118,8 @@ class LanguageModel:
             if corpus_path.exists():
                 with corpus_path.open('r') as f:
                     existing_corpus = f.read()
-                    # Use SHA-256 instead of MD5 for existing corpus
-                    existing_hash = hashlib.sha256(existing_corpus.encode('utf-8')).hexdigest()
+                    # Use SHA-1 instead of SHA-256 for existing corpus
+                    existing_hash = hashlib.sha1(existing_corpus.encode('utf-8')).hexdigest()
                     if existing_hash == corpus_hash:
                         self.formatted_corpora_cache[corpus_name] = existing_corpus
                         return path
@@ -134,7 +129,7 @@ class LanguageModel:
                 f.write(formatted_corpus)
 
         except IOError as e:
-            print(f"An I/O error occurred: {e}")
+            logging.error(f"An I/O error occurred: {e}")
             # Handle the error as appropriate, such as retrying or aborting the operation
 
         # Cache and return the formatted corpus
