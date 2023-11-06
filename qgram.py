@@ -8,7 +8,6 @@ import subprocess
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
 
 import kenlm
 import nltk
@@ -101,41 +100,39 @@ class LanguageModel:
         return model.score(sequence, bos=False, eos=False)
 
     def generate_formatted_corpus(self, corpus_name, path='formatted_corpus.txt', use_test_set=True):
-        # Check for cached corpus first
         if corpus_name in self.formatted_corpora_cache:
             return self.formatted_corpora_cache[corpus_name]
 
-        # Helper function to format the corpus
         def format_corpus(words):
             return ' '.join(f'<w> {" ".join(word)} </w>' for word in words)
 
-        # Determine which set of words to format
         words_to_format = self.corpora[corpus_name]
         if use_test_set and corpus_name in self.test_set:
-            words_to_format = words_to_format - set(self.test_set[corpus_name])
+            words_to_format = words_to_format - set(self.test_set[corpus_name].values())
 
         formatted_corpus = format_corpus(words_to_format)
         corpus_hash = hashlib.sha1(formatted_corpus.encode('utf-8')).hexdigest()
+
         corpus_path = Path(path)
 
-        # Attempt to read the existing file and compare hashes
         try:
-            if corpus_path.is_file():
-                existing_corpus = corpus_path.read_text()
-                existing_hash = hashlib.sha1(existing_corpus.encode('utf-8')).hexdigest()
-                if existing_hash == corpus_hash:
-                    self.formatted_corpora_cache[corpus_name] = existing_corpus
-                    return path
+            if corpus_path.exists():
+                with corpus_path.open('r') as f:
+                    existing_corpus = f.read()
+                    existing_hash = hashlib.sha1(existing_corpus.encode('utf-8')).hexdigest()
+                    if existing_hash == corpus_hash:
+                        self.formatted_corpora_cache[corpus_name] = existing_corpus
+                        return path
 
-            # Write the updated corpus if the file doesn't exist or the hash doesn't match
-            corpus_path.write_text(formatted_corpus)
-            self.formatted_corpora_cache[corpus_name] = formatted_corpus
-            return path
+            with corpus_path.open('w') as f:
+                f.write(formatted_corpus)
 
         except IOError as e:
             logging.error(f"An I/O error occurred: {e}")
-            # Handle the error as appropriate
             raise e
+
+        self.formatted_corpora_cache[corpus_name] = formatted_corpus
+        return path
 
     def generate_and_load_models(self, corpus_name, corpus_path):
         self.models[corpus_name] = {}
@@ -164,7 +161,6 @@ class LanguageModel:
         log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyz'}
         entropy_weights = []
 
-        # Adjust boundary symbols if the missing letter is at the beginning or end of the word
         boundary_start = '<w> ' if missing_letter_index == 0 else ''
         boundary_end = ' </w>' if missing_letter_index == len(oov_word) - 1 else ''
         oov_word_with_boundaries = f"{boundary_start}{oov_word}{boundary_end}"
@@ -312,28 +308,22 @@ class LanguageModel:
 
         return results
         
-def save_results_to_file(results, iteration, folder="results", today=None) -> None:
-    # Calculate the date once and reuse it if not provided
-    if today is None:
-        today = datetime.now().strftime("%Y%m%d")
-
+def save_results_to_file(results, iteration, folder="results") -> None:
     # Ensure the folder exists
     folder_path = Path(folder)
     folder_path.mkdir(parents=True, exist_ok=True)
     
+    # Create a filename with the iteration number and today's date
+    today = datetime.now().strftime("%Y%m%d")
     filename = f"results_iteration_{iteration}_{today}.txt"
     filepath = folder_path / filename
     
-    # Construct result content before writing to the file
-    result_lines = []
-    for corpus_name, accuracies in results.items():
-        result_lines.append(f"{corpus_name.capitalize()} Corpus:\n" + "\n".join(
-            f"  {acc_type.upper()} Accuracy: {acc_value:.2%}" for acc_type, acc_value in accuracies.items()
-        ) + "\n")
-
-    # Write all lines to file in one go
-    with open(filepath, 'w') as file:
-        file.write("\n".join(result_lines))
+    with filepath.open('w') as file:
+        for corpus_name, accuracies in results.items():
+            file.write(f"{corpus_name.capitalize()} Corpus:\n")
+            for acc_type, acc_value in accuracies.items():
+                file.write(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}\n")
+            file.write("\n")
     
     print(f"Results saved to {filepath}")
 
@@ -348,7 +338,7 @@ def print_predictions(word: str, predictions: list[tuple[str, float]]) -> None:
         return
 
     for rank, (letter, prob) in enumerate(predictions, 1):
-        percentage = (prob / total_prob) * 100  # Convert to percentage of the total
+        percentage = (prob / total_prob) * 100
         print(f"Rank {rank}: '{letter}' with {percentage:.2f}% of the top 3 confidence")
 
 def main():
@@ -368,14 +358,12 @@ def main():
         for corpus_name in corpora
     }
 
-    # Generate and load models outside the iteration loop if they do not change per iteration
-    with ThreadPoolExecutor(max_workers=len(corpora)) as executor:
-        for corpus_name, corpus_path in formatted_corpus_paths.items():
-            executor.submit(lm.generate_and_load_models, corpus_name, corpus_path)
-
-    # Start the iterations
     for iteration in range(iterations):
         lm.prepare_test_set()
+
+        # Load models for each pre-generated formatted corpus
+        for corpus_name, corpus_path in formatted_corpus_paths.items():
+            lm.generate_and_load_models(corpus_name, corpus_path)
 
         # Evaluate predictions and accumulate accuracies
         accuracies = lm.evaluate_predictions(iteration + 1)
