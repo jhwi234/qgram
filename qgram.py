@@ -25,7 +25,7 @@ def model_task(corpus_name, q, corpus_path, model_directory):
                        check=True, capture_output=True)
         subprocess.run(['build_binary', '-s', str(arpa_file), str(binary_file)],
                        check=True, capture_output=True)
-        return q, str(binary_file)  # Returning the path instead of the loaded model to avoid pickling issues.
+        return q, str(binary_file)
     except subprocess.CalledProcessError as e:
         logging.error(f"An error occurred while generating/loading the model for {q}-gram: {e.output.decode()}")
         logging.error(f"Stderr: {e.stderr.decode()}")
@@ -97,7 +97,7 @@ class LanguageModel:
         letter_index = np.random.randint(0, len(word))
         return word[:letter_index] + '_' + word[letter_index+1:]
 
-    def prepare_test_set(self, n=100) -> None:
+    def prepare_test_set(self, n=1000) -> None:
         """
         Prepare test set by selecting n words from the corpora
         and replacing a random letter with an underscore '_'.
@@ -340,18 +340,19 @@ def save_results_to_file(results, iteration, folder="results") -> None:
     print(f"Results saved to {filepath}")
 
 def print_predictions(word: str, predictions: list[tuple[str, float]]) -> None:
+    logger = logging.getLogger(__name__)
 
-    print(f"Word: {word}")
+    logger.info(f"Word: {word}")
     
     # Calculate total probability of top 3 to normalize and show as percentages
     total_prob = sum(prob for _, prob in predictions)
     if total_prob == 0:
-        print("No predictions to display.")
+        logger.info("No predictions to display.")
         return
 
     for rank, (letter, prob) in enumerate(predictions, 1):
         percentage = (prob / total_prob) * 100
-        print(f"Rank {rank}: '{letter}' with {percentage:.2f}% of the top 3 confidence")
+        logger.info(f"Rank {rank}: '{letter}' with {percentage:.2f}% of the top 3 confidence")
 
 def main():
     random.seed(42)
