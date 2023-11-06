@@ -61,7 +61,7 @@ class LanguageModel:
                 for cleaned_word in self.clean_word(word) if cleaned_word}
 
     def download_nltk_resources(self) -> None:
-        resources = ['cmudict', 'punkt', 'brown']
+        resources = ['cmudict', 'brown']
         for resource in resources:
             resource_id = f'corpora/{resource}'
             try:
@@ -309,7 +309,6 @@ class LanguageModel:
         return results
         
 def save_results_to_file(results, iteration, folder="results") -> None:
-    # Ensure the folder exists
     folder_path = Path(folder)
     folder_path.mkdir(parents=True, exist_ok=True)
     
@@ -374,7 +373,7 @@ def main():
             print(f"{corpus_name.capitalize()} Corpus:")
             for acc_type, acc_value in corpus_accuracies.items():
                 print(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}")
-            print()  # Add a newline for spacing
+            print()
         
         # Accumulate total accuracies
         for corpus_name, accuracy in accuracies.items():
