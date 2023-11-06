@@ -1,4 +1,5 @@
 import nltk
+from nltk.corpus import cmudict, brown
 import subprocess
 import kenlm
 import heapq
@@ -8,11 +9,14 @@ from pathlib import Path
 from datetime import datetime
 import re
 import logging
+import hashlib
+import random
 
 logging.basicConfig(level=logging.INFO)
 
 np.random.seed(42)
-# Compile the regular expression once and use it inside clean method
+random.seed(42)
+
 split_pattern = re.compile(r"[-\s]")
 
 class LanguageModel:
@@ -31,20 +35,6 @@ class LanguageModel:
 
     nltk_resources_downloaded = False
 
-    @classmethod
-    def download_nltk(cls):
-        if not cls.nltk_resources_downloaded:
-            nltk_resources = [
-                'corpora/cmudict', 'tokenizers/punkt', 'corpora/brown'
-            ]
-            for resource in nltk_resources:
-                try:
-                    nltk.data.find(resource)
-                except LookupError:
-                    nltk.download(resource.split('/')[-1])
-            # Set the flag to True after downloading
-            cls.nltk_resources_downloaded = True
-
     def clean_word(self, word):
         parts = split_pattern.split(word)
         return [
@@ -52,35 +42,39 @@ class LanguageModel:
             for part in parts if len(part) >= 4
         ]
 
-    def load_corpora(self, use_test_set=True):
+    def load_corpora(self, use_test_set: bool = True) -> None:
         if not self.loaded_corpora:
-            self.download_nltk()
-            self.corpora['cmu'].update(self.load_cmu())
-            self.corpora['brown'].update(self.load_brown())
+            self.download_nltk_resources()
+            self.corpora['cmu'] = self.load_nltk_corpus('cmudict')
+            self.corpora['brown'] = self.load_nltk_corpus('brown')
             self.loaded_corpora = True
+            if use_test_set:
+                self.prepare_test_set()
 
-        if use_test_set:
-            self.prepare_test_set() 
+    def load_nltk_corpus(self, corpus_name: str) -> set[str]:
+        nltk.download(corpus_name)
+        words = getattr(nltk.corpus, corpus_name).words()
+        return {cleaned_word
+                for word in words if word.isalpha()
+                for cleaned_word in self.clean_word(word)}
 
-    def load_cmu(self):
-        cmu_dict = nltk.corpus.cmudict.dict()
-        return {
-            cleaned_word
-            for word in cmu_dict.keys() if word.isalpha()
-            for cleaned_word in self.clean_word(word)
-        }
+    def download_nltk_resources(self) -> None:
+        resources = ['cmudict', 'punkt', 'brown']
+        for resource in resources:
+            resource_id = f'corpora/{resource}'
+            try:
+                nltk.data.find(resource_id)
+            except LookupError:
+                logging.info(f"Downloading NLTK resource: {resource}")
+                nltk.download(resource)
+        self.__class__.nltk_resources_downloaded = True
 
-    def load_brown(self):
-        brown_words = nltk.corpus.brown.words()
-        return {
-            cleaned_word
-            for word in brown_words
-            for cleaned_word in self.clean_word(word)
-            if cleaned_word
-        }
-
-    @staticmethod
-    def replace_random_letter(word):
+    def replace_random_letter(self, word):
+        """
+        Instance method to replace a random letter in the word with an underscore '_'.
+        This method now has access to the instance scope (self), 
+        which allows it to use or modify instance variables if needed.
+        """
         letter_index = np.random.randint(0, len(word))
         return word[:letter_index] + '_' + word[letter_index+1:]
 
@@ -93,7 +87,7 @@ class LanguageModel:
         self.test_set = {}
         self.training_corpora = {corpus: set(words) for corpus, words in self.corpora.items()}
         for corpus_name, words in self.corpora.items():
-            test_words = set(np.random.choice(list(words), n, replace=False))
+            test_words = set(random.sample(list(words), n))
             self.training_corpora[corpus_name] -= test_words
             self.test_set[corpus_name] = {
                 word: self.replace_random_letter(word) for word in test_words
@@ -117,16 +111,31 @@ class LanguageModel:
         if use_test_set and corpus_name in self.test_set:
             words_to_format = words_to_format - set(self.test_set[corpus_name].values())
 
-        # Check if the file exists and read from it if so
+        formatted_corpus = format_corpus(words_to_format)
+        # Use SHA-256 instead of MD5
+        corpus_hash = hashlib.sha256(formatted_corpus.encode('utf-8')).hexdigest()
+
+        # Define the path object for the corpus
         corpus_path = Path(path)
-        if corpus_path.exists():
-            with corpus_path.open('r') as f:
-                formatted_corpus = f.read()
-        else:
-            # File doesn't exist, so format the corpus and write it to a new file
-            formatted_corpus = format_corpus(words_to_format)
+
+        # Attempt to read the existing file and compare hashes
+        try:
+            if corpus_path.exists():
+                with corpus_path.open('r') as f:
+                    existing_corpus = f.read()
+                    # Use SHA-256 instead of MD5 for existing corpus
+                    existing_hash = hashlib.sha256(existing_corpus.encode('utf-8')).hexdigest()
+                    if existing_hash == corpus_hash:
+                        self.formatted_corpora_cache[corpus_name] = existing_corpus
+                        return path
+
+            # If the file doesn't exist or the hash doesn't match, write the updated corpus
             with corpus_path.open('w') as f:
                 f.write(formatted_corpus)
+
+        except IOError as e:
+            print(f"An I/O error occurred: {e}")
+            # Handle the error as appropriate, such as retrying or aborting the operation
 
         # Cache and return the formatted corpus
         self.formatted_corpora_cache[corpus_name] = formatted_corpus
@@ -135,23 +144,24 @@ class LanguageModel:
     def generate_and_load_models(self, corpus_name, corpus_path):
         self.models[corpus_name] = {}
         for q in self.q_range:
-            arpa_file = f'{corpus_name}_{q}gram.arpa'
-            binary_file = f'{corpus_name}_{q}gram.klm'
-            # It's better to use the full path for subprocesses to avoid working directory issues
-            full_arpa_path = f'./{arpa_file}'
-            full_binary_path = f'./{binary_file}'
-            try:
-                subprocess.run(['lmplz', '--discount_fallback', '-o', str(q), '--text', corpus_path, '--arpa', full_arpa_path],
-                            check=True, capture_output=True)
-                # Add the -s flag to build_binary to skip </s> checks
-                subprocess.run(['build_binary', '-s', full_arpa_path, full_binary_path],
-                                check=True, capture_output=True)
-            except subprocess.CalledProcessError as e:
-                print(f"An error occurred: {e.output.decode()}")
-                print(f"Stderr: {e.stderr.decode()}")
-                continue
+            arpa_file = Path(f'{corpus_name}_{q}gram.arpa')
+            binary_file = Path(f'{corpus_name}_{q}gram.klm')
 
-            self.models[corpus_name][q] = kenlm.Model(full_binary_path)
+            # Ensure the directory exists where the files will be stored
+            arpa_file.parent.mkdir(parents=True, exist_ok=True)
+            binary_file.parent.mkdir(parents=True, exist_ok=True)
+
+            try:
+                subprocess.run(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
+                               check=True, capture_output=True)
+                subprocess.run(['build_binary', '-s', str(arpa_file), str(binary_file)],
+                               check=True, capture_output=True)
+            except subprocess.CalledProcessError as e:
+                print(f"An error occurred while generating/loading the model: {e.output.decode()}")
+                print(f"Stderr: {e.stderr.decode()}")
+                continue  # Depending on the context, you might want to exit the loop or raise an exception
+
+            self.models[corpus_name][q] = kenlm.Model(str(binary_file))
             print(f"Model for {q}-gram loaded for {corpus_name} corpus.")
 
     def predict_missing_letter(self, corpus_name, oov_word):
@@ -215,7 +225,7 @@ class LanguageModel:
                 averaged_log_probabilities[letter] = weighted_log_probs
 
         # Apply heapq.nlargest on log probabilities directly
-        top_log_predictions = heapq.nlargest(5, averaged_log_probabilities.items(), key=lambda item: item[1])
+        top_log_predictions = heapq.nlargest(3, averaged_log_probabilities.items(), key=lambda item: item[1])
 
         # Convert only the top log probabilities to probabilities
         top_predictions = [(letter, np.exp(log_prob)) for letter, log_prob in top_log_predictions]
@@ -229,34 +239,52 @@ class LanguageModel:
 
         for corpus_name, test_words in self.test_set.items():
             correct = {1: 0, 2: 0, 3: 0}
+            true_positives = 0
+            false_positives = 0
+            false_negatives = 0
+            result_lines = []
+
+            # Create directory before the loop
             directory = Path(f"./results/{corpus_name}")
             directory.mkdir(parents=True, exist_ok=True)
 
-            result_lines = []
             for original_word, test_word in test_words.items():
                 predictions = self.predict_missing_letter(corpus_name, test_word)
                 correct_letter = original_word[test_word.index('_')]
-                
-                # Check if the correct prediction is in top 1, top 2, and top 3
-                top_predictions = [p[0] for p in predictions]
-                if correct_letter == top_predictions[0]:
-                    correct[1] += 1
-                if correct_letter in top_predictions[:2]:
-                    correct[2] += 1
-                if correct_letter in top_predictions[:3]:
-                    correct[3] += 1
 
+                top_predictions = [p[0] for p in predictions][:3]
+                found_at_rank = None
+
+                for rank, pred in enumerate(top_predictions, start=1):
+                    if pred == correct_letter:
+                        found_at_rank = rank
+                        break
+
+                if found_at_rank:
+                    for i in range(found_at_rank, 4):
+                        correct[i] += 1
+                    if found_at_rank == 1:
+                        true_positives += 1
+                else:
+                    false_negatives += 1
+
+                # False positives are only counted when the top prediction is incorrect
+                if found_at_rank != 1:
+                    false_positives += 1
+
+                # Append results for this word to result_lines
                 result_lines.append(
                     f"Iteration: {iteration_number}\n"
                     f"Test Word: {test_word}\n"
                     f"Correct Word: {original_word}\n"
                     "Top 3 Predictions:\n" +
                     "".join(f"Rank {rank}: '{letter}' with probability {prob:.5f}\n"
-                            for rank, (letter, prob) in enumerate(predictions, 1) if rank < 4)
+                            for rank, (letter, prob) in enumerate(predictions, 1) if rank <= 3)
                 )
 
-            with (directory / f"results_{today}.txt").open('a') as f:
-                f.write("\n\n".join(result_lines) + "\n\n")
+            # Calculate precision and recall outside the inner loop
+            precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) > 0 else 0
+            recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
 
             # Calculate accuracies
             total_words = len(test_words)
@@ -264,7 +292,14 @@ class LanguageModel:
                 'top1': correct[1] / total_words,
                 'top2': correct[2] / total_words,
                 'top3': correct[3] / total_words,
+                'precision': precision,
+                'recall': recall
             }
+
+            # Write all results to file
+            results_file = directory / f"results_{today}.txt"
+            with results_file.open('a') as f:
+                f.write("\n\n".join(result_lines) + "\n\n")
 
         return results
 
@@ -274,7 +309,7 @@ def save_results_to_file(results, iteration, folder="results"):
     folder_path.mkdir(parents=True, exist_ok=True)
     
     # Create a filename with the iteration number and today's date
-    today = datetime.now().strftime("%Y%m%d")  # Format for: YYYYMMDD
+    today = datetime.now().strftime("%Y%m%d")
     filename = f"results_iteration_{iteration}_{today}.txt"
     filepath = folder_path / filename
     
@@ -288,9 +323,10 @@ def save_results_to_file(results, iteration, folder="results"):
     print(f"Results saved to {filepath}")
 
 def print_predictions(word: str, predictions: list[tuple[str, float]]) -> None:
+
     print(f"Word: {word}")
     
-    # Calculate total probability of top 5 to normalize and show as percentages
+    # Calculate total probability of top 3 to normalize and show as percentages
     total_prob = sum(prob for _, prob in predictions)
     if total_prob == 0:
         print("No predictions to display.")
@@ -301,9 +337,10 @@ def print_predictions(word: str, predictions: list[tuple[str, float]]) -> None:
         print(f"Rank {rank}: '{letter}' with {percentage:.2f}% of the top 3 confidence")
 
 if __name__ == "__main__":
-    iterations = 10
+    iterations = 2
     corpora = ['brown', 'cmu']
-    total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0} for corpus_name in corpora}
+    # Include 'precision' and 'recall' in the total_accuracy initialization
+    total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
     today = datetime.now().strftime('%Y%m%d')
 
     # Initialize LanguageModel outside the loop to keep the corpora loaded
@@ -317,36 +354,38 @@ if __name__ == "__main__":
 
     for iteration in range(iterations):
         lm.prepare_test_set()
-        
+
         # Load models for each pre-generated formatted corpus
         for corpus_name, corpus_path in formatted_corpus_paths.items():
             lm.generate_and_load_models(corpus_name, corpus_path)
-        
+
         # Evaluate predictions and accumulate accuracies
         accuracies = lm.evaluate_predictions(iteration + 1)
+        
+        # Print the accuracies for this iteration
+        print(f"Iteration {iteration + 1} Accuracies:")
+        for corpus_name, corpus_accuracies in accuracies.items():
+            print(f"{corpus_name.capitalize()} Corpus:")
+            for acc_type, acc_value in corpus_accuracies.items():
+                print(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}")
+            print()  # Add a newline for spacing
+        
+        # Accumulate total accuracies
         for corpus_name, accuracy in accuracies.items():
             for acc_type, acc_value in accuracy.items():
                 total_accuracy[corpus_name][acc_type] += acc_value
-        
-        # Print the accuracies for this iteration
-        formatted_accuracies = "\n".join(
-            f"{corpus_name.capitalize()} Corpus: " +
-            ", ".join(f"{acc_type.upper()} Accuracy: {acc_value:.2%}" for acc_type, acc_value in corpus_accuracies.items())
-            for corpus_name, corpus_accuracies in accuracies.items()
-        )
-        print(f"Iteration {iteration + 1} Accuracies:\n{formatted_accuracies}\n")
-        
+
         # Save the results to a file
         save_results_to_file(accuracies, iteration + 1)
 
     # Calculate averaged accuracy
-    averaged_accuracy = {corpus_name: {acc_type: acc_value / iterations
-                                       for acc_type, acc_value in acc_types.items()}
+    averaged_accuracy = {corpus_name: {acc_type: acc_value / iterations for acc_type, acc_value in acc_types.items()}
                          for corpus_name, acc_types in total_accuracy.items()}
-    
+
     # Print final averaged accuracies
     print("Averaged accuracy over iterations:")
     for corpus_name, acc_types in averaged_accuracy.items():
-        accuracies_formatted = "\n".join(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}"
-                                         for acc_type, acc_value in acc_types.items())
-        print(f"{corpus_name.capitalize()} Corpus:\n{accuracies_formatted}\n")
+        print(f"{corpus_name.capitalize()} Corpus:")
+        for acc_type, acc_value in acc_types.items():
+            print(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}")
+        print()
