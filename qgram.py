@@ -1,16 +1,18 @@
-import nltk
-from nltk.corpus import cmudict, brown
-import subprocess
-import kenlm
-import heapq
-from functools import lru_cache
-import numpy as np
-from pathlib import Path
-from datetime import datetime
-import re
-import logging
+import io
 import hashlib
+import heapq
+import logging
 import random
+import re
+import subprocess
+from datetime import datetime
+from functools import lru_cache
+from pathlib import Path
+
+import kenlm
+import nltk
+import numpy as np
+from nltk.corpus import brown, cmudict
 
 logging.basicConfig(level=logging.INFO)
 split_pattern = re.compile(r"[-\s]")
@@ -93,7 +95,7 @@ class LanguageModel:
                 word: self.replace_random_letter(word) for word in test_words
             }
 
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=10000)
     def cached_score(self, model, sequence):
         return model.score(sequence, bos=False, eos=False)
 
@@ -143,26 +145,25 @@ class LanguageModel:
 
     def generate_and_load_models(self, corpus_name, corpus_path):
         self.models[corpus_name] = {}
-        for q in self.q_range:
-            arpa_file = Path(f'{corpus_name}_{q}gram.arpa')
-            binary_file = Path(f'{corpus_name}_{q}gram.klm')
+        model_directory = Path(f'{corpus_name}_models')
+        model_directory.mkdir(parents=True, exist_ok=True)
 
-            # Ensure the directory exists where the files will be stored
-            arpa_file.parent.mkdir(parents=True, exist_ok=True)
-            binary_file.parent.mkdir(parents=True, exist_ok=True)
+        for q in self.q_range:
+            arpa_file = model_directory / f'{corpus_name}_{q}gram.arpa'
+            binary_file = model_directory / f'{corpus_name}_{q}gram.klm'
 
             try:
                 subprocess.run(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
-                               check=True, capture_output=True)
+                            check=True, capture_output=True)
                 subprocess.run(['build_binary', '-s', str(arpa_file), str(binary_file)],
-                               check=True, capture_output=True)
+                            check=True, capture_output=True)
             except subprocess.CalledProcessError as e:
-                print(f"An error occurred while generating/loading the model: {e.output.decode()}")
-                print(f"Stderr: {e.stderr.decode()}")
+                logging.error(f"An error occurred while generating/loading the model for {q}-gram: {e.output.decode()}")
+                logging.error(f"Stderr: {e.stderr.decode()}")
                 continue
 
             self.models[corpus_name][q] = kenlm.Model(str(binary_file))
-            print(f"Model for {q}-gram loaded for {corpus_name} corpus.")
+            logging.info(f"Model for {q}-gram loaded for {corpus_name} corpus.")
 
     def predict_missing_letter(self, corpus_name, oov_word):
         missing_letter_index = oov_word.index('_')
@@ -310,8 +311,8 @@ class LanguageModel:
                 'recall': recall
             }
 
-            # Write all results to file
-            results_file = directory / f"results_{today}.txt"
+            # Write all results to file for this corpus
+            results_file = Path(f"./results/{corpus_name}/results_{today}.txt")
             with results_file.open('a') as f:
                 f.write("\n\n".join(result_lines) + "\n\n")
 
