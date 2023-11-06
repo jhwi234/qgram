@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 split_pattern = re.compile(r"[-\s]")
 class LanguageModel:
 
-    def __init__(self, q_range=(2, 6)):
+    def __init__(self, q_range=(2, 6)) -> None:
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.models = {}
         self.corpora = {
@@ -28,7 +28,9 @@ class LanguageModel:
         self.training_corpora = {}
         self.loaded_corpora = False 
 
-    def clean_word(self, word):
+    def clean_word(self, word) -> list[str]:
+        if isinstance(word, tuple):
+            word = word[0]
         parts = split_pattern.split(word)
         return [
             ''.join(char.lower() for char in part if char.isalpha())
@@ -46,10 +48,15 @@ class LanguageModel:
 
     def load_nltk_corpus(self, corpus_name: str) -> set[str]:
         nltk.download(corpus_name)
-        words = getattr(nltk.corpus, corpus_name).words()
+        if corpus_name == 'cmudict':
+            entries = getattr(nltk.corpus, corpus_name).entries()
+            words = [word for word, _ in entries]
+        else:
+            words = getattr(nltk.corpus, corpus_name).words()
+
         return {cleaned_word
-                for word in words if word.isalpha()
-                for cleaned_word in self.clean_word(word)}
+                for word in words if isinstance(word, str) and word.isalpha()
+                for cleaned_word in self.clean_word(word) if cleaned_word}
 
     def download_nltk_resources(self) -> None:
         resources = ['cmudict', 'punkt', 'brown']
@@ -68,17 +75,15 @@ class LanguageModel:
         This method now has access to the instance scope (self), 
         which allows it to use or modify instance variables if needed.
         """
-        np.random.seed(42)
         letter_index = np.random.randint(0, len(word))
         return word[:letter_index] + '_' + word[letter_index+1:]
 
-    def prepare_test_set(self, n=100):
+    def prepare_test_set(self, n=100) -> None:
         """
         Prepare test set by selecting n words from the corpora
         and replacing a random letter with an underscore '_'.
         Does not remove words from the original corpora.
         """
-        random.seed(42)
         self.test_set = {}
         self.training_corpora = {corpus: set(words) for corpus, words in self.corpora.items()}
         for corpus_name, words in self.corpora.items():
@@ -88,7 +93,7 @@ class LanguageModel:
                 word: self.replace_random_letter(word) for word in test_words
             }
 
-    @lru_cache(maxsize=10000)
+    @lru_cache(maxsize=None)
     def cached_score(self, model, sequence):
         return model.score(sequence, bos=False, eos=False)
 
@@ -154,7 +159,7 @@ class LanguageModel:
             except subprocess.CalledProcessError as e:
                 print(f"An error occurred while generating/loading the model: {e.output.decode()}")
                 print(f"Stderr: {e.stderr.decode()}")
-                continue  # Depending on the context, you might want to exit the loop or raise an exception
+                continue
 
             self.models[corpus_name][q] = kenlm.Model(str(binary_file))
             print(f"Model for {q}-gram loaded for {corpus_name} corpus.")
@@ -228,6 +233,21 @@ class LanguageModel:
         # Return predictions with probabilities
         return top_predictions
 
+    def calculate_metrics(self, true_positives, false_positives, false_negatives):
+        """
+        Calculate precision and recall from true positives, false positives, and false negatives.
+        """
+        precision = 0.0
+        recall = 0.0
+        
+        if true_positives + false_positives > 0:
+            precision = true_positives / (true_positives + false_positives)
+        
+        if true_positives + false_negatives > 0:
+            recall = true_positives / (true_positives + false_negatives)
+        
+        return precision, recall
+
     def evaluate_predictions(self, iteration_number):
         today = datetime.now().strftime('%Y%m%d')
         results = {}
@@ -277,9 +297,8 @@ class LanguageModel:
                             for rank, (letter, prob) in enumerate(predictions, 1) if rank <= 3)
                 )
 
-            # Calculate precision and recall outside the inner loop
-            precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) > 0 else 0
-            recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
+            # Calculate precision and recall
+            precision, recall = self.calculate_metrics(true_positives, false_positives, false_negatives)
 
             # Calculate accuracies
             total_words = len(test_words)
@@ -297,8 +316,8 @@ class LanguageModel:
                 f.write("\n\n".join(result_lines) + "\n\n")
 
         return results
-
-def save_results_to_file(results, iteration, folder="results"):
+        
+def save_results_to_file(results, iteration, folder="results") -> None:
     # Ensure the folder exists
     folder_path = Path(folder)
     folder_path.mkdir(parents=True, exist_ok=True)
@@ -331,7 +350,9 @@ def print_predictions(word: str, predictions: list[tuple[str, float]]) -> None:
         percentage = (prob / total_prob) * 100  # Convert to percentage of the total
         print(f"Rank {rank}: '{letter}' with {percentage:.2f}% of the top 3 confidence")
 
-if __name__ == "__main__":
+def main():
+    random.seed(42)
+    np.random.seed(42)
     iterations = 2
     corpora = ['brown', 'cmu']
     # Include 'precision' and 'recall' in the total_accuracy initialization
@@ -378,9 +399,12 @@ if __name__ == "__main__":
                          for corpus_name, acc_types in total_accuracy.items()}
 
     # Print final averaged accuracies
-    print("Averaged accuracy over iterations:")
+    print(f"Averaged accuracy over {iterations} iterations:")
     for corpus_name, acc_types in averaged_accuracy.items():
         print(f"{corpus_name.capitalize()} Corpus:")
         for acc_type, acc_value in acc_types.items():
             print(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}")
         print()
+
+if __name__ == "__main__":
+    main()
