@@ -1,41 +1,55 @@
-import io
+# Standard library imports
+import concurrent.futures
 import hashlib
 import heapq
+import io
 import logging
+import os
 import random
 import re
 import subprocess
+from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from concurrent.futures import ProcessPoolExecutor
-import concurrent.futures
+from threading import Thread
 
+# Third-party imports
 import kenlm
-import nltk
 import numpy as np
+import nltk
 from nltk.corpus import brown, cmudict
+from retry import retry
 
+# Profiling tools
+import cProfile
+import pstats
+
+logging.basicConfig(level=logging.INFO)
+split_pattern = re.compile(r"[-\s]")
+
+@retry(subprocess.CalledProcessError, tries=3, delay=2)
 def model_task(corpus_name, q, corpus_path, model_directory):
     arpa_file = model_directory / f'{corpus_name}_{q}gram.arpa'
     binary_file = model_directory / f'{corpus_name}_{q}gram.klm'
 
     try:
-        subprocess.run(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
-                       check=True, capture_output=True)
-        subprocess.run(['build_binary', '-s', str(arpa_file), str(binary_file)],
-                       check=True, capture_output=True)
+        subprocess.run(
+            ['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
+            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        subprocess.run(
+            ['build_binary', '-s', str(arpa_file), str(binary_file)],
+            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
         return q, str(binary_file)
     except subprocess.CalledProcessError as e:
-        logging.error(f"An error occurred while generating/loading the model for {q}-gram: {e.output.decode()}")
-        logging.error(f"Stderr: {e.stderr.decode()}")
-        return q, None
-
-logging.basicConfig(level=logging.INFO)
-split_pattern = re.compile(r"[-\s]")
+        logging.error(f"Attempt to generate/load the model for {q}-gram failed: {e}")
+        raise
 class LanguageModel:
 
-    def __init__(self, q_range=(2, 6)) -> None:
+    def __init__(self, q_range=(2, 6)):
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.models = {}
         self.corpora = {
@@ -53,10 +67,10 @@ class LanguageModel:
         parts = split_pattern.split(word)
         return [
             ''.join(char.lower() for char in part if char.isalpha())
-            for part in parts if len(part) >= 4
+            for part in parts if len(part) >= 3
         ]
 
-    def load_corpora(self, use_test_set: bool = True) -> None:
+    def load_corpora(self, use_test_set: bool = True):
         if not self.loaded_corpora:
             self.download_nltk_resources()
             self.corpora['cmu'] = self.load_nltk_corpus('cmudict')
@@ -77,7 +91,7 @@ class LanguageModel:
                 for word in words if isinstance(word, str) and word.isalpha()
                 for cleaned_word in self.clean_word(word) if cleaned_word}
 
-    def download_nltk_resources(self) -> None:
+    def download_nltk_resources(self):
         resources = ['cmudict', 'brown']
         for resource in resources:
             resource_id = f'corpora/{resource}'
@@ -95,9 +109,9 @@ class LanguageModel:
         which allows it to use or modify instance variables if needed.
         """
         letter_index = np.random.randint(0, len(word))
-        return word[:letter_index] + '_' + word[letter_index+1:]
+        return ''.join([word[:letter_index], '_', word[letter_index+1:]])
 
-    def prepare_test_set(self, n=1000) -> None:
+    def prepare_test_set(self, n=1000):
         """
         Prepare test set by selecting n words from the corpora
         and replacing a random letter with an underscore '_'.
@@ -111,8 +125,7 @@ class LanguageModel:
             self.test_set[corpus_name] = {
                 word: self.replace_random_letter(word) for word in test_words
             }
-
-   #@lru_cache(maxsize=10000)
+    @lru_cache(maxsize=100000)
     def cached_score(self, model, sequence):
         return model.score(sequence, bos=False, eos=False)
 
@@ -157,7 +170,6 @@ class LanguageModel:
         model_directory.mkdir(parents=True, exist_ok=True)
 
         with ProcessPoolExecutor() as executor:
-            # We can now pass all necessary arguments to model_task.
             futures = {executor.submit(model_task, corpus_name, q, corpus_path, model_directory): q for q in self.q_range}
 
             for future in concurrent.futures.as_completed(futures):
@@ -287,7 +299,6 @@ class LanguageModel:
                 if found_at_rank != 1:
                     false_positives += 1
 
-                # Append results for this word to result_lines
                 result_lines.append(
                     f"Iteration: {iteration_number}\n"
                     f"Test Word: {test_word}\n"
@@ -317,25 +328,26 @@ class LanguageModel:
 
         return results
         
-def save_results_to_file(results, iteration, folder="results") -> None:
+def save_results_to_file(results, iteration, folder="results"):
     folder_path = Path(folder)
     folder_path.mkdir(parents=True, exist_ok=True)
     
-    # Create a filename with the iteration number and today's date
     today = datetime.now().strftime("%Y%m%d")
     filename = f"results_iteration_{iteration}_{today}.txt"
     filepath = folder_path / filename
     
-    with filepath.open('w') as file:
-        for corpus_name, accuracies in results.items():
-            file.write(f"{corpus_name.capitalize()} Corpus:\n")
-            for acc_type, acc_value in accuracies.items():
-                file.write(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}\n")
-            file.write("\n")
+    lines = []
+    for corpus_name, accuracies in results.items():
+        lines.append(f"{corpus_name.capitalize()} Corpus:\n")
+        lines.extend(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}\n" for acc_type, acc_value in accuracies.items())
+        lines.append("\n")
+    
+    content = ''.join(lines)
+    filepath.write_text(content)
     
     print(f"Results saved to {filepath}")
 
-def print_predictions(word: str, predictions: list[tuple[str, float]]) -> None:
+def print_predictions(word: str, predictions: list[tuple[str, float]]):
     logger = logging.getLogger(__name__)
 
     logger.info(f"Word: {word}")
@@ -350,60 +362,73 @@ def print_predictions(word: str, predictions: list[tuple[str, float]]) -> None:
         percentage = (prob / total_prob) * 100
         logger.info(f"Rank {rank}: '{letter}' with {percentage:.2f}% of the top 3 confidence")
 
+def print_accuracies(accuracies, prefix=""):
+    print(f"{prefix} Accuracies:")
+    for corpus_name, corpus_accuracies in accuracies.items():
+        print(f"{corpus_name.capitalize()} Corpus:")
+        for acc_type, acc_value in corpus_accuracies.items():
+            print(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}")
+        print()
+
+def accumulate_accuracies(source, target):
+    for corpus_name, accuracy in source.items():
+        for acc_type, acc_value in accuracy.items():
+            target[corpus_name][acc_type] += acc_value
+
+def calculate_average_accuracies(total_accuracy, iterations):
+    return {
+        corpus_name: {
+            acc_type: acc_value / iterations
+            for acc_type, acc_value in acc_types.items()
+        }
+        for corpus_name, acc_types in total_accuracy.items()
+    }
+
+def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration):
+    lm.prepare_test_set()
+
+    for corpus_name, corpus_path in formatted_corpus_paths.items():
+        lm.generate_and_load_models(corpus_name, corpus_path)
+
+    accuracies = lm.evaluate_predictions(iteration)
+    print_accuracies(accuracies, f"Iteration {iteration}")
+    accumulate_accuracies(accuracies, total_accuracy)
+    save_results_to_file(accuracies, iteration)
+
 def main():
     random.seed(42)
     np.random.seed(42)
-    iterations = 10
+    iterations = 3
     corpora = ['brown', 'cmu']
-    total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
 
-    # Initialize LanguageModel outside the loop
+    total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
     lm = LanguageModel(q_range=(2, 6))
     lm.load_corpora(use_test_set=False)
 
-    # Generate paths for formatted corpora outside the iteration loop
     formatted_corpus_paths = {
         corpus_name: lm.generate_formatted_corpus(corpus_name, path=f'{corpus_name}_formatted_corpus.txt')
         for corpus_name in corpora
     }
 
-    for iteration in range(iterations):
-        lm.prepare_test_set()
+    for iteration in range(1, iterations + 1):
+        main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration)
 
-        # Load models for each pre-generated formatted corpus
-        for corpus_name, corpus_path in formatted_corpus_paths.items():
-            lm.generate_and_load_models(corpus_name, corpus_path)
-
-        # Evaluate predictions and accumulate accuracies
-        accuracies = lm.evaluate_predictions(iteration + 1)
-        
-        # Print the accuracies for this iteration
-        print(f"Iteration {iteration + 1} Accuracies:")
-        for corpus_name, corpus_accuracies in accuracies.items():
-            print(f"{corpus_name.capitalize()} Corpus:")
-            for acc_type, acc_value in corpus_accuracies.items():
-                print(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}")
-            print()
-        
-        # Accumulate total accuracies
-        for corpus_name, accuracy in accuracies.items():
-            for acc_type, acc_value in accuracy.items():
-                total_accuracy[corpus_name][acc_type] += acc_value
-
-        # Save the results to a file (assuming this is a function that saves to file)
-        save_results_to_file(accuracies, iteration + 1)
-
-    # Calculate averaged accuracy
-    averaged_accuracy = {corpus_name: {acc_type: acc_value / iterations for acc_type, acc_value in acc_types.items()}
-                         for corpus_name, acc_types in total_accuracy.items()}
-
-    # Print final averaged accuracies
-    print(f"Averaged accuracy over {iterations} iterations:")
-    for corpus_name, acc_types in averaged_accuracy.items():
-        print(f"{corpus_name.capitalize()} Corpus:")
-        for acc_type, acc_value in acc_types.items():
-            print(f"  {acc_type.upper()} Accuracy: {acc_value:.2%}")
-        print()
+    averaged_accuracy = calculate_average_accuracies(total_accuracy, iterations)
+    print_accuracies(averaged_accuracy, "Averaged accuracy over")
 
 if __name__ == "__main__":
+    profiler = cProfile.Profile()
+    profiler.enable()
     main()
+    profiler.disable()
+    stats_file = 'profiling_results.prof'
+    profiler.dump_stats(stats_file)
+    stats = pstats.Stats(profiler).sort_stats('cumulative')
+    stats.strip_dirs()
+    stats.print_stats(20)
+    stats.print_stats('main')
+    stats.print_callers(.5, 'main')
+    stats.print_callees('main')
+
+    total_time = sum(info[2] for func, info in stats.stats.items())
+    print(f"Total time: {total_time:.2f}s")
