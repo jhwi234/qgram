@@ -139,6 +139,8 @@ venv.bak/
 /site
 old/
 results/
+.txt
+*_models/
 
 # mypy
 .mypy_cache/
