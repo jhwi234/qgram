@@ -22,10 +22,6 @@ import nltk
 from nltk.corpus import brown, cmudict
 from retry import retry
 
-# Profiling tools
-import cProfile
-import pstats
-
 logging.basicConfig(level=logging.INFO)
 split_pattern = re.compile(r"[-\s]")
 
@@ -125,7 +121,8 @@ class LanguageModel:
             self.test_set[corpus_name] = {
                 word: self.replace_random_letter(word) for word in test_words
             }
-    @lru_cache(maxsize=100000)
+
+    @lru_cache(maxsize=1000)
     def cached_score(self, model, sequence):
         return model.score(sequence, bos=False, eos=False)
 
@@ -363,7 +360,7 @@ def print_predictions(word: str, predictions: list[tuple[str, float]]):
         logger.info(f"Rank {rank}: '{letter}' with {percentage:.2f}% of the top 3 confidence")
 
 def print_accuracies(accuracies, prefix=""):
-    print(f"{prefix} Accuracies:")
+    print(f"{prefix}: ")
     for corpus_name, corpus_accuracies in accuracies.items():
         print(f"{corpus_name.capitalize()} Corpus:")
         for acc_type, acc_value in corpus_accuracies.items():
@@ -398,7 +395,7 @@ def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration):
 def main():
     random.seed(42)
     np.random.seed(42)
-    iterations = 3
+    iterations = 10
     corpora = ['brown', 'cmu']
 
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
@@ -414,21 +411,8 @@ def main():
         main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration)
 
     averaged_accuracy = calculate_average_accuracies(total_accuracy, iterations)
-    print_accuracies(averaged_accuracy, "Averaged accuracy over")
+    print_accuracies(averaged_accuracy, f"Averaged accuracy over {iterations} iterations")
+
 
 if __name__ == "__main__":
-    profiler = cProfile.Profile()
-    profiler.enable()
     main()
-    profiler.disable()
-    stats_file = 'profiling_results.prof'
-    profiler.dump_stats(stats_file)
-    stats = pstats.Stats(profiler).sort_stats('cumulative')
-    stats.strip_dirs()
-    stats.print_stats(20)
-    stats.print_stats('main')
-    stats.print_callers(.5, 'main')
-    stats.print_callees('main')
-
-    total_time = sum(info[2] for func, info in stats.stats.items())
-    print(f"Total time: {total_time:.2f}s")
