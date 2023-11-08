@@ -137,10 +137,14 @@ venv.bak/
 
 # mkdocs documentation
 /site
+
+# Ignore specific directories
 old/
 results/
-.txt
 *_models/
+
+# Ignore files with specific patterns
+*_corpus.txt
 
 # mypy
 .mypy_cache/
