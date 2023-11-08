@@ -141,6 +141,8 @@ venv.bak/
 # Ignore specific directories
 old/
 results/
+Historical English corpora/
+ciphers-copy/
 
 # mypy
 .mypy_cache/
