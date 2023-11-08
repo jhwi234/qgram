@@ -45,12 +45,13 @@ def model_task(corpus_name, q, corpus_path, model_directory):
         raise
 class LanguageModel:
 
-    def __init__(self, q_range=(2, 6)):
+    def __init__(self, q_range=(2, 5)):
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.models = {}
         self.corpora = {
             'brown': set(),
             'cmu': set(),
+            'clmet3': set()
         }
         self.formatted_corpora_cache = {}
         self.test_set = {}
@@ -66,11 +67,20 @@ class LanguageModel:
             for part in parts if len(part) >= 3
         ]
 
+    def load_text_corpus(self, file_path: str) -> set[str]:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            words = file.read().split()
+        
+        return {cleaned_word
+                for word in words if isinstance(word, str) and word.isalpha()
+                for cleaned_word in self.clean_word(word) if cleaned_word}
+
     def load_corpora(self, use_test_set: bool = True):
         if not self.loaded_corpora:
             self.download_nltk_resources()
             self.corpora['cmu'] = self.load_nltk_corpus('cmudict')
             self.corpora['brown'] = self.load_nltk_corpus('brown')
+            self.corpora['clmet3'] = self.load_text_corpus('CLMET3_words.txt')
             self.loaded_corpora = True
             if use_test_set:
                 self.prepare_test_set()
@@ -122,7 +132,7 @@ class LanguageModel:
                 word: self.replace_random_letter(word) for word in test_words
             }
 
-    @lru_cache(maxsize=1000)
+    # @lru_cache(maxsize=1000)
     def cached_score(self, model, sequence):
         return model.score(sequence, bos=False, eos=False)
 
@@ -180,7 +190,7 @@ class LanguageModel:
 
     def predict_missing_letter(self, corpus_name, oov_word):
         missing_letter_index = oov_word.index('_')
-        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyz'}
+        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
         entropy_weights = []
 
         boundary_start = '<w> ' if missing_letter_index == 0 else ''
@@ -210,10 +220,10 @@ class LanguageModel:
 
             # Calculate entropy for the current context
             entropy = -sum(self.cached_score(model, left_context_joined + ' ' + c + ' ' + right_context_joined)
-                        for c in 'abcdefghijklmnopqrstuvwxyz')
+                        for c in 'abcdefghijklmnopqrstuvwxyzæœ')
             entropy_weights.append(entropy)
 
-            for letter in 'abcdefghijklmnopqrstuvwxyz':
+            for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
                 # Create the full sequence with the candidate letter filled in
                 full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
                 # Get the log score for the full sequence
@@ -396,7 +406,7 @@ def main():
     random.seed(42)
     np.random.seed(42)
     iterations = 10
-    corpora = ['brown', 'cmu']
+    corpora = ['brown', 'cmu', 'clmet3']
 
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
     lm = LanguageModel(q_range=(2, 6))

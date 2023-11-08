@@ -1,49 +1,72 @@
-import zipfile
-from io import BytesIO
+# import necessary modules
 import os
-from TextProcessor import TextProcessor  # Import the class from your TextProcessor.py file
+import glob
+from TextProcessor import TextProcessor
 
-# Initialize an instance of the TextProcessor
-text_processor = TextProcessor()
+def main():
+    # Initialize the TextProcessor
+    text_processor = TextProcessor()
 
-def extract_text_from_zip(zip_file_path):
-    with zipfile.ZipFile(zip_file_path) as zip_file:
-        for file_info in zip_file.infolist():
-            if file_info.filename.endswith('.txt'):
-                with zip_file.open(file_info) as file:
-                    # Decoding the file contents and handling XML/HTML-like entities
-                    yield file_info.filename, text_processor.decode_entities(file.read().decode('utf-8'))
+    # Define the directory path as absolute to avoid issues when running from different directories
+    directory_path = os.path.abspath("Historical English corpora/clmet/txt")
 
-def process_and_collect_tokens(zip_path, inner_zip_path):
-    unique_tokens = set()
+    # Use glob to find all .txt files in the directory
+    text_files = glob.glob(os.path.join(directory_path, '*.txt'))
+    total_files = len(text_files)
+    print(f"Found {total_files} files to process.")
 
-    with zipfile.ZipFile(zip_path) as outer_zip:
-        for inner_zip_info in outer_zip.infolist():
-            if inner_zip_info.filename.startswith(inner_zip_path) and inner_zip_info.filename.endswith('.zip'):
-                with outer_zip.open(inner_zip_info) as inner_zip_file:
-                    inner_zip_bytes = BytesIO(inner_zip_file.read())
-                    with zipfile.ZipFile(inner_zip_bytes) as inner_zip:
-                        for txt_filename, text in extract_text_from_zip(inner_zip):
-                            # Process the text to remove tags, page indicators, and get tokens
-                            text = text_processor.remove_tags_and_metadata(text)
-                            file_tokens = text_processor.tokenize(text)
-                            unique_tokens.update(file_tokens)
+    # Check if temp_tokens.txt already exists and remove it
+    temp_tokens_path = 'temp_tokens.txt'
+    if os.path.exists(temp_tokens_path):
+        os.remove(temp_tokens_path)
+    
+    # Process each file one by one
+    for i, file_path in enumerate(text_files, 1):
+        print(f"Processing file {i}/{total_files}: {os.path.basename(file_path)}")
+        try:
+            # Process the content of the file
+            tokens = text_processor.process_file(file_path)
+            print(f"Found {len(tokens)} tokens.")  # Debugging line
 
-    return unique_tokens
+            # Write the tokens to a temporary file, appending them
+            with open(temp_tokens_path, 'a', encoding='utf-8') as temp_file:
+                for token in tokens:
+                    temp_file.write(f"{token}\n")
+        except Exception as e:
+            print(f"An error occurred while processing {file_path}: {e}")
 
-def save_tokens(tokens, output_path):
-    with open(output_path, 'w', encoding='utf-8') as output_file:
-        for token in sorted(tokens):
-            output_file.write(f"{token}\n")
+    # After processing all files, we'll now sort and deduplicate the tokens
+    try:
+        print("Sorting and deduplicating tokens...")
+        with open(temp_tokens_path, 'r', encoding='utf-8') as temp_file:
+            all_tokens = set(line.strip() for line in temp_file)  # Use strip() here
+        print(f"Number of unique tokens before sorting: {len(all_tokens)}")  # Debugging line
+    except Exception as e:
+        print(f"An error occurred while reading from the temporary file: {e}")
+        return
+
+    # Sort the set of all tokens (which also deduplicates them)
+    try:
+        sorted_tokens = sorted(all_tokens)
+    except Exception as e:
+        print(f"An error occurred during sorting: {e}")
+        return
+
+    # Write the sorted, unique tokens to the final output file
+    output_path = 'sorted_tokens.txt'
+    try:
+        with open(output_path, 'w', encoding='utf-8') as output_file:
+            output_file.write('\n'.join(sorted_tokens))
+        print(f"Total unique tokens written: {len(sorted_tokens)}")  # Debugging line
+    except Exception as e:
+        print(f"An error occurred while writing to the final output file {output_path}: {e}")
+        return
+    finally:
+        # Clean up the temporary file if it exists
+        if os.path.exists(temp_tokens_path):
+            os.remove(temp_tokens_path)
+
+    print(f"Processing complete. The sorted, unique tokens have been saved to {output_path}")
 
 if __name__ == "__main__":
-    root_dir = 'The Corpus of Late Modern English Texts'
-    zip_path = os.path.join(root_dir, 'clmet3_1.zip')
-    inner_zip_path = 'clmet/corpus/txt/plain/'
-    
-    unique_tokens = process_and_collect_tokens(zip_path, inner_zip_path)
-    
-    output_path = os.path.join(root_dir, 'unique_tokens.txt')
-    save_tokens(unique_tokens, output_path)
-    
-    print(f"Extraction and tokenization complete. {len(unique_tokens)} unique tokens written to {output_path}")
+    main()

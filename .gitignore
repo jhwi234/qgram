@@ -144,6 +144,9 @@ results/
 Historical English corpora/
 ciphers-copy/
 
+# Ignore files
+*.klm
+
 # mypy
 .mypy_cache/
 .dmypy.json
