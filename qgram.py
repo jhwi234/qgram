@@ -21,6 +21,7 @@ import numpy as np
 import nltk
 from nltk.corpus import brown, cmudict
 from retry import retry
+import csv
 
 logging.basicConfig(level=logging.INFO)
 split_pattern = re.compile(r"[-\s]")
@@ -45,7 +46,7 @@ def model_task(corpus_name, q, corpus_path, model_directory):
         raise
 class LanguageModel:
 
-    def __init__(self, q_range=(2, 5)):
+    def __init__(self, q_range=(2, 6)):
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.models = {}
         self.corpora = {
@@ -132,10 +133,6 @@ class LanguageModel:
                 word: self.replace_random_letter(word) for word in test_words
             }
 
-    # @lru_cache(maxsize=1000)
-    def cached_score(self, model, sequence):
-        return model.score(sequence, bos=False, eos=False)
-
     def generate_formatted_corpus(self, corpus_name, path='formatted_corpus.txt', use_test_set=True):
         if corpus_name in self.formatted_corpora_cache:
             return self.formatted_corpora_cache[corpus_name]
@@ -188,10 +185,99 @@ class LanguageModel:
                         self.models[corpus_name][q_gram] = kenlm.Model(binary_file)
                         logging.info(f"Model for {q_gram}-gram loaded for {corpus_name} corpus.")
 
+    # @lru_cache(maxsize=1000)
+    def cached_score(self, model, sequence):
+        return model.score(sequence, bos=False, eos=False)
+
+    def calculate_letter_frequencies(self, corpus_name):
+        # Split the corpus text into words
+        words = corpus_name.split(' <w> ')
+        words = [word.strip('</w>').strip() for word in words]
+
+        # Count the occurrences of each letter
+        letter_counts = {}
+        total_letters = 0
+        for word in words:
+            characters = word.split()
+            for char in characters:
+                if char.isalpha():  # Only count alphabetical characters
+                    letter_counts[char] = letter_counts.get(char, 0) + 1
+                    total_letters += 1
+
+        # Calculate the probabilities for each letter
+        letter_probabilities = {letter: count / total_letters for letter, count in letter_counts.items()}
+
+        return letter_probabilities
+
+    def predict_missing_letter(self, corpus_name, oov_word):
+            missing_letter_index = oov_word.index('_')
+            log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
+            entropy_weights = []
+
+            boundary_start = '<w> ' if missing_letter_index == 0 else ''
+            boundary_end = ' </w>' if missing_letter_index == len(oov_word) - 1 else ''
+            oov_word_with_boundaries = f"{boundary_start}{oov_word}{boundary_end}"
+
+            for q in self.q_range:
+                # q-grams are character grams
+                if q not in self.models[corpus_name]:
+                    print(f"No model found for {q}-grams in {corpus_name} corpus.")
+                    continue
+                model = self.models[corpus_name][q]
+
+                # Prepare contexts based on the current q value, ensuring not to exceed bounds
+                left_size = min(missing_letter_index, q - 1)
+                right_size = min(len(oov_word) - missing_letter_index - 1, q - 1)
+
+                left_context = oov_word_with_boundaries[max(0, missing_letter_index - left_size + len(boundary_start)):missing_letter_index + len(boundary_start)]
+                right_context = oov_word_with_boundaries[missing_letter_index + len(boundary_start) + 1:missing_letter_index + len(boundary_start) + 1 + right_size]
+
+                # Ensure there are no extra spaces before or after the context
+                left_context = left_context.strip()
+                right_context = right_context.strip()
+
+                # Joining contexts with spaces as they would appear in the corpus
+                left_context_joined = ' '.join(left_context)
+                right_context_joined = ' '.join(right_context)
+
+                # Calculate entropy for the current context
+                entropy = -sum(self.cached_score(model, left_context_joined + ' ' + c + ' ' + right_context_joined)
+                            for c in 'abcdefghijklmnopqrstuvwxyzæœ')
+                entropy_weights.append(entropy)
+
+                for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
+                    # Create the full sequence with the candidate letter filled in
+                    full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
+                    # Get the log score for the full sequence
+                    log_prob_full = self.cached_score(model, full_sequence)
+                    log_probabilities[letter].append(log_prob_full)
+
+            # Normalize entropy weights
+            entropy_weights = np.exp(entropy_weights - np.max(entropy_weights))
+            entropy_weights /= entropy_weights.sum()
+
+            # Now average the log probabilities across all q values with entropy weights
+            averaged_log_probabilities = {}
+            for letter, log_probs_list in log_probabilities.items():
+                if log_probs_list:
+                    # Weighted sum of log probabilities using entropy weights
+                    weighted_log_probs = np.sum([entropy_weights[i] * log_probs
+                                                for i, log_probs in enumerate(log_probs_list)], axis=0)
+                    averaged_log_probabilities[letter] = weighted_log_probs
+
+            # Apply heapq.nlargest to find the top log probabilities
+            top_log_predictions = heapq.nlargest(3, averaged_log_probabilities.items(), key=lambda item: item[1])
+
+            # Convert only the top log probabilities to probabilities
+            top_predictions = [(letter, np.exp(log_prob)) for letter, log_prob in top_log_predictions]
+
+            # Return predictions with probabilities
+            return top_predictions
+
     def predict_missing_letter(self, corpus_name, oov_word):
         missing_letter_index = oov_word.index('_')
         log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
-        entropy_weights = []
+        pmi_weights = []
 
         boundary_start = '<w> ' if missing_letter_index == 0 else ''
         boundary_end = ' </w>' if missing_letter_index == len(oov_word) - 1 else ''
@@ -218,30 +304,46 @@ class LanguageModel:
             left_context_joined = ' '.join(left_context)
             right_context_joined = ' '.join(right_context)
 
-            # Calculate entropy for the current context
-            entropy = -sum(self.cached_score(model, left_context_joined + ' ' + c + ' ' + right_context_joined)
-                        for c in 'abcdefghijklmnopqrstuvwxyzæœ')
-            entropy_weights.append(entropy)
+            # Initialize pmi_weights for this q-gram size
+            pmi_weights_for_q = []
 
             for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
-                # Create the full sequence with the candidate letter filled in
                 full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
-                # Get the log score for the full sequence
-                log_prob_full = self.cached_score(model, full_sequence)
-                log_probabilities[letter].append(log_prob_full)
+                p_xy = np.exp(self.cached_score(model, full_sequence))
+                p_x = np.exp(self.cached_score(model, left_context_joined + ' ' + right_context_joined))
+                p_y = 1 / 27  # Assuming uniform distribution for simplicity
 
-        # Normalize entropy weights
-        entropy_weights = np.exp(entropy_weights - np.max(entropy_weights))
-        entropy_weights /= entropy_weights.sum()
+                # Compute PMI, guard against log(0) by max with a very small number near zero
+                pmi = np.log(max(p_xy / (p_x * p_y), 1e-10))
+                pmi = max(pmi, 0)  # Positive PMI only
+                pmi_weights_for_q.append(pmi)
 
-        # Now average the log probabilities across all q values with entropy weights
+                log_probabilities[letter].append(self.cached_score(model, full_sequence))
+
+            # Normalize the PMI weights for this q
+            pmi_weights_for_q = np.array(pmi_weights_for_q)
+            pmi_weights_for_q -= np.min(pmi_weights_for_q)
+            pmi_weights_for_q = np.exp(pmi_weights_for_q)
+            pmi_weights_for_q /= pmi_weights_for_q.sum()
+
+            # Add these PMI weights to the overall list
+            pmi_weights.append(pmi_weights_for_q)
+
+        # Normalize across all q values after the main loop
+        pmi_weights = np.concatenate(pmi_weights)  # This assumes each sublist has the same length
+        pmi_weights -= np.min(pmi_weights)
+        pmi_weights = np.exp(pmi_weights)
+        pmi_weights /= pmi_weights.sum()
+
+        # Now average the log probabilities across all q values with PPMI weights
         averaged_log_probabilities = {}
         for letter, log_probs_list in log_probabilities.items():
             if log_probs_list:
-                # Weighted sum of log probabilities using entropy weights
-                weighted_log_probs = np.sum([entropy_weights[i] * log_probs
-                                             for i, log_probs in enumerate(log_probs_list)], axis=0)
+                # Ensure pmi_weights are matched correctly to log_probs_list
+                weighted_log_probs = np.sum(np.array(log_probs_list) * pmi_weights[:len(log_probs_list)])
                 averaged_log_probabilities[letter] = weighted_log_probs
+                # Trim the used weights
+                pmi_weights = pmi_weights[len(log_probs_list):]
 
         # Apply heapq.nlargest to find the top log probabilities
         top_log_predictions = heapq.nlargest(3, averaged_log_probabilities.items(), key=lambda item: item[1])
@@ -268,6 +370,9 @@ class LanguageModel:
         return precision, recall
 
     def evaluate_predictions(self, iteration_number):
+        """
+        Evaluate predictions for each corpus in the test set.
+        """
         today = datetime.now().strftime('%Y%m%d')
         results = {}
 
@@ -277,6 +382,7 @@ class LanguageModel:
             false_positives = 0
             false_negatives = 0
             result_lines = []
+            test_results = []
 
             # Create directory before the loop
             directory = Path(f"./results/{corpus_name}")
@@ -314,6 +420,14 @@ class LanguageModel:
                     "".join(f"Rank {rank}: '{letter}' with probability {prob:.5f}\n"
                             for rank, (letter, prob) in enumerate(predictions, 1) if rank <= 3)
                 )
+                test_results.append({
+                    'corpus': corpus_name,
+                    'test_word': test_word,
+                    'correct_word': original_word,
+                    'top_predictions': top_predictions,
+                    'confidence_scores': [p[1] for p in predictions][:3],
+                    'found_at_rank': found_at_rank
+                })
 
             # Calculate precision and recall
             precision, recall = self.calculate_metrics(true_positives, false_positives, false_negatives)
@@ -332,9 +446,41 @@ class LanguageModel:
             results_file = Path(f"./results/{corpus_name}/results_{today}.txt")
             with results_file.open('a') as f:
                 f.write("\n\n".join(result_lines) + "\n\n")
+            
+            self.generate_csv_report(corpus_name, test_results)
 
         return results
-        
+
+    def generate_csv_report(self, corpus_name, test_results):
+        today = datetime.now().strftime('%Y%m%d')
+        csv_filename = f"./results/{corpus_name}/csv_report_{today}.csv"
+
+        with open(csv_filename, 'a', newline='') as csvfile:
+            fieldnames = ['Corpus', 'q_range', 'Test Word', 'Correct Word', '1st Top Letter', '1st Confidence Score',
+                        '2nd Top Letter', '2nd Confidence Score', '3rd Top Letter', '3rd Confidence Score',
+                        'Top Prediction Correct', 'Correct in Top 3']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            # Write header only if file is empty (i.e., at the start of the first iteration)
+            if csvfile.tell() == 0:
+                writer.writeheader()
+
+            for result in test_results:
+                writer.writerow({
+                    'Corpus': corpus_name,
+                    'q_range': f'{self.q_range.start}-{self.q_range.stop - 1}',
+                    'Test Word': result['test_word'],
+                    'Correct Word': result['correct_word'],
+                    '1st Top Letter': result['top_predictions'][0] if result['top_predictions'] else None,
+                    '1st Confidence Score': result['confidence_scores'][0] if result['confidence_scores'] else None,
+                    '2nd Top Letter': result['top_predictions'][1] if len(result['top_predictions']) > 1 else None,
+                    '2nd Confidence Score': result['confidence_scores'][1] if len(result['confidence_scores']) > 1 else None,
+                    '3rd Top Letter': result['top_predictions'][2] if len(result['top_predictions']) > 2 else None,
+                    '3rd Confidence Score': result['confidence_scores'][2] if len(result['confidence_scores']) > 2 else None,
+                    'Top Prediction Correct': 'Yes' if result['found_at_rank'] == 1 else 'No',
+                    'Correct in Top 3': 'Yes' if result['found_at_rank'] is not None else 'No'
+                })
+
 def save_results_to_file(results, iteration, folder="results"):
     folder_path = Path(folder)
     folder_path.mkdir(parents=True, exist_ok=True)
@@ -405,11 +551,11 @@ def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration):
 def main():
     random.seed(42)
     np.random.seed(42)
-    iterations = 10
+    iterations = 1
     corpora = ['brown', 'cmu', 'clmet3']
 
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
-    lm = LanguageModel(q_range=(2, 6))
+    lm = LanguageModel(q_range=(2 , 6))
     lm.load_corpora(use_test_set=False)
 
     formatted_corpus_paths = {
