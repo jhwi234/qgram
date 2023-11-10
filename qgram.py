@@ -26,6 +26,7 @@ import csv
 
 logging.basicConfig(level=logging.INFO)
 split_pattern = re.compile(r"[-\s]")
+clean_pattern = re.compile(r'\b[a-zA-Z]{3,}\b')
 
 @retry(subprocess.CalledProcessError, tries=3, delay=2)
 def model_task(corpus_name, q, corpus_path, model_directory):
@@ -60,22 +61,25 @@ class LanguageModel:
         self.training_corpora = {}
         self.loaded_corpora = False 
 
-    def clean_word(self, word) -> list[str]:
-        if isinstance(word, tuple):
-            word = word[0]
-        parts = split_pattern.split(word)
-        return [
-            ''.join(char.lower() for char in part if char.isalpha())
-            for part in parts if len(part) >= 3
-        ]
+    def clean_text(self, text: str) -> set[str]:
+        # Using regular expressions to remove non-alphabetic characters and split words
+        words = clean_pattern.findall(split_pattern.sub(' ', text))
+        # Convert to lowercase
+        return {word.lower() for word in words}
 
     def load_text_corpus(self, file_path: str) -> set[str]:
         with open(file_path, 'r', encoding='utf-8') as file:
-            words = file.read().split()
-        
-        return {cleaned_word
-                for word in words if isinstance(word, str) and word.isalpha()
-                for cleaned_word in self.clean_word(word) if cleaned_word}
+            text = file.read()
+        return self.clean_text(text)
+
+    def load_nltk_corpus(self, corpus_name: str) -> set[str]:
+        nltk.download(corpus_name)
+        if corpus_name == 'cmudict':
+            entries = getattr(nltk.corpus, corpus_name).entries()
+            text = ' '.join(word for word, _ in entries)
+        else:
+            text = ' '.join(getattr(nltk.corpus, corpus_name).words())
+        return self.clean_text(text)
 
     def load_corpora(self, use_test_set: bool = True):
         if not self.loaded_corpora:
@@ -86,18 +90,6 @@ class LanguageModel:
             self.loaded_corpora = True
             if use_test_set:
                 self.prepare_test_set()
-
-    def load_nltk_corpus(self, corpus_name: str) -> set[str]:
-        nltk.download(corpus_name)
-        if corpus_name == 'cmudict':
-            entries = getattr(nltk.corpus, corpus_name).entries()
-            words = [word for word, _ in entries]
-        else:
-            words = getattr(nltk.corpus, corpus_name).words()
-
-        return {cleaned_word
-                for word in words if isinstance(word, str) and word.isalpha()
-                for cleaned_word in self.clean_word(word) if cleaned_word}
 
     def download_nltk_resources(self):
         resources = ['cmudict', 'brown']
@@ -119,20 +111,44 @@ class LanguageModel:
         letter_index = np.random.randint(0, len(word))
         return ''.join([word[:letter_index], '_', word[letter_index+1:]])
 
-    def prepare_test_set(self, n=1000):
+    def prepare_test_set(self, test_set_size=None, test_set_proportion=None, training_set_size=None):
         """
-        Prepare test set by selecting n words from the corpora
-        and replacing a random letter with an underscore '_'.
-        Does not remove words from the original corpora.
+        Prepare test and training sets by randomly selecting words from the corpora.
+        Either test_set_size or test_set_proportion should be provided. 
+        If training_set_size is not provided, it defaults to the remaining words after test set selection.
+
+        :param test_set_size: Absolute number of words in the test set (mutually exclusive with test_set_proportion).
+        :param test_set_proportion: Proportion of the corpus to be used as the test set (between 0 and 1).
+        :param training_set_size: Absolute number of words in the training set.
         """
+        if test_set_proportion is not None and (test_set_size is not None or test_set_proportion <= 0 or test_set_proportion > 1):
+            raise ValueError("Provide either a valid test_set_proportion (between 0 and 1) or test_set_size, but not both.")
+
         self.test_set = {}
         self.training_corpora = {corpus: set(words) for corpus, words in self.corpora.items()}
+
         for corpus_name, words in self.corpora.items():
-            test_words = set(random.sample(list(words), n))
-            self.training_corpora[corpus_name] -= test_words
-            self.test_set[corpus_name] = {
-                word: self.replace_random_letter(word) for word in test_words
-            }
+            total_words = len(words)
+
+            # Determine the size of the test set
+            if test_set_proportion is not None:
+                test_set_size = int(total_words * test_set_proportion)
+            elif test_set_size is None or test_set_size > total_words:
+                test_set_size = total_words
+
+            # Convert set to list before sampling
+            words_list = list(words)
+            test_words = random.sample(words_list, test_set_size)
+
+            # Assign randomly chosen words to the test set
+            self.test_set[corpus_name] = {word: self.replace_random_letter(word) for word in test_words}
+
+            # Create the training set by removing the test words from the corpus
+            training_words = words - set(test_words)
+            if training_set_size is not None and training_set_size < len(training_words):
+                training_words = set(random.sample(list(training_words), training_set_size))
+            
+            self.training_corpora[corpus_name] = training_words
 
     def generate_formatted_corpus(self, corpus_name, path='formatted_corpus.txt', use_test_set=True):
         if corpus_name in self.formatted_corpora_cache:
@@ -185,22 +201,6 @@ class LanguageModel:
     # @lru_cache(maxsize=1000)
     def cached_score(self, model, sequence):
         return model.score(sequence, bos=False, eos=False)
-
-    def calculate_letter_probabilities(self, corpus_name):
-        if corpus_name not in self.models:
-            raise ValueError(f"No model loaded for corpus: {corpus_name}")
-
-        model = self.models[corpus_name][max(self.q_range)]  # Using the highest q-gram model
-
-        # Query KenLM for each letter's log likelihood
-        letter_log_likelihoods = {letter: model.score(letter, bos=False, eos=False) for letter in model}
-
-        # Convert log likelihoods to probabilities
-        total_log_prob = np.log(sum(np.exp(log_likelihood) for log_likelihood in letter_log_likelihoods.values()))
-        letter_probabilities = {letter: np.exp(log_likelihood - total_log_prob) for letter, log_likelihood in letter_log_likelihoods.items()}
-
-        return letter_probabilities
-
 
     def predict_missing_letter(self, corpus_name, oov_word):
             missing_letter_index = oov_word.index('_')
@@ -267,7 +267,25 @@ class LanguageModel:
             # Return predictions with probabilities
             return top_predictions
 
-    def pmi_predict_missing_letter(self, corpus_name, oov_word):
+    def calculate_letter_probabilities(self, corpus_name):
+        if corpus_name not in self.models:
+            raise ValueError(f"No model loaded for corpus: {corpus_name}")
+
+        model = self.models[corpus_name][max(self.q_range)]  # Using the highest q-gram model
+
+        # Define the set of letters you want to score
+        letters = 'abcdefghijklmnopqrstuvwxyzæœ'
+
+        # Query KenLM for each letter's log likelihood
+        letter_log_likelihoods = {letter: model.score(letter, bos=False, eos=False) for letter in letters}
+
+        # Convert log likelihoods to probabilities
+        total_log_prob = np.log(sum(np.exp(log_likelihood) for log_likelihood in letter_log_likelihoods.values()))
+        letter_probabilities = {letter: np.exp(log_likelihood - total_log_prob) for letter, log_likelihood in letter_log_likelihoods.items()}
+
+        return letter_probabilities
+
+    def pmi_predict_missing_letter(self, corpus_name, oov_word, letter_probabilities):
         missing_letter_index = oov_word.index('_')
         log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
         pmi_weights = []
@@ -382,6 +400,7 @@ class LanguageModel:
             directory.mkdir(parents=True, exist_ok=True)
 
             for original_word, test_word in test_words.items():
+                # predictions = self.predict_missing_letter(corpus_name, test_word, self.calculate_letter_probabilities(corpus_name))
                 predictions = self.predict_missing_letter(corpus_name, test_word)
                 correct_letter = original_word[test_word.index('_')]
 
@@ -530,8 +549,9 @@ def calculate_average_accuracies(total_accuracy, iterations):
         for corpus_name, acc_types in total_accuracy.items()
     }
 
-def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration):
-    lm.prepare_test_set()
+def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration, test_set_params):
+    # Unpack test_set_params
+    lm.prepare_test_set(**test_set_params)
 
     with ThreadPoolExecutor() as executor:
         futures = {executor.submit(lm.generate_and_load_models, corpus_name, corpus_path): corpus_name for corpus_name, corpus_path in formatted_corpus_paths.items()}
@@ -551,12 +571,21 @@ def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration):
 def main():
     random.seed(42)
     np.random.seed(42)
-    iterations = 2
+    iterations = 10
     corpora = ['brown', 'cmu', 'clmet3']
+
+    # Parameters for preparing the test set
+    test_set_params = {
+        'test_set_size': None,  # or specify an integer
+        'test_set_proportion': 0.5,  # for example, 10% of the corpus
+        'training_set_size': None  # or specify an integer
+    }
 
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
     lm = LanguageModel(q_range=(6, 6))
     lm.load_corpora(use_test_set=False)
+
+
 
     formatted_corpus_paths = {
         corpus_name: lm.generate_formatted_corpus(corpus_name, path=f'{corpus_name}_formatted_corpus.txt')
@@ -564,11 +593,10 @@ def main():
     }
 
     for iteration in range(1, iterations + 1):
-        main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration)
+        main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration, test_set_params)
 
     averaged_accuracy = calculate_average_accuracies(total_accuracy, iterations)
     print_accuracies(averaged_accuracy, f"Averaged accuracy over {iterations} iterations")
-
 
 if __name__ == "__main__":
     main()
