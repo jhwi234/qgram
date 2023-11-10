@@ -10,6 +10,7 @@ import re
 import subprocess
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -46,7 +47,7 @@ def model_task(corpus_name, q, corpus_path, model_directory):
         raise
 class LanguageModel:
 
-    def __init__(self, q_range=(2, 6)):
+    def __init__(self, q_range=(6, 6)):  # Changed to only include 6
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.models = {}
         self.corpora = {
@@ -173,17 +174,13 @@ class LanguageModel:
         model_directory = Path(f'{corpus_name}_models')
         model_directory.mkdir(parents=True, exist_ok=True)
 
-        with ProcessPoolExecutor() as executor:
-            futures = {executor.submit(model_task, corpus_name, q, corpus_path, model_directory): q for q in self.q_range}
+        highest_q = max(self.q_range)
+        q, binary_file = model_task(corpus_name, highest_q, corpus_path, model_directory)
 
-            for future in concurrent.futures.as_completed(futures):
-                q = futures[future]
-                result = future.result()
-                if result:
-                    q_gram, binary_file = result
-                    if binary_file:
-                        self.models[corpus_name][q_gram] = kenlm.Model(binary_file)
-                        logging.info(f"Model for {q_gram}-gram loaded for {corpus_name} corpus.")
+        if binary_file:
+            for q in self.q_range:
+                self.models[corpus_name][q] = kenlm.Model(binary_file)
+                logging.info(f"Model for {q}-gram loaded for {corpus_name} corpus using {highest_q}-gram model.")
 
     # @lru_cache(maxsize=1000)
     def cached_score(self, model, sequence):
@@ -274,7 +271,7 @@ class LanguageModel:
             # Return predictions with probabilities
             return top_predictions
 
-    def predict_missing_letter(self, corpus_name, oov_word):
+    def pmi_predict_missing_letter(self, corpus_name, oov_word):
         missing_letter_index = oov_word.index('_')
         log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
         pmi_weights = []
@@ -540,8 +537,15 @@ def calculate_average_accuracies(total_accuracy, iterations):
 def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration):
     lm.prepare_test_set()
 
-    for corpus_name, corpus_path in formatted_corpus_paths.items():
-        lm.generate_and_load_models(corpus_name, corpus_path)
+    with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(lm.generate_and_load_models, corpus_name, corpus_path): corpus_name for corpus_name, corpus_path in formatted_corpus_paths.items()}
+
+        for future in concurrent.futures.as_completed(futures):
+            corpus_name = futures[future]
+            try:
+                future.result()
+            except Exception as exc:
+                logging.error(f"{corpus_name} generated an exception: {exc}")
 
     accuracies = lm.evaluate_predictions(iteration)
     print_accuracies(accuracies, f"Iteration {iteration}")
@@ -551,11 +555,11 @@ def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration):
 def main():
     random.seed(42)
     np.random.seed(42)
-    iterations = 1
+    iterations = 2
     corpora = ['brown', 'cmu', 'clmet3']
 
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
-    lm = LanguageModel(q_range=(2 , 6))
+    lm = LanguageModel(q_range=(6, 6))
     lm.load_corpora(use_test_set=False)
 
     formatted_corpus_paths = {
