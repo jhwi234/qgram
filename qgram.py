@@ -186,25 +186,21 @@ class LanguageModel:
     def cached_score(self, model, sequence):
         return model.score(sequence, bos=False, eos=False)
 
-    def calculate_letter_frequencies(self, corpus_name):
-        # Split the corpus text into words
-        words = corpus_name.split(' <w> ')
-        words = [word.strip('</w>').strip() for word in words]
+    def calculate_letter_probabilities(self, corpus_name):
+        if corpus_name not in self.models:
+            raise ValueError(f"No model loaded for corpus: {corpus_name}")
 
-        # Count the occurrences of each letter
-        letter_counts = {}
-        total_letters = 0
-        for word in words:
-            characters = word.split()
-            for char in characters:
-                if char.isalpha():  # Only count alphabetical characters
-                    letter_counts[char] = letter_counts.get(char, 0) + 1
-                    total_letters += 1
+        model = self.models[corpus_name][max(self.q_range)]  # Using the highest q-gram model
 
-        # Calculate the probabilities for each letter
-        letter_probabilities = {letter: count / total_letters for letter, count in letter_counts.items()}
+        # Query KenLM for each letter's log likelihood
+        letter_log_likelihoods = {letter: model.score(letter, bos=False, eos=False) for letter in model}
+
+        # Convert log likelihoods to probabilities
+        total_log_prob = np.log(sum(np.exp(log_likelihood) for log_likelihood in letter_log_likelihoods.values()))
+        letter_probabilities = {letter: np.exp(log_likelihood - total_log_prob) for letter, log_likelihood in letter_log_likelihoods.items()}
 
         return letter_probabilities
+
 
     def predict_missing_letter(self, corpus_name, oov_word):
             missing_letter_index = oov_word.index('_')
