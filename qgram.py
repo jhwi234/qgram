@@ -66,7 +66,7 @@ class LanguageModel:
         parts = split_pattern.split(word)
         return [
             ''.join(char.lower() for char in part if char.isalpha())
-            for part in parts if len(part) >= 3
+            for part in parts if len(part) >= 2
         ]
 
     def load_text_corpus(self, file_path: str) -> set[str]:
@@ -119,7 +119,7 @@ class LanguageModel:
         letter_index = np.random.randint(0, len(word))
         return ''.join([word[:letter_index], '_', word[letter_index+1:]])
 
-    def prepare_test_set(self, n=1000):
+    def prepare_test_set(self, n=35000):
         """
         Prepare test set by selecting n words from the corpora
         and replacing a random letter with an underscore '_'.
@@ -134,7 +134,7 @@ class LanguageModel:
                 word: self.replace_random_letter(word) for word in test_words
             }
 
-    def generate_formatted_corpus(self, corpus_name, path='formatted_corpus.txt', use_test_set=True):
+    def generate_formatted_corpus(self, corpus_name, path='formatted_corpus.txt', exclude_test_set=True):
         if corpus_name in self.formatted_corpora_cache:
             return self.formatted_corpora_cache[corpus_name]
 
@@ -142,8 +142,9 @@ class LanguageModel:
             return ' '.join(f'<w> {" ".join(word)} </w>' for word in words)
 
         words_to_format = self.corpora[corpus_name]
-        if use_test_set and corpus_name in self.test_set:
-            words_to_format = words_to_format - set(self.test_set[corpus_name].values())
+        if exclude_test_set and corpus_name in self.test_set:
+            test_words = set(self.test_set[corpus_name].values())
+            words_to_format = words_to_format - test_words
 
         formatted_corpus = format_corpus(words_to_format)
         corpus_hash = hashlib.sha1(formatted_corpus.encode('utf-8')).hexdigest()
@@ -168,6 +169,7 @@ class LanguageModel:
 
         self.formatted_corpora_cache[corpus_name] = formatted_corpus
         return path
+
 
     def generate_and_load_models(self, corpus_name, corpus_path):
         self.models[corpus_name] = {}
@@ -477,6 +479,26 @@ class LanguageModel:
                     'Top Prediction Correct': 'Yes' if result['found_at_rank'] == 1 else 'No',
                     'Correct in Top 3': 'Yes' if result['found_at_rank'] is not None else 'No'
                 })
+    def save_words_to_file(self, words, file_path):
+        """
+        Save a set of words to a file, one word per line.
+        """
+        with open(file_path, 'w') as file:
+            for word in words:
+                file.write(word + '\n')
+
+    def save_training_and_test_words(self, iteration_number):
+        """
+        Save training and test words to separate files for each corpus.
+        """
+        for corpus_name in self.corpora:
+            training_file_path = f'./results/{corpus_name}_training_words_iteration_{iteration_number}.txt'
+            test_file_path = f'./results/{corpus_name}_test_words_iteration_{iteration_number}.txt'
+            self.save_words_to_file(self.training_corpora[corpus_name], training_file_path)
+            test_words = set(self.test_set[corpus_name].values())
+            self.save_words_to_file(test_words, test_file_path)
+            print(f"Saved training and test words for {corpus_name} corpus, iteration {iteration_number}")
+
 
 def save_results_to_file(results, iteration, folder="results"):
     folder_path = Path(folder)
@@ -534,8 +556,17 @@ def calculate_average_accuracies(total_accuracy, iterations):
         for corpus_name, acc_types in total_accuracy.items()
     }
 
+def check_data_leakage(training_corpora, test_set):
+    for corpus_name, test_words in test_set.items():
+        training_words = training_corpora[corpus_name]
+        for test_word in test_words.values():
+            assert test_word not in training_words, f"Data leakage detected in {corpus_name}: {test_word} found in training data"
+
 def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration):
     lm.prepare_test_set()
+    check_data_leakage(lm.training_corpora, lm.test_set)
+    lm.save_training_and_test_words(iteration)
+    # Continue with the rest of your training process
 
     with ThreadPoolExecutor() as executor:
         futures = {executor.submit(lm.generate_and_load_models, corpus_name, corpus_path): corpus_name for corpus_name, corpus_path in formatted_corpus_paths.items()}
