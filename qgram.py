@@ -44,7 +44,7 @@ def model_task(corpus_name, q, corpus_path, model_directory):
         raise
 class LanguageModel:
 
-    def __init__(self, q_range=(1, 6)):
+    def __init__(self, q_range=(1, 7)):
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.models = {}
         self.corpora = {
@@ -55,7 +55,7 @@ class LanguageModel:
         self.formatted_corpora_cache = {}
         self.test_set = {}
         self.training_corpora = {}
-        self.loaded_corpora = False # Flag to prevent loading corpora more than once
+        self.loaded_corpora = False
 
     def load_text_corpus(self, file_path: str) -> set[str]:
         def generate_words():
@@ -150,7 +150,6 @@ class LanguageModel:
             if binary_file:
                 self.models[corpus_name][q] = kenlm.Model(binary_file)
                 logging.info(f"Model for {q}-gram loaded for {corpus_name} corpus.")
-
 
     def predict_missing_letter(self, corpus_name, oov_word):
             missing_letter_index = oov_word.index('_')
