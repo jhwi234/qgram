@@ -1,6 +1,5 @@
 # Standard library imports
 import concurrent.futures
-import hashlib
 import heapq
 import logging
 import random
@@ -108,7 +107,7 @@ class LanguageModel:
         letter_index = np.random.randint(0, len(word))
         return ''.join([word[:letter_index], '_', word[letter_index+1:]])
 
-    def prepare_test_set(self, n=1000):
+    def prepare_test_set(self, n=30000):
         """
         Prepare test set by selecting n words from the corpora
         and replacing a random letter with an underscore '_'.
