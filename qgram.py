@@ -407,10 +407,12 @@ def check_data_leakage(training_corpora, original_test_set):
         for test_word in test_words:
             assert test_word not in training_words, f"Data leakage detected in {corpus_name}: {test_word} found in training data"
 
-def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration):
+def main_iteration(lm, corpora, total_accuracy, iteration):
     lm.prepare_test_set()
-    check_data_leakage(lm.training_corpora, lm.original_test_set)
+    check_data_leakage(lm.training_corpora, lm.test_set)
     lm.save_training_and_test_words(iteration)
+
+    formatted_corpus_paths = {corpus_name: lm.generate_formatted_corpus(corpus_name, path=f'{corpus_name}_formatted_corpus.txt') for corpus_name in corpora}
 
     with ThreadPoolExecutor() as executor:
         futures = {executor.submit(lm.generate_and_load_models, corpus_name, corpus_path): corpus_name for corpus_name, corpus_path in formatted_corpus_paths.items()}
@@ -430,7 +432,7 @@ def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration):
 def main():
     random.seed(42)
     np.random.seed(42)
-    iterations = 2
+    iterations = 10
     corpora = ['brown', 'cmu', 'clmet3']
 
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
