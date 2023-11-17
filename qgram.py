@@ -41,7 +41,7 @@ def model_task(corpus_name, q, corpus_path, model_directory):
         raise
 class LanguageModel:
 
-    def __init__(self, q_range=(1, 7)):
+    def __init__(self, q_range=(2, 6)):
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.models = {}
         self.corpora = {
@@ -116,7 +116,7 @@ class LanguageModel:
         letter_index = np.random.randint(0, len(word))
         return ''.join([word[:letter_index], '_', word[letter_index+1:]])
 
-    def prepare_test_set(self, n=30000):
+    def prepare_test_set(self, n=40000):
         """
         Prepare test and training sets by randomly selecting words from the corpora.
         Either test_set_size or test_set_proportion should be provided. 
@@ -167,8 +167,8 @@ class LanguageModel:
             missing_letter_index = oov_word.index('_')
             log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
             entropy_weights = []
-            boundary_start = '<s> ' if missing_letter_index == 0 else ''
-            boundary_end = ' </s>' if missing_letter_index == len(oov_word) - 1 else ''
+            boundary_start = '<w> ' if missing_letter_index == 0 else ''
+            boundary_end = ' </w>' if missing_letter_index == len(oov_word) - 1 else ''
             oov_word_with_boundaries = f"{boundary_start}{oov_word}{boundary_end}"
             for q in self.q_range:
                 # q-grams are character grams
@@ -455,7 +455,7 @@ def main_iteration(lm, corpora, total_accuracy, iteration):
 def main():
     random.seed(42)
     np.random.seed(42)
-    iterations = 2
+    iterations = 10
     corpora = ['brown', 'cmu', 'clmet3']
 
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
