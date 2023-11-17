@@ -8,14 +8,12 @@ import subprocess
 from collections import defaultdict
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
-from functools import lru_cache
 from pathlib import Path
 
 # Third-party imports
 import kenlm
 import numpy as np
 import nltk
-from nltk.corpus import brown, cmudict
 from retry import retry
 import csv
 
@@ -128,9 +126,6 @@ class LanguageModel:
         :param test_set_proportion: Proportion of the corpus to be used as the test set (between 0 and 1).
         :param training_set_size: Absolute number of words in the training set.
         """
-        if test_set_proportion is not None and (test_set_size is not None or test_set_proportion <= 0 or test_set_proportion > 1):
-            raise ValueError("Provide either a valid test_set_proportion (between 0 and 1) or test_set_size, but not both.")
-
         self.test_set = {}
         self.training_corpora = {corpus: set(words) for corpus, words in self.corpora.items()}
 
@@ -463,13 +458,6 @@ def main():
     np.random.seed(42)
     iterations = 10
     corpora = ['brown', 'cmu', 'clmet3']
-
-    # Parameters for preparing the test set
-    test_set_params = {
-        'test_set_size': None,  # or specify an integer
-        'test_set_proportion': 0.5,  # for example, 10% of the corpus
-        'training_set_size': None  # or specify an integer
-    }
 
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
     lm = LanguageModel(q_range=(6, 6))
