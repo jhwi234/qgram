@@ -40,8 +40,7 @@ def model_task(corpus_name, q, corpus_path, model_directory):
         logging.error(f"Attempt to generate/load the model for {q}-gram failed: {e}")
         raise
 class LanguageModel:
-
-    def __init__(self, q_range=(2, 6)):
+    def __init__(self, q_range=(2, 6), split_config=0.2):
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.models = {}
         self.corpora = {
@@ -51,13 +50,12 @@ class LanguageModel:
         }
         self.formatted_corpora_cache = {}
         self.test_set = {}
+        self.split_config = split_config
         self.training_corpora = {}
         self.loaded_corpora = False
 
     def clean_text(self, text: str) -> set[str]:
-        # Using regular expressions to remove non-alphabetic characters and split words
         words = clean_pattern.findall(split_pattern.sub(' ', text))
-        # Convert to lowercase
         return {word.lower() for word in words}
 
     def load_text_corpus(self, file_path: str) -> set[str]:
@@ -84,27 +82,11 @@ class LanguageModel:
             if use_test_set:
                 self.prepare_test_set()
 
-    def load_nltk_corpus(self, corpus_name: str) -> set[str]:
-        nltk.download(corpus_name)
-        if corpus_name == 'cmudict':
-            entries = getattr(nltk.corpus, corpus_name).entries()
-            words = [word for word, _ in entries]
-        else:
-            words = getattr(nltk.corpus, corpus_name).words()
-
-        return {match.group()
-                for word in words if isinstance(word, str)
-                for match in clean_pattern.finditer(word.lower())}
-
     def download_nltk_resources(self):
         resources = ['cmudict', 'brown']
         for resource in resources:
-            resource_id = f'corpora/{resource}'
-            try:
-                nltk.data.find(resource_id)
-            except LookupError:
-                logging.info(f"Downloading NLTK resource: {resource}")
-                nltk.download(resource)
+            logging.info(f"Checking or downloading NLTK resource: {resource}")
+            nltk.download(resource)
         self.__class__.nltk_resources_downloaded = True
 
     def replace_random_letter(self, word):
@@ -116,25 +98,20 @@ class LanguageModel:
         letter_index = np.random.randint(0, len(word))
         return ''.join([word[:letter_index], '_', word[letter_index+1:]])
 
-    def prepare_test_set(self, n=40000):
-        """
-        Prepare test and training sets by randomly selecting words from the corpora.
-        Either test_set_size or test_set_proportion should be provided. 
-        If training_set_size is not provided, it defaults to the remaining words after test set selection.
-
-        :param test_set_size: Absolute number of words in the test set (mutually exclusive with test_set_proportion).
-        :param test_set_proportion: Proportion of the corpus to be used as the test set (between 0 and 1).
-        :param training_set_size: Absolute number of words in the training set.
-        """
+    def prepare_test_set(self, n=None):
         self.test_set = {}
         self.training_corpora = {corpus: set(words) for corpus, words in self.corpora.items()}
+        self.original_test_set = {}  # Store original test words here
 
         for corpus_name, words in self.corpora.items():
-            test_words = set(random.sample(list(words), n))
+            test_size = n if n else int(len(words) * (1 - self.split_config)) if isinstance(self.split_config, float) else self.split_config
+            test_words = set(random.sample(list(words), test_size))
             self.training_corpora[corpus_name] -= test_words
+            self.original_test_set[corpus_name] = test_words  # Save original words
             self.test_set[corpus_name] = {
                 word: self.replace_random_letter(word) for word in test_words
             }
+
     def generate_formatted_corpus(self, corpus_name, path='formatted_corpus.txt', exclude_test_set=True):
         def format_corpus(words):
             formatted_text = []
@@ -250,7 +227,6 @@ class LanguageModel:
             directory.mkdir(parents=True, exist_ok=True)
 
             for original_word, test_word in test_words.items():
-                # predictions = self.predict_missing_letter(corpus_name, test_word, self.calculate_letter_probabilities(corpus_name))
                 predictions = self.predict_missing_letter(corpus_name, test_word)
                 correct_letter = original_word[test_word.index('_')]
 
@@ -342,6 +318,7 @@ class LanguageModel:
                     'Top Prediction Correct': 'Yes' if result['found_at_rank'] == 1 else 'No',
                     'Correct in Top 3': 'Yes' if result['found_at_rank'] is not None else 'No'
                 })
+
     def save_words_to_file(self, words, file_path):
         """
         Save a set of words to a file, one word per line.
@@ -424,18 +401,16 @@ def calculate_average_accuracies(total_accuracy, iterations):
         for corpus_name, acc_types in total_accuracy.items()
     }
 
-def check_data_leakage(training_corpora, test_set):
-    for corpus_name, test_words in test_set.items():
+def check_data_leakage(training_corpora, original_test_set):
+    for corpus_name, test_words in original_test_set.items():
         training_words = training_corpora[corpus_name]
-        for test_word in test_words.values():
+        for test_word in test_words:
             assert test_word not in training_words, f"Data leakage detected in {corpus_name}: {test_word} found in training data"
 
-def main_iteration(lm, corpora, total_accuracy, iteration):
+def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration):
     lm.prepare_test_set()
-    check_data_leakage(lm.training_corpora, lm.test_set)
+    check_data_leakage(lm.training_corpora, lm.original_test_set)
     lm.save_training_and_test_words(iteration)
-
-    formatted_corpus_paths = {corpus_name: lm.generate_formatted_corpus(corpus_name, path=f'{corpus_name}_formatted_corpus.txt') for corpus_name in corpora}
 
     with ThreadPoolExecutor() as executor:
         futures = {executor.submit(lm.generate_and_load_models, corpus_name, corpus_path): corpus_name for corpus_name, corpus_path in formatted_corpus_paths.items()}
@@ -455,7 +430,7 @@ def main_iteration(lm, corpora, total_accuracy, iteration):
 def main():
     random.seed(42)
     np.random.seed(42)
-    iterations = 10
+    iterations = 2
     corpora = ['brown', 'cmu', 'clmet3']
 
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
