@@ -135,22 +135,21 @@ class LanguageModel:
             self.test_set[corpus_name] = {
                 word: self.replace_random_letter(word) for word in test_words
             }
-
     def generate_formatted_corpus(self, corpus_name, path='formatted_corpus.txt', exclude_test_set=True):
         def format_corpus(words):
-            return ' '.join(f'<w> {" ".join(word)} </w>' for word in words)
-
+            formatted_text = []
+            for word in words:
+                formatted_word = " ".join(word)
+                formatted_text.append(formatted_word)
+            return '\n'.join(formatted_text)
         words_to_format = self.corpora[corpus_name]
         if exclude_test_set and corpus_name in self.test_set:
             test_words = set(self.test_set[corpus_name].values())
             words_to_format = words_to_format - test_words
-
         formatted_corpus = format_corpus(words_to_format)
         corpus_path = Path(path)
-
         with corpus_path.open('w') as f:
             f.write(formatted_corpus)
-
         return path
     
     def generate_and_load_models(self, corpus_name, corpus_path):
@@ -168,8 +167,8 @@ class LanguageModel:
             missing_letter_index = oov_word.index('_')
             log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
             entropy_weights = []
-            boundary_start = '<w> ' if missing_letter_index == 0 else ''
-            boundary_end = ' </w>' if missing_letter_index == len(oov_word) - 1 else ''
+            boundary_start = '<s> ' if missing_letter_index == 0 else ''
+            boundary_end = ' </s>' if missing_letter_index == len(oov_word) - 1 else ''
             oov_word_with_boundaries = f"{boundary_start}{oov_word}{boundary_end}"
             for q in self.q_range:
                 # q-grams are character grams
@@ -456,7 +455,7 @@ def main_iteration(lm, corpora, total_accuracy, iteration):
 def main():
     random.seed(42)
     np.random.seed(42)
-    iterations = 10
+    iterations = 2
     corpora = ['brown', 'cmu', 'clmet3']
 
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
