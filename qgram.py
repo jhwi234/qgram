@@ -1,20 +1,15 @@
 # Standard library imports
 import concurrent.futures
-import hashlib
 import heapq
-import io
 import logging
-import os
 import random
 import re
 import subprocess
 from collections import defaultdict
-from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from threading import Thread
 
 # Third-party imports
 import kenlm
@@ -48,7 +43,7 @@ def model_task(corpus_name, q, corpus_path, model_directory):
         raise
 class LanguageModel:
 
-    def __init__(self, q_range=(6, 6)):  # Changed to only include 6
+    def __init__(self, q_range=(1, 7)):
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.models = {}
         self.corpora = {
@@ -59,7 +54,7 @@ class LanguageModel:
         self.formatted_corpora_cache = {}
         self.test_set = {}
         self.training_corpora = {}
-        self.loaded_corpora = False 
+        self.loaded_corpora = False
 
     def clean_text(self, text: str) -> set[str]:
         # Using regular expressions to remove non-alphabetic characters and split words
@@ -91,6 +86,18 @@ class LanguageModel:
             if use_test_set:
                 self.prepare_test_set()
 
+    def load_nltk_corpus(self, corpus_name: str) -> set[str]:
+        nltk.download(corpus_name)
+        if corpus_name == 'cmudict':
+            entries = getattr(nltk.corpus, corpus_name).entries()
+            words = [word for word, _ in entries]
+        else:
+            words = getattr(nltk.corpus, corpus_name).words()
+
+        return {match.group()
+                for word in words if isinstance(word, str)
+                for match in clean_pattern.finditer(word.lower())}
+
     def download_nltk_resources(self):
         resources = ['cmudict', 'brown']
         for resource in resources:
@@ -111,7 +118,7 @@ class LanguageModel:
         letter_index = np.random.randint(0, len(word))
         return ''.join([word[:letter_index], '_', word[letter_index+1:]])
 
-    def prepare_test_set(self, test_set_size=None, test_set_proportion=None, training_set_size=None):
+    def prepare_test_set(self, n=30000):
         """
         Prepare test and training sets by randomly selecting words from the corpora.
         Either test_set_size or test_set_proportion should be provided. 
@@ -128,127 +135,77 @@ class LanguageModel:
         self.training_corpora = {corpus: set(words) for corpus, words in self.corpora.items()}
 
         for corpus_name, words in self.corpora.items():
-            total_words = len(words)
+            test_words = set(random.sample(list(words), n))
+            self.training_corpora[corpus_name] -= test_words
+            self.test_set[corpus_name] = {
+                word: self.replace_random_letter(word) for word in test_words
+            }
 
-            # Determine the size of the test set
-            if test_set_proportion is not None:
-                test_set_size = int(total_words * test_set_proportion)
-            elif test_set_size is None or test_set_size > total_words:
-                test_set_size = total_words
-
-            # Convert set to list before sampling
-            words_list = list(words)
-            test_words = random.sample(words_list, test_set_size)
-
-            # Assign randomly chosen words to the test set
-            self.test_set[corpus_name] = {word: self.replace_random_letter(word) for word in test_words}
-
-            # Create the training set by removing the test words from the corpus
-            training_words = words - set(test_words)
-            if training_set_size is not None and training_set_size < len(training_words):
-                training_words = set(random.sample(list(training_words), training_set_size))
-            
-            self.training_corpora[corpus_name] = training_words
-
-    def generate_formatted_corpus(self, corpus_name, path='formatted_corpus.txt', use_test_set=True):
-        if corpus_name in self.formatted_corpora_cache:
-            return self.formatted_corpora_cache[corpus_name]
-
+    def generate_formatted_corpus(self, corpus_name, path='formatted_corpus.txt', exclude_test_set=True):
         def format_corpus(words):
             return ' '.join(f'<w> {" ".join(word)} </w>' for word in words)
 
         words_to_format = self.corpora[corpus_name]
-        if use_test_set and corpus_name in self.test_set:
-            words_to_format = words_to_format - set(self.test_set[corpus_name].values())
+        if exclude_test_set and corpus_name in self.test_set:
+            test_words = set(self.test_set[corpus_name].values())
+            words_to_format = words_to_format - test_words
 
         formatted_corpus = format_corpus(words_to_format)
-        corpus_hash = hashlib.sha1(formatted_corpus.encode('utf-8')).hexdigest()
-
         corpus_path = Path(path)
 
-        try:
-            if corpus_path.exists():
-                with corpus_path.open('r') as f:
-                    existing_corpus = f.read()
-                    existing_hash = hashlib.sha1(existing_corpus.encode('utf-8')).hexdigest()
-                    if existing_hash == corpus_hash:
-                        self.formatted_corpora_cache[corpus_name] = existing_corpus
-                        return path
+        with corpus_path.open('w') as f:
+            f.write(formatted_corpus)
 
-            with corpus_path.open('w') as f:
-                f.write(formatted_corpus)
-
-        except IOError as e:
-            logging.error(f"An I/O error occurred: {e}")
-            raise e
-
-        self.formatted_corpora_cache[corpus_name] = formatted_corpus
         return path
-
+    
     def generate_and_load_models(self, corpus_name, corpus_path):
         self.models[corpus_name] = {}
         model_directory = Path(f'{corpus_name}_models')
         model_directory.mkdir(parents=True, exist_ok=True)
 
-        highest_q = max(self.q_range)
-        q, binary_file = model_task(corpus_name, highest_q, corpus_path, model_directory)
-
-        if binary_file:
-            for q in self.q_range:
+        for q in self.q_range:
+            _, binary_file = model_task(corpus_name, q, corpus_path, model_directory)
+            if binary_file:
                 self.models[corpus_name][q] = kenlm.Model(binary_file)
-                logging.info(f"Model for {q}-gram loaded for {corpus_name} corpus using {highest_q}-gram model.")
-
-    # @lru_cache(maxsize=1000)
-    def cached_score(self, model, sequence):
-        return model.score(sequence, bos=False, eos=False)
+                logging.info(f"Model for {q}-gram loaded for {corpus_name} corpus.")
 
     def predict_missing_letter(self, corpus_name, oov_word):
             missing_letter_index = oov_word.index('_')
             log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
             entropy_weights = []
-
             boundary_start = '<w> ' if missing_letter_index == 0 else ''
             boundary_end = ' </w>' if missing_letter_index == len(oov_word) - 1 else ''
             oov_word_with_boundaries = f"{boundary_start}{oov_word}{boundary_end}"
-
             for q in self.q_range:
                 # q-grams are character grams
                 if q not in self.models[corpus_name]:
                     print(f"No model found for {q}-grams in {corpus_name} corpus.")
                     continue
                 model = self.models[corpus_name][q]
-
                 # Prepare contexts based on the current q value, ensuring not to exceed bounds
                 left_size = min(missing_letter_index, q - 1)
                 right_size = min(len(oov_word) - missing_letter_index - 1, q - 1)
-
                 left_context = oov_word_with_boundaries[max(0, missing_letter_index - left_size + len(boundary_start)):missing_letter_index + len(boundary_start)]
                 right_context = oov_word_with_boundaries[missing_letter_index + len(boundary_start) + 1:missing_letter_index + len(boundary_start) + 1 + right_size]
-
                 # Ensure there are no extra spaces before or after the context
                 left_context = left_context.strip()
                 right_context = right_context.strip()
-
                 # Joining contexts with spaces as they would appear in the corpus
                 left_context_joined = ' '.join(left_context)
                 right_context_joined = ' '.join(right_context)
-
                 # Calculate entropy for the current context
-                entropy = -sum(self.cached_score(model, left_context_joined + ' ' + c + ' ' + right_context_joined)
+                entropy = -sum(model.score(left_context_joined + ' ' + c + ' ' + right_context_joined)
                             for c in 'abcdefghijklmnopqrstuvwxyzæœ')
                 entropy_weights.append(entropy)
-
                 for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
                     # Create the full sequence with the candidate letter filled in
                     full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
                     # Get the log score for the full sequence
-                    log_prob_full = self.cached_score(model, full_sequence)
+                    log_prob_full = model.score(full_sequence)
                     log_probabilities[letter].append(log_prob_full)
-
             # Normalize entropy weights
             entropy_weights = np.exp(entropy_weights - np.max(entropy_weights))
             entropy_weights /= entropy_weights.sum()
-
             # Now average the log probabilities across all q values with entropy weights
             averaged_log_probabilities = {}
             for letter, log_probs_list in log_probabilities.items():
@@ -257,113 +214,12 @@ class LanguageModel:
                     weighted_log_probs = np.sum([entropy_weights[i] * log_probs
                                                 for i, log_probs in enumerate(log_probs_list)], axis=0)
                     averaged_log_probabilities[letter] = weighted_log_probs
-
             # Apply heapq.nlargest to find the top log probabilities
             top_log_predictions = heapq.nlargest(3, averaged_log_probabilities.items(), key=lambda item: item[1])
-
             # Convert only the top log probabilities to probabilities
             top_predictions = [(letter, np.exp(log_prob)) for letter, log_prob in top_log_predictions]
-
             # Return predictions with probabilities
             return top_predictions
-
-    def calculate_letter_probabilities(self, corpus_name):
-        if corpus_name not in self.models:
-            raise ValueError(f"No model loaded for corpus: {corpus_name}")
-
-        model = self.models[corpus_name][max(self.q_range)]  # Using the highest q-gram model
-
-        # Define the set of letters you want to score
-        letters = 'abcdefghijklmnopqrstuvwxyzæœ'
-
-        # Query KenLM for each letter's log likelihood
-        letter_log_likelihoods = {letter: model.score(letter, bos=False, eos=False) for letter in letters}
-
-        # Convert log likelihoods to probabilities
-        total_log_prob = np.log(sum(np.exp(log_likelihood) for log_likelihood in letter_log_likelihoods.values()))
-        letter_probabilities = {letter: np.exp(log_likelihood - total_log_prob) for letter, log_likelihood in letter_log_likelihoods.items()}
-
-        return letter_probabilities
-
-    def pmi_predict_missing_letter(self, corpus_name, oov_word, letter_probabilities):
-        missing_letter_index = oov_word.index('_')
-        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
-        pmi_weights = []
-
-        boundary_start = '<w> ' if missing_letter_index == 0 else ''
-        boundary_end = ' </w>' if missing_letter_index == len(oov_word) - 1 else ''
-        oov_word_with_boundaries = f"{boundary_start}{oov_word}{boundary_end}"
-
-        for q in self.q_range:
-            if q not in self.models[corpus_name]:
-                print(f"No model found for {q}-grams in {corpus_name} corpus.")
-                continue
-            model = self.models[corpus_name][q]
-
-            # Prepare contexts based on the current q value, ensuring not to exceed bounds
-            left_size = min(missing_letter_index, q - 1)
-            right_size = min(len(oov_word) - missing_letter_index - 1, q - 1)
-
-            left_context = oov_word_with_boundaries[max(0, missing_letter_index - left_size + len(boundary_start)):missing_letter_index + len(boundary_start)]
-            right_context = oov_word_with_boundaries[missing_letter_index + len(boundary_start) + 1:missing_letter_index + len(boundary_start) + 1 + right_size]
-
-            # Ensure there are no extra spaces before or after the context
-            left_context = left_context.strip()
-            right_context = right_context.strip()
-
-            # Joining contexts with spaces as they would appear in the corpus
-            left_context_joined = ' '.join(left_context)
-            right_context_joined = ' '.join(right_context)
-
-            # Initialize pmi_weights for this q-gram size
-            pmi_weights_for_q = []
-
-            for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
-                full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
-                p_xy = np.exp(self.cached_score(model, full_sequence))
-                p_x = np.exp(self.cached_score(model, left_context_joined + ' ' + right_context_joined))
-                p_y = 1 / 27  # Assuming uniform distribution for simplicity
-
-                # Compute PMI, guard against log(0) by max with a very small number near zero
-                pmi = np.log(max(p_xy / (p_x * p_y), 1e-10))
-                pmi = max(pmi, 0)  # Positive PMI only
-                pmi_weights_for_q.append(pmi)
-
-                log_probabilities[letter].append(self.cached_score(model, full_sequence))
-
-            # Normalize the PMI weights for this q
-            pmi_weights_for_q = np.array(pmi_weights_for_q)
-            pmi_weights_for_q -= np.min(pmi_weights_for_q)
-            pmi_weights_for_q = np.exp(pmi_weights_for_q)
-            pmi_weights_for_q /= pmi_weights_for_q.sum()
-
-            # Add these PMI weights to the overall list
-            pmi_weights.append(pmi_weights_for_q)
-
-        # Normalize across all q values after the main loop
-        pmi_weights = np.concatenate(pmi_weights)  # This assumes each sublist has the same length
-        pmi_weights -= np.min(pmi_weights)
-        pmi_weights = np.exp(pmi_weights)
-        pmi_weights /= pmi_weights.sum()
-
-        # Now average the log probabilities across all q values with PPMI weights
-        averaged_log_probabilities = {}
-        for letter, log_probs_list in log_probabilities.items():
-            if log_probs_list:
-                # Ensure pmi_weights are matched correctly to log_probs_list
-                weighted_log_probs = np.sum(np.array(log_probs_list) * pmi_weights[:len(log_probs_list)])
-                averaged_log_probabilities[letter] = weighted_log_probs
-                # Trim the used weights
-                pmi_weights = pmi_weights[len(log_probs_list):]
-
-        # Apply heapq.nlargest to find the top log probabilities
-        top_log_predictions = heapq.nlargest(3, averaged_log_probabilities.items(), key=lambda item: item[1])
-
-        # Convert only the top log probabilities to probabilities
-        top_predictions = [(letter, np.exp(log_prob)) for letter, log_prob in top_log_predictions]
-
-        # Return predictions with probabilities
-        return top_predictions
 
     def calculate_metrics(self, true_positives, false_positives, false_negatives):
         """
@@ -492,6 +348,31 @@ class LanguageModel:
                     'Top Prediction Correct': 'Yes' if result['found_at_rank'] == 1 else 'No',
                     'Correct in Top 3': 'Yes' if result['found_at_rank'] is not None else 'No'
                 })
+    def save_words_to_file(self, words, file_path):
+        """
+        Save a set of words to a file, one word per line.
+        """
+        with open(file_path, 'w') as file:
+            for word in words:
+                file.write(word + '\n')
+
+    def save_training_and_test_words(self, iteration_number):
+        for corpus_name in self.corpora:
+            training_file_path = Path(f'./results/{corpus_name}_training_words_iteration_{iteration_number}.txt')
+            test_file_path = Path(f'./results/{corpus_name}_test_words_iteration_{iteration_number}.txt')
+
+            training_file_path.parent.mkdir(parents=True, exist_ok=True)
+            test_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+            if training_file_path.exists():
+                print(f"Overwriting existing file for {corpus_name} training data, iteration {iteration_number}")
+            self.save_words_to_file(self.training_corpora[corpus_name], training_file_path)
+
+            if test_file_path.exists():
+                print(f"Overwriting existing file for {corpus_name} test data, iteration {iteration_number}")
+            self.save_words_to_file(set(self.test_set[corpus_name].values()), test_file_path)
+
+            print(f"Saved training and test words for {corpus_name} corpus, iteration {iteration_number}")
 
 def save_results_to_file(results, iteration, folder="results"):
     folder_path = Path(folder)
@@ -549,9 +430,18 @@ def calculate_average_accuracies(total_accuracy, iterations):
         for corpus_name, acc_types in total_accuracy.items()
     }
 
-def main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration, test_set_params):
-    # Unpack test_set_params
-    lm.prepare_test_set(**test_set_params)
+def check_data_leakage(training_corpora, test_set):
+    for corpus_name, test_words in test_set.items():
+        training_words = training_corpora[corpus_name]
+        for test_word in test_words.values():
+            assert test_word not in training_words, f"Data leakage detected in {corpus_name}: {test_word} found in training data"
+
+def main_iteration(lm, corpora, total_accuracy, iteration):
+    lm.prepare_test_set()
+    check_data_leakage(lm.training_corpora, lm.test_set)
+    lm.save_training_and_test_words(iteration)
+
+    formatted_corpus_paths = {corpus_name: lm.generate_formatted_corpus(corpus_name, path=f'{corpus_name}_formatted_corpus.txt') for corpus_name in corpora}
 
     with ThreadPoolExecutor() as executor:
         futures = {executor.submit(lm.generate_and_load_models, corpus_name, corpus_path): corpus_name for corpus_name, corpus_path in formatted_corpus_paths.items()}
@@ -585,15 +475,13 @@ def main():
     lm = LanguageModel(q_range=(6, 6))
     lm.load_corpora(use_test_set=False)
 
-
-
     formatted_corpus_paths = {
         corpus_name: lm.generate_formatted_corpus(corpus_name, path=f'{corpus_name}_formatted_corpus.txt')
         for corpus_name in corpora
     }
 
     for iteration in range(1, iterations + 1):
-        main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration, test_set_params)
+        main_iteration(lm, formatted_corpus_paths, total_accuracy, iteration)
 
     averaged_accuracy = calculate_average_accuracies(total_accuracy, iterations)
     print_accuracies(averaged_accuracy, f"Averaged accuracy over {iterations} iterations")
