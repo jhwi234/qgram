@@ -143,6 +143,7 @@ old/
 results/
 Historical English corpora/
 ciphers-copy/
+*_models/
 
 # Ignore files
 *.klm
