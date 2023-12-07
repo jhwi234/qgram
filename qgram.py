@@ -5,7 +5,6 @@ import logging
 import random
 import re
 import subprocess
-from collections import defaultdict
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
@@ -430,9 +429,7 @@ def main_iteration(lm, corpora, total_accuracy, iteration):
     save_results_to_file(accuracies, iteration)
 
 def main():
-    random.seed(42)
-    np.random.seed(42)
-    iterations = 10
+    iterations = 2
     corpora = ['brown', 'cmu', 'clmet3']
 
     total_accuracy = {corpus_name: {'top1': 0, 'top2': 0, 'top3': 0, 'precision': 0, 'recall': 0} for corpus_name in corpora}
@@ -451,4 +448,6 @@ def main():
     print_accuracies(averaged_accuracy, f"Averaged accuracy over {iterations} iterations")
 
 if __name__ == "__main__":
+    random.seed(42)
+    np.random.seed(42)
     main()
