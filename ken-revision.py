@@ -1,14 +1,24 @@
 import logging
 import random
 import re
-import heapq
 from pathlib import Path
+import enum
+import heapq
 
 import kenlm
 import numpy as np
 import nltk
 import subprocess
 from retry import retry
+
+# Constants
+VOWELS = 'aeiou'
+CONSONANTS = ''.join(set('abcdefghijklmnopqrstuvwxyz') - set(VOWELS))
+
+# Enumeration for letter types
+class LetterType(enum.Enum):
+    VOWEL = 1
+    CONSONANT = 2
 
 logging.basicConfig(level=logging.INFO)
 clean_pattern = re.compile(r'\b[a-zA-Z]{3,}\b')
@@ -33,7 +43,7 @@ def model_task(corpus_name, q, corpus_path, model_directory):
         raise
 
 class LanguageModel:
-    def __init__(self, q_range=(2, 6), split_config=0.2):
+    def __init__(self, q_range=(6, 6), split_config=0.1):
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.model = {}
         self.corpus = set()
@@ -45,40 +55,87 @@ class LanguageModel:
         return set(clean_pattern.findall(text))
 
     def load_corpus(self):
-        # Load the CMU corpus and return a set of words
         nltk.download('cmudict')
         cmu_words = nltk.corpus.cmudict.words()
         cmu_words = [word.lower() for word in cmu_words]
         self.corpus = self.clean_text(' '.join(cmu_words))
-        return self.corpus
 
-    def prepare_test_set(self, data, test_size_ratio=0.2):
-        total_size = len(data)
-        test_size = int(total_size * test_size_ratio)
-        random.shuffle(data)
-        self.training_set = data[test_size:]
-        self.test_set = {self.replace_random_letter(seq) for seq in data[:test_size]}
+    # Modify the prepare_datasets function
+    def prepare_datasets(self, min_word_length=None, max_word_length=None, vowel_replacement_ratio=0.5, consonant_replacement_ratio=0.5):
+        # Filter corpus based on word length if specified
+        if min_word_length or max_word_length:
+            self.corpus = {word for word in self.corpus if (min_word_length or 0) <= len(word) <= (max_word_length or float('inf'))}
 
-    def replace_random_letter(self, word):
-        letter_index = np.random.randint(0, len(word))
+        total_size = len(self.corpus)
+        training_size = int(total_size * self.split_config)
+        shuffled_corpus = list(self.corpus)
+        random.shuffle(shuffled_corpus)
+
+        self.training_set = set(shuffled_corpus[:training_size])
+        unprocessed_test_set = set(shuffled_corpus[training_size:])
+        self.save_set_to_file(self.training_set, "cmu_training_set.txt")
+
+        # Update the test set preparation to include the original word
+        self.test_set = {self.replace_random_letter(word, include_original=True, vowel_replacement_ratio=vowel_replacement_ratio, consonant_replacement_ratio=consonant_replacement_ratio) for word in unprocessed_test_set}
+        self.save_set_to_file(self.test_set, "formatted_test_set.txt")
+
+    def prepare_and_save_test_set(self, data_set, file_name):
+        formatted_test_set = []
+        for word in data_set:
+            modified_word, missing_letter = self.replace_random_letter(word)
+            # Append a tuple containing the modified word, the missing letter, and the original word
+            formatted_test_set.append((modified_word, missing_letter, word))
+
+        self.save_set_to_file(formatted_test_set, file_name)
+
+    def replace_random_letter(self, word, include_original=False, vowel_replacement_ratio=0.5, consonant_replacement_ratio=0.5):
+        categorized_indices = {LetterType.VOWEL: [], LetterType.CONSONANT: []}
+        for i, letter in enumerate(word):
+            letter_type = LetterType.VOWEL if letter in VOWELS else LetterType.CONSONANT
+            categorized_indices[letter_type].append(i)
+
+        # Determine replacement type based on available letters and specified ratios
+        replace_vowel = len(categorized_indices[LetterType.VOWEL]) > 0 and random.random() < vowel_replacement_ratio
+        replace_consonant = len(categorized_indices[LetterType.CONSONANT]) > 0 and random.random() < consonant_replacement_ratio
+
+        if replace_vowel and replace_consonant:
+            # If both are true, choose randomly between vowel and consonant
+            replace_vowel = random.choice([True, False])
+            replace_consonant = not replace_vowel
+
+        if replace_vowel:
+            letter_index = random.choice(categorized_indices[LetterType.VOWEL])
+        elif replace_consonant:
+            letter_index = random.choice(categorized_indices[LetterType.CONSONANT])
+        else:
+            # Default to any letter if no vowels or consonants are found
+            letter_index = random.randint(0, len(word) - 1)
+
         missing_letter = word[letter_index]
-        modified_word = word[:letter_index] + '_' + word[letter_index+1:]
-        return modified_word, missing_letter
+        modified_word = word[:letter_index] + '_' + word[letter_index + 1:]
 
-    def generate_formatted_corpus(self, path='cmu_formatted_corpus.txt'):
-        formatted_text = [" ".join(word) for word in self.corpus]
+        if include_original:
+            return (modified_word, missing_letter, word)
+        else:
+            return modified_word, missing_letter
+
+    def generate_and_load_models(self):
+        training_corpus_path = self.generate_formatted_corpus(self.training_set, 'cmu_formatted_training_corpus.txt')
+        self.generate_models_from_corpus(training_corpus_path)
+
+    def generate_formatted_corpus(self, data_set, path):
+        formatted_text = [" ".join(word) for word in data_set]
         formatted_corpus = '\n'.join(formatted_text)
         corpus_path = Path(path)
         with corpus_path.open('w', encoding='utf-8') as f:
             f.write(formatted_corpus)
         return path
-    
-    def generate_and_load_models(self, corpus_path):
+
+    def generate_models_from_corpus(self, corpus_path):
         model_directory = Path('cmu_models')
         model_directory.mkdir(parents=True, exist_ok=True)
 
         for q in self.q_range:
-            # Assume model_task function exists to create and load models
             _, binary_file = model_task('cmu', q, corpus_path, model_directory)
             if binary_file:
                 self.model[q] = kenlm.Model(binary_file)
@@ -129,75 +186,109 @@ class LanguageModel:
                 weighted_log_probs = np.sum([entropy_weights[i] * log_probs
                                             for i, log_probs in enumerate(log_probs_list)], axis=0)
                 averaged_log_probabilities[letter] = weighted_log_probs
-        # Get the top prediction
-        top_prediction = heapq.nlargest(1, averaged_log_probabilities.items(), key=lambda item: item[1])[0]
-        top_letter = top_prediction[0]
-        top_probability = np.exp(top_prediction[1])
-        
-        return top_letter, top_probability
+        # Get the top three predictions
+        top_three_predictions = heapq.nlargest(3, averaged_log_probabilities.items(), key=lambda item: item[1])
+        return [(letter, np.exp(log_prob)) for letter, log_prob in top_three_predictions]
 
     def evaluate_model(self, output_file):
-        predictions = []
-        correct_predictions = 0
-        for modified_word, missing_letter in self.test_set:
-            predicted_letter, prediction_confidence = self.predict_missing_letter(modified_word)
-            predictions.append((modified_word, missing_letter, predicted_letter, prediction_confidence))
-            if predicted_letter == missing_letter:
-                correct_predictions += 1
+        correct_counts = {1: 0, 2: 0, 3: 0}
+        true_positives = 0
+        false_positives = 0
+        false_negatives = 0
+        total_words = len(self.test_set)
+        predictions = []  # Initialize the predictions list
 
-        self.save_predictions_to_file(predictions, output_file)
-        accuracy = correct_predictions / len(self.test_set)
-        return accuracy
+        for test_data in self.test_set:
+            modified_word, missing_letter = test_data[:2]  # Extract only the first two elements
+            top_three_predictions = self.predict_missing_letter(modified_word)
+            found_at_rank = None
 
-    def save_predictions_to_file(self, predictions, file_name):
-        """Save the top prediction result to a file."""
+            for rank, (predicted_letter, _) in enumerate(top_three_predictions, start=1):
+                if predicted_letter == missing_letter:
+                    found_at_rank = rank
+                    break
+
+            if found_at_rank:
+                for i in range(found_at_rank, 4):
+                    correct_counts[i] += 1
+                if found_at_rank == 1:
+                    true_positives += 1
+            else:
+                false_negatives += 1
+
+            if found_at_rank != 1:
+                false_positives += 1
+
+            # Add the prediction details to the predictions list
+            predictions.append((modified_word, missing_letter, top_three_predictions))
+
+        precision, recall = self.calculate_metrics(true_positives, false_positives, false_negatives)
+
+        # Save the results along with the predictions
+        self.save_predictions_to_file(correct_counts, precision, recall, total_words, predictions, output_file)
+
+        return correct_counts, precision, recall
+
+    def calculate_metrics(self, true_positives, false_positives, false_negatives):
+        precision = true_positives / (true_positives + false_positives) if true_positives + false_positives > 0 else 0.0
+        recall = true_positives / (true_positives + false_negatives) if true_positives + false_negatives > 0 else 0.0
+        return precision, recall
+
+    def save_predictions_to_file(self, correct_counts, precision, recall, total_words, predictions, file_name):
         with open(file_name, 'w') as file:
-            for seq, correct_prediction, prediction, prediction_confidence in predictions:
-                file.write(f"Test Word: {seq}\nCorrect Prediction: {correct_prediction}\nPredicted Letter: {prediction}\n")
-                file.write(f"Confidence: {prediction_confidence:.5f}\n\n")
+            # Write accuracies
+            file.write(f"TOP1 Accuracy: {correct_counts[1] / total_words:.2%}\n")
+            file.write(f"TOP2 Accuracy: {correct_counts[2] / total_words:.2%}\n")
+            file.write(f"TOP3 Accuracy: {correct_counts[3] / total_words:.2%}\n")
+            file.write(f"PRECISION: {precision:.2%}\n")
+            file.write(f"RECALL: {recall:.2%}\n\n")
+
+            # Write predictions for each word
+            for modified_word, missing_letter, top_three_predictions in predictions:
+                top_predicted_letter, top_confidence = top_three_predictions[0]
+                file.write(f"Test Word: {modified_word}\nOriginal: {missing_letter}\n")
+                file.write(f"Predicted: {top_predicted_letter}\n")
+                file.write("Top Three Predictions:\n")
+                for rank, (letter, confidence) in enumerate(top_three_predictions, start=1):
+                    file.write(f"Rank {rank}: '{letter}' confidence {confidence:.5f}\n")
+                file.write("\n")
 
     def save_set_to_file(self, data_set, file_name):
-        """Save a set of data to a file."""
         with open(file_name, 'w') as file:
             for item in data_set:
-                file.write(f"{item}\n")
+                formatted_line = self.format_data_for_saving(item)
+                file.write(formatted_line + "\n")
+
+    @staticmethod
+    def format_data_for_saving(item):
+        if isinstance(item, tuple):
+            return f"({item[0]}, {item[1]}, {item[2]})"
+        else:
+            return f"{item}"
 
 def main():
-    print("Main function started")  # Debugging print
+    logging.info("Starting the main function")
 
-    # Initialize the language model
     lm = LanguageModel()
-    print("Language model initialized")  # Debugging print
+    logging.info("Language model initialized")
 
-    # Load the CMU corpus
     lm.load_corpus()
-    print("Corpus loaded")  # Debugging print
+    logging.info("CMU corpus loaded")
 
-    # Call prepare_test_set
-    lm.prepare_test_set(list(lm.corpus))  # Convert to list if needed
-    print("Test set prepared")  # Debugging print
+    lm.prepare_datasets()
+    logging.info(f"Training set prepared with {len(lm.training_set)} words")
+    logging.info(f"Test set prepared with {len(lm.test_set)} words")
 
-    # Save the training set to a file
-    lm.save_set_to_file(lm.training_set, "cmu_training_set.txt")
+    lm.generate_and_load_models()
+    logging.info("Q-gram models generated and loaded")
 
-    # Generate a formatted version of the CMU corpus
-    corpus_path = lm.generate_formatted_corpus()
-
-    # Generate and load q-gram models
-    lm.generate_and_load_models(corpus_path)
-
-    # Prepare file paths for results
-    predictions_file = "cmu_predictions.txt"
-    test_set_file = "cmu_test_set.txt"
-    corpus_file = "cmu_corpus.txt"
-
-    # Save the test set and corpus to files
-    lm.save_set_to_file(lm.test_set, test_set_file)
-    lm.save_set_to_file(lm.corpus, corpus_file)
-
-    # Evaluate the model and save predictions to a file
-    accuracy = lm.evaluate_model(predictions_file)
-    logging.info(f"Model accuracy: {accuracy:.2%}")
+    correct_counts, precision, recall = lm.evaluate_model("cmu_predictions.txt")
+    logging.info("Model evaluation completed")
+    logging.info(f"TOP1 Accuracy: {correct_counts[1] / len(lm.test_set):.2%}")
+    logging.info(f"TOP2 Accuracy: {correct_counts[2] / len(lm.test_set):.2%}")
+    logging.info(f"TOP3 Accuracy: {correct_counts[3] / len(lm.test_set):.2%}")
+    logging.info(f"PRECISION: {precision:.2%}")
+    logging.info(f"RECALL: {recall:.2%}")
 
 if __name__ == "__main__":
     main()
