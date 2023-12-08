@@ -21,7 +21,7 @@ class LetterType(enum.Enum):
     CONSONANT = 2
 
 logging.basicConfig(level=logging.INFO)
-clean_pattern = re.compile(r'\b[a-zA-Z]{3,}\b')
+clean_pattern = re.compile(r'\b[a-zA-Z]{4,}\b')
 
 @retry(subprocess.CalledProcessError, tries=3, delay=2)
 def model_task(corpus_name, q, corpus_path, model_directory):
@@ -43,7 +43,7 @@ def model_task(corpus_name, q, corpus_path, model_directory):
         raise
 
 class LanguageModel:
-    def __init__(self, q_range=(6, 6), split_config=0.1):
+    def __init__(self, q_range=(6, 6), split_config=0.9):
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.model = {}
         self.corpus = set()
@@ -89,31 +89,39 @@ class LanguageModel:
         self.save_set_to_file(formatted_test_set, file_name)
 
     def replace_random_letter(self, word, include_original=False, vowel_replacement_ratio=0.5, consonant_replacement_ratio=0.5):
+        # Create a dictionary to categorize indices of vowels and consonants in the word.
         categorized_indices = {LetterType.VOWEL: [], LetterType.CONSONANT: []}
+
+        # Loop through each letter in the word.
         for i, letter in enumerate(word):
+            # Determine if the letter is a vowel or a consonant.
             letter_type = LetterType.VOWEL if letter in VOWELS else LetterType.CONSONANT
+            # Add the index of the letter to the corresponding category (vowel or consonant).
             categorized_indices[letter_type].append(i)
 
-        # Determine replacement type based on available letters and specified ratios
+        # Decide whether to replace a vowel or a consonant based on their presence and specified ratios.
         replace_vowel = len(categorized_indices[LetterType.VOWEL]) > 0 and random.random() < vowel_replacement_ratio
         replace_consonant = len(categorized_indices[LetterType.CONSONANT]) > 0 and random.random() < consonant_replacement_ratio
 
+        # If both vowel and consonant are candidates for replacement, randomly choose one.
         if replace_vowel and replace_consonant:
-            # If both are true, choose randomly between vowel and consonant
             replace_vowel = random.choice([True, False])
             replace_consonant = not replace_vowel
 
+        # Choose a random index from the selected category (vowel or consonant) for replacement.
         if replace_vowel:
             letter_index = random.choice(categorized_indices[LetterType.VOWEL])
         elif replace_consonant:
             letter_index = random.choice(categorized_indices[LetterType.CONSONANT])
         else:
-            # Default to any letter if no vowels or consonants are found
+            # If no vowels or consonants are eligible, pick any random letter in the word.
             letter_index = random.randint(0, len(word) - 1)
 
+        # Store the letter to be replaced and create the modified word with a placeholder '_' at the replaced letter's position.
         missing_letter = word[letter_index]
         modified_word = word[:letter_index] + '_' + word[letter_index + 1:]
 
+        # Return a tuple with the modified word and missing letter. If 'include_original' is True, include the original word as well.
         if include_original:
             return (modified_word, missing_letter, word)
         else:
@@ -141,52 +149,57 @@ class LanguageModel:
                 self.model[q] = kenlm.Model(binary_file)
                 logging.info(f"Model for {q}-gram loaded.")
 
+    # new version of predict_missing_letter
     def predict_missing_letter(self, oov_word):
         missing_letter_index = oov_word.index('_')
-        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
+
+        # Initialize dictionaries for log probabilities and entropy weights.
+        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyz'}
         entropy_weights = []
-        boundary_start = '<w> ' if missing_letter_index == 0 else ''
-        boundary_end = ' </w>' if missing_letter_index == len(oov_word) - 1 else ''
-        oov_word_with_boundaries = f"{boundary_start}{oov_word}{boundary_end}"
+
+        # Prepare the word with boundary markers for all words, not just for edge cases.
+        oov_word_with_boundaries = f"<s> {oov_word} </s>"
 
         for q in self.q_range:
             if q not in self.model:
-                print(f"No model found for {q}-grams.")
                 continue
+
             model = self.model[q]
-            # Prepare contexts based on the current q value, ensuring not to exceed bounds
-            left_size = min(missing_letter_index, q - 1)
-            right_size = min(len(oov_word) - missing_letter_index - 1, q - 1)
-            left_context = oov_word_with_boundaries[max(0, missing_letter_index - left_size + len(boundary_start)):missing_letter_index + len(boundary_start)]
-            right_context = oov_word_with_boundaries[missing_letter_index + len(boundary_start) + 1:missing_letter_index + len(boundary_start) + 1 + right_size]
-            # Ensure there are no extra spaces before or after the context
+
+            # Determine the context size on each side of the missing letter, limited by q-gram size.
+            left_size = min(missing_letter_index + 1, q - 1)  # +1 to account for <s>
+            right_size = min(len(oov_word) - missing_letter_index, q - 1)  # No change needed for </s>
+
+            # Extract the left and right contexts from the word.
+            left_context = oov_word_with_boundaries[max(4, missing_letter_index - left_size + 4):missing_letter_index + 4]  # 4 accounts for "<s> "
+            right_context = oov_word_with_boundaries[missing_letter_index + 5:missing_letter_index + 5 + right_size]  # 5 accounts for " <s> " and '_'
+
             left_context = left_context.strip()
             right_context = right_context.strip()
-            # Joining contexts with spaces as they would appear in the corpus
+
             left_context_joined = ' '.join(left_context)
             right_context_joined = ' '.join(right_context)
-            # Calculate entropy for the current context
+
+            # Calculate entropy and log probabilities as before.
             entropy = -sum(model.score(left_context_joined + ' ' + c + ' ' + right_context_joined)
-                        for c in 'abcdefghijklmnopqrstuvwxyzæœ')
+                        for c in 'abcdefghijklmnopqrstuvwxyz')
             entropy_weights.append(entropy)
-            for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
-                # Create the full sequence with the candidate letter filled in
+
+            for letter in 'abcdefghijklmnopqrstuvwxyz':
                 full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
-                # Get the log score for the full sequence
                 log_prob_full = model.score(full_sequence)
                 log_probabilities[letter].append(log_prob_full)
-        # Normalize entropy weights
+
         entropy_weights = np.exp(entropy_weights - np.max(entropy_weights))
         entropy_weights /= entropy_weights.sum()
-        # Now average the log probabilities across all q values with entropy weights
+
         averaged_log_probabilities = {}
         for letter, log_probs_list in log_probabilities.items():
             if log_probs_list:
-                # Weighted sum of log probabilities using entropy weights
                 weighted_log_probs = np.sum([entropy_weights[i] * log_probs
                                             for i, log_probs in enumerate(log_probs_list)], axis=0)
                 averaged_log_probabilities[letter] = weighted_log_probs
-        # Get the top three predictions
+
         top_three_predictions = heapq.nlargest(3, averaged_log_probabilities.items(), key=lambda item: item[1])
         return [(letter, np.exp(log_prob)) for letter, log_prob in top_three_predictions]
 
@@ -250,7 +263,7 @@ class LanguageModel:
                 file.write(f"Predicted: {top_predicted_letter}\n")
                 file.write("Top Three Predictions:\n")
                 for rank, (letter, confidence) in enumerate(top_three_predictions, start=1):
-                    file.write(f"Rank {rank}: '{letter}' confidence {confidence:.5f}\n")
+                    file.write(f"Rank {rank}: '{letter}' confidence {confidence:.7f}\n")
                 file.write("\n")
 
     def save_set_to_file(self, data_set, file_name):
