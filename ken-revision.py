@@ -11,6 +11,11 @@ import nltk
 import subprocess
 from retry import retry
 
+def softmax(x):
+    """Compute softmax values for each set of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum(axis=0)
+
 # Constants
 VOWELS = 'aeiou'
 CONSONANTS = ''.join(set('abcdefghijklmnopqrstuvwxyz') - set(VOWELS))
@@ -152,163 +157,54 @@ class LanguageModel:
                 self.model[q] = kenlm.Model(binary_file)
                 logging.info(f"Model for {q}-gram loaded.")
 
-    # weight with higher entropy
-    def _predict_missing_letter(self, oov_word):
-        # Identify the position of the missing letter (denoted by '_') in the out-of-vocabulary word.
-        missing_letter_index = oov_word.index('_')
+    # no entropy weighting
+    def predict_missing_letter(self, test_word):
+        # Identify the position of the missing letter (denoted by '_').
+        missing_letter_index = test_word.index('_')
 
-        # Initialize dictionaries to store the log probabilities of each alphabet letter being the missing one
-        # and the entropy weights for each context size (q) in the q-gram models.
+        # Initialize a dictionary to store the log probabilities of each alphabet letter being the missing one.
         log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyz'}
-        entropy_weights = []
 
-        # Add start (<s>) and end (</s>) boundary markers to the word, to simulate sentence boundaries as in the training data.
-        oov_word_with_boundaries = f"<s> {oov_word} </s>"
+        # Add start (<s>) and end (</s>) boundary markers to the word.
+        test_word_with_boundaries = f"<s> {test_word} </s>"
 
-        # Loop through each q-gram model. The q-gram size determines how many letters (context) are considered around the missing letter.
         for q in self.q_range:
             if q not in self.model:
-                continue  # Skip if the model for the current q-gram size is not available.
+                continue
 
             model = self.model[q]
 
-            # Determine the number of letters (context size) to consider to the left and right of the missing letter.
-            # This context size depends on the position of the missing letter and the size of the q-gram.
-            left_size = min(missing_letter_index + 1, q - 1)  # Adjust for <s> at the start.
-            right_size = min(len(oov_word) - missing_letter_index, q - 1)  # <s> at the end doesn't affect right size.
+            # Determine context size.
+            left_size = min(missing_letter_index + 1, q - 1)
+            right_size = min(len(test_word) - missing_letter_index, q - 1)
 
             # Extract left and right contexts from the word, including the boundary markers.
-            left_context = oov_word_with_boundaries[max(4, missing_letter_index - left_size + 4):missing_letter_index + 4]  # 4 accounts for the length of "<s> ".
-            right_context = oov_word_with_boundaries[missing_letter_index + 5:missing_letter_index + 5 + right_size]  # 5 accounts for "<s> " and the '_' character.
+            left_context = test_word_with_boundaries[max(4, missing_letter_index - left_size + 4):missing_letter_index + 4]
+            right_context = test_word_with_boundaries[missing_letter_index + 5:missing_letter_index + 5 + right_size]
 
-            # Remove any extra spaces from the context strings.
             left_context = left_context.strip()
             right_context = right_context.strip()
 
-            # Combine the contexts into single strings, as they would appear in natural text.
+            # Combine the contexts into single strings.
             left_context_joined = ' '.join(left_context)
             right_context_joined = ' '.join(right_context)
 
-            # Calculate the entropy of the current context. Entropy here measures the uncertainty of the context.
-            # It's used to give more weight to more informative contexts in the final prediction.
-            entropy = -sum(model.score(left_context_joined + ' ' + c + ' ' + right_context_joined)
-                        for c in 'abcdefghijklmnopqrstuvwxyz')
-            entropy_weights.append(entropy)
-
             # For each possible letter, calculate the log probability of it being the correct one to fill the missing spot.
             for letter in 'abcdefghijklmnopqrstuvwxyz':
-                # Create a sequence by inserting each potential letter into the placeholder and score it using the model.
                 full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
                 log_prob_full = model.score(full_sequence)
-                # Store the log probability for this letter and context combination.
                 log_probabilities[letter].append(log_prob_full)
 
-            # Normalize the entropy weights so they sum to 1, making them proper probabilities.
-            entropy_weights = np.exp(entropy_weights - np.max(entropy_weights))
-            # Subtract the maximum entropy value from all entropy weights to avoid numerical instability
-            # when applying the exponential function. This keeps values within a manageable range.
-            # Then, apply the exponential function to each normalized entropy value, converting them into positive weights.
-            # Exponentiating also accentuates differences, making the weighting more pronounced.
+        # Average the log probabilities across all q values.
+        averaged_log_probabilities = {}
+        for letter, log_probs_list in log_probabilities.items():
+            if log_probs_list:
+                averaged_log_prob = np.mean(log_probs_list)
+                averaged_log_probabilities[letter] = averaged_log_prob
 
-            entropy_weights /= entropy_weights.sum()
-            # Calculate the sum of all exponential entropy weights.
-            # Divide each exponential entropy weight by their total sum to normalize them,
-            # ensuring they add up to 1 and can be used as probabilities in a weighted average calculation.
-
-            # Calculate a weighted average of log probabilities across all q values.
-            # This step combines the probabilities from different q-gram models, using entropy as weights.
-            averaged_log_probabilities = {}
-            # Initialize an empty dictionary to store the averaged log probabilities for each letter.
-
-            for letter, log_probs_list in log_probabilities.items():
-                if log_probs_list:
-                    weighted_log_probs = np.sum([entropy_weights[i] * log_probs
-                                                for i, log_probs in enumerate(log_probs_list)], axis=0)
-                    # Iterate over each letter and its corresponding list of log probabilities.
-                    # Check if the current letter has any calculated log probabilities.
-                    # Calculate the weighted sum for the current letter by multiplying each log probability by its corresponding entropy weight.
-                    # This assigns more weight to log probabilities from contexts with higher entropy (more informative contexts).
-                    # The sum is taken over all q-gram sizes to combine their strengths.
-                    averaged_log_probabilities[letter] = weighted_log_probs
-                    # Store the weighted sum (averaged log probability) for each letter in the dictionary.
-                    # This value represents the combined log probability of the letter being the correct one,
-                    # based on all q-gram model predictions and weighted by the entropy of each context.
-
-            # Select the top three letters with the highest probabilities.
-            top_three_predictions = heapq.nlargest(3, averaged_log_probabilities.items(), key=lambda item: item[1])
-            return [(letter, np.exp(log_prob)) for letter, log_prob in top_three_predictions]
-            # Use a heap queue algorithm to find the top three predictions with the highest probabilities.
-            # Return these predictions along with their exponential probabilities for interpretation.
-
-    # weights with lower entropy values.
-    def predict_missing_letter(self, oov_word):
-        # Identify the position of the missing letter (denoted by '_') in the out-of-vocabulary word.
-        missing_letter_index = oov_word.index('_')
-
-        # Initialize dictionaries to store the log probabilities of each alphabet letter being the missing one
-        # and the entropy weights for each context size (q) in the q-gram models.
-        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyz'}
-        entropy_weights = []
-
-        # Add start (<s>) and end (</s>) boundary markers to the word, to simulate sentence boundaries as in the training data.
-        oov_word_with_boundaries = f"<s> {oov_word} </s>"
-
-        # Loop through each q-gram model. The q-gram size determines how many letters (context) are considered around the missing letter.
-        for q in self.q_range:
-            if q not in self.model:
-                continue  # Skip if the model for the current q-gram size is not available.
-
-            model = self.model[q]
-
-            # Determine the number of letters (context size) to consider to the left and right of the missing letter.
-            # This context size depends on the position of the missing letter and the size of the q-gram.
-            left_size = min(missing_letter_index + 1, q - 1)  # Adjust for <s> at the start.
-            right_size = min(len(oov_word) - missing_letter_index, q - 1)  # <s> at the end doesn't affect right size.
-
-            # Extract left and right contexts from the word, including the boundary markers.
-            left_context = oov_word_with_boundaries[max(4, missing_letter_index - left_size + 4):missing_letter_index + 4]  # 4 accounts for the length of "<s> ".
-            right_context = oov_word_with_boundaries[missing_letter_index + 5:missing_letter_index + 5 + right_size]  # 5 accounts for "<s> " and the '_' character.
-
-            # Remove any extra spaces from the context strings.
-            left_context = left_context.strip()
-            right_context = right_context.strip()
-
-            # Combine the contexts into single strings, as they would appear in natural text.
-            left_context_joined = ' '.join(left_context)
-            right_context_joined = ' '.join(right_context)
-
-            # Calculate the entropy of the current context. Entropy here measures the uncertainty of the context.
-            # It's used to give more weight to more informative contexts in the final prediction.
-            entropy = -sum(model.score(left_context_joined + ' ' + c + ' ' + right_context_joined)
-                        for c in 'abcdefghijklmnopqrstuvwxyz')
-            entropy_weights.append(entropy)
-
-            # For each possible letter, calculate the log probability of it being the correct one to fill the missing spot.
-            for letter in 'abcdefghijklmnopqrstuvwxyz':
-                # Create a sequence by inserting each potential letter into the placeholder and score it using the model.
-                full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
-                log_prob_full = model.score(full_sequence)
-                # Store the log probability for this letter and context combination.
-                log_probabilities[letter].append(log_prob_full)
-
-            # Invert the entropy weights outside of the letter loop.
-            inverted_entropy_weights = np.exp(-np.array(entropy_weights) + np.max(entropy_weights))
-            # Normalize the inverted entropy weights
-            inverted_entropy_weights /= inverted_entropy_weights.sum()
-
-            # Calculate a weighted average of log probabilities across all q values using the inverted entropy weights.
-            averaged_log_probabilities = {}
-            for letter, log_probs_list in log_probabilities.items():
-                if log_probs_list:
-                    weighted_log_probs = np.sum([inverted_entropy_weights[i] * log_probs
-                                                for i, log_probs in enumerate(log_probs_list)], axis=0)
-                    averaged_log_probabilities[letter] = weighted_log_probs
-
-            # Select the top three letters with the highest probabilities.
-            top_three_predictions = heapq.nlargest(3, averaged_log_probabilities.items(), key=lambda item: item[1])
-            return [(letter, np.exp(log_prob)) for letter, log_prob in top_three_predictions]
-            # Use a heap queue algorithm to find the top three predictions with the highest probabilities.
-            # Return these predictions along with their exponential probabilities for interpretation.
+        # Select the top three letters with the highest probabilities.
+        top_three_predictions = heapq.nlargest(3, averaged_log_probabilities.items(), key=lambda item: item[1])
+        return [(letter, np.exp(log_prob)) for letter, log_prob in top_three_predictions]
 
     def evaluate_model(self, output_file):
         correct_counts = {1: 0, 2: 0, 3: 0}
@@ -357,7 +253,6 @@ class LanguageModel:
 
         return correct_counts, top1_recall, top2_recall, top3_recall
 
-
     def save_predictions_to_file(self, correct_counts, top1_recall, top2_recall, top3_recall, total_words, predictions, file_name):
         with open(file_name, 'w') as file:
             # Write accuracies and metrics
@@ -392,6 +287,7 @@ class LanguageModel:
             return f"{item}"
 
 def main():
+    random.seed(23)
     logging.info("Starting the main function")
 
     lm = LanguageModel()
