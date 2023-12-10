@@ -3,10 +3,10 @@ import logging
 import re
 from pathlib import Path
 import enum
-import heapq
 import numpy as np
 
 import kenlm
+from prediction_methods import Predictions
 import nltk
 import subprocess
 from retry import retry
@@ -43,10 +43,11 @@ def model_task(corpus_name, q, corpus_path, model_directory):
         raise
 
 class LanguageModel:
-    def __init__(self, corpus_name, q_range=(6, 6), split_config=0.9, seed=42):
+    def __init__(self, corpus_name, q_range=(6, 6), split_config=0.9, seed=seed):
         self.corpus_name = corpus_name
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.model = {}
+        self.predictor = Predictions(self.model, self.q_range) 
         self.corpus = set()
         self.test_set = set()
         self.training_set = set()
@@ -68,17 +69,11 @@ class LanguageModel:
         clean_pattern = re.compile(r'\b[a-zA-Z]{4,}\b')
         return set(word.lower() for word in clean_pattern.findall(text))
 
-    def prepare_datasets(self, min_word_length=None, max_word_length=None, vowel_replacement_ratio=0.5, consonant_replacement_ratio=0.5):
-        # Use a separate variable for the filtered corpus to retain the original corpus.
-        filtered_corpus = self.corpus
-
-        # Filter the corpus based on word length if specified.
-        if min_word_length or max_word_length:
-            filtered_corpus = {word for word in self.corpus if (min_word_length or 0) <= len(word) <= (max_word_length or float('inf'))}
-
-        total_size = len(filtered_corpus)
+    def prepare_datasets(self, vowel_replacement_ratio=0.1, consonant_replacement_ratio=0.9):
+ 
+        total_size = len(self.corpus)
+        shuffled_corpus = list(self.corpus)
         training_size = int(total_size * self.split_config)
-        shuffled_corpus = list(filtered_corpus)
         self.rng.shuffle(shuffled_corpus)
 
         # Define training and test sets based on the filtered (or original) corpus.
@@ -165,60 +160,7 @@ class LanguageModel:
         else:
             return modified_word, missing_letter
 
-    def predict_missing_letter(self, test_word):
-        missing_letter_index = test_word.index('_')
-        probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyz'}
-        test_word_with_boundaries = f"<s> {test_word} </s>"
-        lambda_weights = self.calculate_lambda_weights()
-
-        for q in self.q_range:
-            model = self.model.get(q)
-            if not model:
-                continue
-
-            # Determine context size.
-            left_size = min(missing_letter_index + 1, q - 1)
-            right_size = min(len(test_word) - missing_letter_index, q - 1)
-
-            # Extract left and right contexts from the word, including the boundary markers.
-            left_context = test_word_with_boundaries[max(4, missing_letter_index - left_size + 4):missing_letter_index + 4]
-            right_context = test_word_with_boundaries[missing_letter_index + 5:missing_letter_index + 5 + right_size]
-
-            left_context = left_context.strip()
-            right_context = right_context.strip()
-
-            # Combine the contexts into single strings.
-            left_context_joined = ' '.join(left_context)
-            right_context_joined = ' '.join(right_context)
-
-            # Probability calculation using list comprehension
-            for letter in 'abcdefghijklmnopqrstuvwxyz':
-                full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
-                prob_full = np.exp(model.score(full_sequence))  # Convert log probability to linear probability
-                probabilities[letter].append(prob_full * lambda_weights[q])
-
-        # Interpolation using dictionary comprehension
-        interpolated_probabilities = {
-            letter: sum(probs_list)
-            for letter, probs_list in probabilities.items() if probs_list
-        }
-
-        # Efficient selection of top three predictions
-        return heapq.nlargest(3, interpolated_probabilities.items(), key=lambda item: item[1])
-
-    def calculate_lambda_weights(self):
-        # Define lambda weights for each n-gram size. These should sum up to 1.
-        lambda_weights = {
-            1: 0.0,  # Unigram
-            2: 0.2,  # Bigram
-            3: 0.2,  # Trigram
-            4: 0.2,
-            5: 0.2,
-            6: 0.2
-        }
-        return lambda_weights
-
-    def evaluate_model(self, output_file):
+    def evaluate_model(self, output_file, prediction_method):
         correct_counts = {1: 0, 2: 0, 3: 0}
         total_words = len(self.test_set)
         top1_valid_predictions = 0
@@ -228,7 +170,7 @@ class LanguageModel:
 
         for test_data in self.test_set:
             modified_word, missing_letter, original_word = test_data
-            top_three_predictions = self.predict_missing_letter(modified_word)
+            top_three_predictions = prediction_method(modified_word) 
 
             correct_found = False
             for rank, (predicted_letter, _) in enumerate(top_three_predictions, start=1):
@@ -332,7 +274,11 @@ def process_corpus(corpus_name, corpus_loader):
     lm.generate_and_load_models()
     logging.info(f"{corpus_name} Q-gram models generated and loaded")
 
-    correct_counts, top1_recall, top2_recall, top3_recall = lm.evaluate_model(f"{corpus_name}_predictions.txt")
+    prediction_method = lm.predictor.entropy_weighted_prediction
+
+    logging.info(f"Evaluated with {prediction_method.__name__}")
+
+    correct_counts, top1_recall, top2_recall, top3_recall = lm.evaluate_model(f"{corpus_name}_predictions.txt", prediction_method)
     logging.info(f"Model evaluation completed for {corpus_name}")
     logging.info(f"TOP1 PRECISION: {correct_counts[1] / len(lm.test_set):.2%}")
     logging.info(f"TOP2 PRECISION: {correct_counts[2] / len(lm.test_set):.2%}")
