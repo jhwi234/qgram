@@ -12,16 +12,17 @@ import subprocess
 from retry import retry
 
 # Constants
-VOWELS = 'aeiou'
+VOWELS = 'aeiouæœ'
 CONSONANTS = ''.join(set('abcdefghijklmnopqrstuvwxyz') - set(VOWELS))
 seed = 42
+
+# Suppress NLTK download messages
+nltk.download('punkt', quiet=True)
 
 # Enumeration for letter types
 class LetterType(enum.Enum):
     VOWEL = 1
     CONSONANT = 2
-
-logging.basicConfig(level=logging.INFO)
 
 @retry(subprocess.CalledProcessError, tries=3, delay=2)
 def model_task(corpus_name, q, corpus_path, model_directory):
@@ -41,11 +42,11 @@ def model_task(corpus_name, q, corpus_path, model_directory):
     except subprocess.CalledProcessError as e:
         logging.error(f"Attempt to generate/load the model for {q}-gram failed: {e}")
         raise
-
 class LanguageModel:
     def __init__(self, corpus_name, q_range=(6, 6), split_config=0.9, seed=seed):
         self.corpus_name = corpus_name
         self.q_range = range(q_range[0], q_range[1] + 1)
+        self.seed = seed
         self.model = {}
         self.predictor = Predictions(self.model, self.q_range) 
         self.corpus = set()
@@ -69,25 +70,20 @@ class LanguageModel:
         clean_pattern = re.compile(r'\b[a-zA-Z]{4,}\b')
         return set(word.lower() for word in clean_pattern.findall(text))
 
-    def prepare_datasets(self, vowel_replacement_ratio=0.1, consonant_replacement_ratio=0.9):
- 
+    def prepare_datasets(self, vowel_replacement_ratio=0.3, consonant_replacement_ratio=0.7):
         total_size = len(self.corpus)
         shuffled_corpus = list(self.corpus)
         training_size = int(total_size * self.split_config)
         self.rng.shuffle(shuffled_corpus)
 
-        # Define training and test sets based on the filtered (or original) corpus.
         self.training_set = set(shuffled_corpus[:training_size])
         unprocessed_test_set = set(shuffled_corpus[training_size:])
 
-        # Save the training set to a file.
         self.save_set_to_file(self.training_set, f"{self.corpus_name}_training_set.txt")
 
-        # Update the test set preparation to include the original word.
         self.test_set = {self.replace_random_letter(word, include_original=True, vowel_replacement_ratio=vowel_replacement_ratio, consonant_replacement_ratio=consonant_replacement_ratio) for word in unprocessed_test_set}
         self.save_set_to_file(self.test_set, f"{self.corpus_name}_formatted_test_set.txt")
 
-        # Combine training and test sets into all_words.
         self.all_words = self.training_set.union(self.test_set)
 
     def generate_and_load_models(self):
@@ -241,51 +237,66 @@ class LanguageModel:
             return f"{item}"
 
 def load_nltk_corpus(corpus):
-    nltk.download(corpus)
+    nltk.download(corpus, quiet=True)
     return getattr(nltk.corpus, corpus).words()
 
 def load_file_corpus(filepath):
     with open(filepath, 'r', encoding='utf-8') as file:
         return file.read().split()
 
-def main():
-    nltk.download('punkt')
+# Set up logging
+def setup_logging():
+    # Create a logging handler that writes log messages to a file
+    file_handler = logging.FileHandler('logfile.log', mode='a')
+    file_format = logging.Formatter('%(asctime)s - %(message)s')
+    file_handler.setFormatter(file_format)
 
-    # Process CMU Dict Corpus
-    process_corpus("cmudict", lambda: load_nltk_corpus('cmudict'))
+    # Create a logging handler that outputs minimal information to the console
+    console_handler = logging.StreamHandler()
+    console_format = logging.Formatter('%(message)s')
+    console_handler.setFormatter(console_format)
 
-    # Process Brown Corpus
-    process_corpus("brown", lambda: load_nltk_corpus('brown'))
-
-    # Process text file
-    process_corpus("CLMET3", lambda: load_file_corpus("CLMET3_words.txt"))
+    # Set up the root logger with both handlers
+    logging.basicConfig(level=logging.INFO, handlers=[file_handler, console_handler])
 
 def process_corpus(corpus_name, corpus_loader):
+    print(f"Processing {corpus_name} Corpus")
+    print("-" * 40)
+
     lm = LanguageModel(corpus_name)
+    lm.load_corpus(corpus_loader)
     logging.info(f"{corpus_name} Language model initialized")
 
-    lm.load_corpus(corpus_loader)
-    logging.info(f"{corpus_name} corpus loaded")
+    # Accessing default parameters for vowel and consonant replacement ratios
+    vowel_ratio, consonant_ratio = LanguageModel.prepare_datasets.__defaults__[-2:]
+    logging.info(f"Vowel Replacement Ratio: {vowel_ratio}")
+    logging.info(f"Consonant Replacement Ratio: {consonant_ratio}")
 
     lm.prepare_datasets()
-    logging.info(f"Training set prepared with {len(lm.training_set)} words")
-    logging.info(f"Test set prepared with {len(lm.test_set)} words")
+    logging.info(f"Training set size: {len(lm.training_set)}")
+    logging.info(f"Test set size: {len(lm.test_set)}")
 
     lm.generate_and_load_models()
     logging.info(f"{corpus_name} Q-gram models generated and loaded")
 
     prediction_method = lm.predictor.entropy_weighted_prediction
-
-    logging.info(f"Evaluated with {prediction_method.__name__}")
+    logging.info(f"Evaluated with: {prediction_method.__name__}")
 
     correct_counts, top1_recall, top2_recall, top3_recall = lm.evaluate_model(f"{corpus_name}_predictions.txt", prediction_method)
-    logging.info(f"Model evaluation completed for {corpus_name}")
+    logging.info(f"Model evaluation completed for: {corpus_name}")
     logging.info(f"TOP1 PRECISION: {correct_counts[1] / len(lm.test_set):.2%}")
     logging.info(f"TOP2 PRECISION: {correct_counts[2] / len(lm.test_set):.2%}")
     logging.info(f"TOP3 PRECISION: {correct_counts[3] / len(lm.test_set):.2%}")
     logging.info(f"TOP1 RECALL: {top1_recall:.2%}")
     logging.info(f"TOP2 RECALL: {top2_recall:.2%}")
     logging.info(f"TOP3 RECALL: {top3_recall:.2%}")
+    print("-" * 40)
+
+def main():
+    setup_logging()
+    process_corpus("cmudict", lambda: load_nltk_corpus('cmudict'))
+    process_corpus("brown", lambda: load_nltk_corpus('brown'))
+    process_corpus("CLMET3", lambda: load_file_corpus("CLMET3_words.txt"))
 
 if __name__ == "__main__":
     main()
