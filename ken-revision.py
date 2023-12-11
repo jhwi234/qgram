@@ -1,6 +1,7 @@
 import random
 import logging
 import re
+import csv
 from pathlib import Path
 import enum
 import subprocess
@@ -17,10 +18,12 @@ MODEL_DIR = DATA_DIR / "models"
 LOG_DIR = DATA_DIR / "logs"
 CORPUS_DIR = DATA_DIR / "corpora"
 OUTPUT_DIR = DATA_DIR / "outputs"
+TEXT_DIR = OUTPUT_DIR / "texts"
+CSV_DIR = OUTPUT_DIR / "csv"
 SETS_DIR = OUTPUT_DIR / "sets"
 
 # Create directories if they don't exist
-for directory in [DATA_DIR, MODEL_DIR, LOG_DIR, CORPUS_DIR, OUTPUT_DIR, SETS_DIR]:
+for directory in [DATA_DIR, MODEL_DIR, LOG_DIR, CORPUS_DIR, OUTPUT_DIR, SETS_DIR, TEXT_DIR, CSV_DIR]:
     directory.mkdir(exist_ok=True)
 
 # Constants and Enums
@@ -76,7 +79,7 @@ class LanguageModel:
 
     CLEAN_PATTERN = re.compile(r'\b[a-zA-Z]+(?:-[a-zA-Z]+)*\b')
 
-    def __init__(self, corpus_name, q_range=(6, 6), split_config=0.5, seed=None):
+    def __init__(self, corpus_name, q_range=(6, 6), split_config=0.1, seed=None):
         self.corpus_name = corpus_name.replace('.txt', '')
         self.q_range = range(q_range[0], q_range[1] + 1)
         self.model = {}
@@ -115,7 +118,7 @@ class LanguageModel:
         training_size = int(total_size * self.split_config)  # Calculate size of the training set
         return set(shuffled_corpus[:training_size]), set(shuffled_corpus[training_size:])
 
-    def prepare_datasets(self, vowel_replacement_ratio=0.5, consonant_replacement_ratio=0.5):
+    def prepare_datasets(self, vowel_replacement_ratio=0.2, consonant_replacement_ratio=0.8):
         # Prepares training and test datasets, modifying the test set to simulate missing letters
         self.training_set, unprocessed_test_set = self._shuffle_and_split_corpus()
         self.save_set_to_file(self.training_set, f"{self.corpus_name}_training_set.txt")
@@ -240,7 +243,7 @@ class LanguageModel:
                 if any(modified_word.replace('_', pred_letter) in self.all_words for pred_letter, _ in top_three_predictions):
                     top3_valid_predictions += 1
 
-            predictions.append((modified_word, missing_letter, top_three_predictions))
+            predictions.append((modified_word, missing_letter, original_word, top_three_predictions))
 
         # Calculate recall for TOP1, TOP2, and TOP3 predictions
         top1_recall = top1_valid_predictions / total_words if total_words > 0 else 0.0
@@ -249,10 +252,41 @@ class LanguageModel:
 
         # Save predictions and metrics to a file
         output_file_name = f"{self.corpus_name}_predictions.txt"
-        output_file = OUTPUT_DIR / output_file_name
+        output_file = TEXT_DIR / output_file_name
         self.save_predictions_to_file(correct_counts, top1_recall, top2_recall, top3_recall, total_words, predictions, output_file)
-
+        self.save_predictions_to_csv(predictions)
         return correct_counts, top1_recall, top2_recall, top3_recall
+
+    def save_predictions_to_csv(self, predictions):
+        csv_file_path = CSV_DIR / f"{self.corpus_name}_predictions.csv"
+        
+        with csv_file_path.open('w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            # Writing the header with separate columns for letter and confidence
+            writer.writerow([
+                'Corpus', 'Prediction Method', 'Training Size', 'Testing Size',
+                'Vowel Ratio', 'Consonant Ratio', 'Tested Word', 'Original Word', 'Correct Letter',
+                'Top1 Letter', 'Top1 Confidence',
+                'Top2 Letter', 'Top2 Confidence',
+                'Top3 Letter', 'Top3 Confidence'
+            ])
+
+            # Retrieve default parameters for vowel and consonant replacement ratios
+            vowel_ratio, consonant_ratio = self.prepare_datasets.__defaults__[-2:]
+
+            # Writing the data rows with separate columns for letter and confidence
+            for modified_word, missing_letter, original_word, top_three_predictions in predictions:
+                row = [
+                    self.corpus_name, self.predictor.__class__.__name__, 
+                    len(self.training_set), len(self.test_set), 
+                    vowel_ratio, consonant_ratio, modified_word, original_word, missing_letter
+                ]
+
+                # Adding predictions with separated letter and confidence, formatted consistently
+                for predicted_letter, confidence in top_three_predictions:
+                    row.extend([predicted_letter, f"{confidence:.7f}"])
+
+                writer.writerow(row)
 
     def save_predictions_to_file(self, correct_counts, top1_recall, top2_recall, top3_recall, total_words, predictions, file_path):
         # Writes prediction results to a specified file
@@ -266,9 +300,9 @@ class LanguageModel:
             file.write(f"TOP3 RECALL: {top3_recall:.2%}\n\n")
 
             # Write detailed predictions for each test word
-            for modified_word, missing_letter, top_three_predictions in predictions:
+            for modified_word, missing_letter, original_word, top_three_predictions in predictions:
                 top_predicted_letter, top_confidence = top_three_predictions[0]
-                file.write(f"Test Word: {modified_word}\nOriginal: {missing_letter}\n")
+                file.write(f"Test Word: {modified_word}\nOriginal Word: {original_word}\nMissing Letter: {missing_letter}\n")
                 file.write(f"Predicted: {top_predicted_letter}\n")
                 file.write("Top Three Predictions:\n")
                 for rank, (letter, confidence) in enumerate(top_three_predictions, start=1):
