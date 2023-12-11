@@ -26,7 +26,6 @@ for directory in [DATA_DIR, MODEL_DIR, LOG_DIR, CORPUS_DIR, OUTPUT_DIR, SETS_DIR
 # Constants and Enums
 VOWELS = 'aeiouæœ'
 CONSONANTS = ''.join(set('abcdefghijklmnopqrstuvwxyz') - set(VOWELS))
-
 class LetterType(enum.Enum):
     VOWEL = 1
     CONSONANT = 2
@@ -75,7 +74,7 @@ def run_kenlm(corpus_name, q, corpus_path, model_directory):
         raise
 class LanguageModel:
 
-    CLEAN_PATTERN = re.compile(r'\b[a-zA-Z]{4,}\b')
+    CLEAN_PATTERN = re.compile(r'\b[a-zA-Z]+(?:-[a-zA-Z]+)*\b')
 
     def __init__(self, corpus_name, q_range=(6, 6), split_config=0.5, seed=None):
         self.corpus_name = corpus_name.replace('.txt', '')
@@ -90,7 +89,13 @@ class LanguageModel:
         self.split_config = split_config
 
     def clean_text(self, text: str) -> set[str]:
-        return set(word.lower() for word in self.CLEAN_PATTERN.findall(text))
+        words = set()
+        for word in self.CLEAN_PATTERN.findall(text):
+            # Split hyphenated words and add each part to the set
+            for part in word.split('-'):
+                if len(part) >= 3:  # Ensure each part meets the length criteria
+                    words.add(part.lower())  # Add lowercase version
+        return words
 
     def load_corpus(self, corpus_name):
         # Load a corpus either from a text file or using NLTK if it's a known dataset
@@ -289,7 +294,6 @@ class LanguageModel:
             # If the item is not a tuple (just a single word), return it as a string.
             return f"{item}"
 
-
 def main():
     # Set the global random seed at the start of the main function
     seed = 42
@@ -320,7 +324,7 @@ def run(corpus_name, seed):
     lm.generate_and_load_models()  # Generate and load language models
     logging.info(f"{corpus_name} Q-gram models generated and loaded")
 
-    prediction_method = lm.predictor.context_sensitive_prediction
+    prediction_method = lm.predictor.context_sensitive
     logging.info(f"Evaluated with: {prediction_method.__name__}")
 
     # Evaluate the model and log the results
