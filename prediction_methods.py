@@ -9,7 +9,7 @@ class Predictions:
     # version that averages the log probabilities across all q values with entropy weighting and determines context size based on the missing letter index uses boundary markers and interpolation
     def entropy_weighted_prediction(self, test_word):
         missing_letter_index = test_word.index('_')
-        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyz'}
+        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
         entropy_weights = []
         test_word_with_boundaries = f"<s> {test_word} </s>"
 
@@ -32,10 +32,10 @@ class Predictions:
 
             # Calculate entropy for the current context
             entropy = -sum(model.score(left_context_joined + ' ' + c + ' ' + right_context_joined)
-                        for c in 'abcdefghijklmnopqrstuvwxyz')
+                        for c in 'abcdefghijklmnopqrstuvwxyzæœ')
             entropy_weights.append(entropy)
 
-            for letter in 'abcdefghijklmnopqrstuvwxyz':
+            for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
                 full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
                 log_prob_full = model.score(full_sequence)
                 log_probabilities[letter].append(log_prob_full)
@@ -59,7 +59,7 @@ class Predictions:
     # version that sums the log probabilities across all q values and multiplies them with weights using interpolation and determines context size based on the missing letter index uses boundary markers and interpolation
     def interpolation_weighted_prediction(self, test_word):
         missing_letter_index = test_word.index('_')
-        probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyz'}
+        probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
         test_word_with_boundaries = f"<s> {test_word} </s>"
         lambda_weights = self.calculate_lambda_weights()
 
@@ -84,7 +84,7 @@ class Predictions:
             right_context_joined = ' '.join(right_context)
 
             # Probability calculation using list comprehension
-            for letter in 'abcdefghijklmnopqrstuvwxyz':
+            for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
                 full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
                 prob_full = np.exp(model.score(full_sequence))  # Convert log probability to linear probability
                 probabilities[letter].append(prob_full * lambda_weights[q])
@@ -110,10 +110,10 @@ class Predictions:
         }
         return lambda_weights
 
-    # version that determines context size based on the missing letter index uses boundary markers   
+    # version that sums the log probabilities across all q values and determines context size based on the missing letter index uses boundary markers   
     def context_sensitive_prediction(self, test_word):
         missing_letter_index = test_word.index('_')
-        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyz'}
+        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
         test_word_with_boundaries = f"<s> {test_word} </s>"
 
         for q in self.q_range:
@@ -137,7 +137,7 @@ class Predictions:
             right_context_joined = ' '.join(right_context)
 
             # Calculate log probability for each letter
-            for letter in 'abcdefghijklmnopqrstuvwxyz':
+            for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
                 full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
                 log_prob_full = model.score(full_sequence)
                 log_probabilities[letter].append(log_prob_full)
@@ -158,7 +158,7 @@ class Predictions:
         missing_letter_index = test_word.index('_')
 
         # Initialize a dictionary to store the log probabilities of each alphabet letter being the missing one.
-        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyz'}
+        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
 
         for q in self.q_range:
             model = self.model.get(q)
@@ -178,7 +178,7 @@ class Predictions:
             right_context_joined = ' '.join(right_context)
 
             # Calculate log probability for each letter.
-            for letter in 'abcdefghijklmnopqrstuvwxyz':
+            for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
                 full_sequence = f"{left_context_joined} {letter} {right_context_joined}".strip()
                 log_prob_full = model.score(full_sequence, bos=False, eos=False)
                 log_probabilities[letter].append(log_prob_full)
@@ -199,7 +199,7 @@ class Predictions:
         missing_letter_index = test_word.index('_')
 
         # Initialize a dictionary to store the log probabilities.
-        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyz'}
+        log_probabilities = {letter: [] for letter in 'abcdefghijklmnopqrstuvwxyzæœ'}
 
         # Format the test word to match the training format (with spaces between characters).
         formatted_test_word = " ".join(test_word)
@@ -210,7 +210,7 @@ class Predictions:
                 continue
 
             # Generate candidate words for each letter in the alphabet.
-            for letter in 'abcdefghijklmnopqrstuvwxyz':
+            for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
                 # Form the candidate word by replacing the underscore with the letter and adding spaces.
                 candidate_word = formatted_test_word[:missing_letter_index * 2] + letter + formatted_test_word[missing_letter_index * 2 + 1:]
                 
@@ -249,7 +249,7 @@ class Predictions:
             return []
 
         # Generate candidate words for each letter in the alphabet and score them.
-        for letter in 'abcdefghijklmnopqrstuvwxyz':
+        for letter in 'abcdefghijklmnopqrstuvwxyzæœ':
             candidate_word = formatted_test_word[:missing_letter_index * 2] + letter + formatted_test_word[missing_letter_index * 2 + 1:]
             log_probability = model.score(candidate_word, bos=False, eos=False)
             log_probabilities[letter] = log_probability
@@ -257,3 +257,4 @@ class Predictions:
         # Select the top three letters with the highest log probabilities.
         top_three_predictions = heapq.nlargest(3, log_probabilities.items(), key=lambda item: item[1])
         return [(letter, np.exp(log_prob)) for letter, log_prob in top_three_predictions]
+
