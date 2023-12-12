@@ -28,7 +28,7 @@ for directory in [DATA_DIR, MODEL_DIR, LOG_DIR, CORPUS_DIR, OUTPUT_DIR, SETS_DIR
 
 # Constants and Enums
 VOWELS = 'aeiouæœ'
-CONSONANTS = ''.join(set('abcdefghijklmnopqrstuvwxyz') - set(VOWELS))
+CONSONANTS = ''.join(set('abcdefghijklmnopqrstuvwxyzæœ') - set(VOWELS))
 class LetterType(enum.Enum):
     VOWEL = 1
     CONSONANT = 2
@@ -52,7 +52,7 @@ nltk.download('punkt', quiet=True)
 # KenLM Wrapper Function
 @retry(subprocess.CalledProcessError, tries=3, delay=2)
 def run_kenlm(corpus_name, q, corpus_path, model_directory):
-    # This function serves as a wrapper for the KenLM language model toolkit. KenLM efficiently
+    # This function serves as a wrapper for the KenLM language model toolkit.
     # The function automates the process of creating models for a given corpus.
 
     arpa_file = model_directory / f'{corpus_name}_{q}gram.arpa'
@@ -79,38 +79,52 @@ class LanguageModel:
 
     CLEAN_PATTERN = re.compile(r'\b[a-zA-Z]+(?:-[a-zA-Z]+)*\b')
 
-    def __init__(self, corpus_name, q_range=(6, 6), split_config=0.1, seed=None):
+    def __init__(self, corpus_name, config):
         self.corpus_name = corpus_name.replace('.txt', '')
-        self.q_range = range(q_range[0], q_range[1] + 1)
+        self.q_range = range(config["q_range"][0], config["q_range"][1] + 1)
         self.model = {}
         self.predictor = Predictions(self.model, self.q_range) 
         self.corpus = set()
         self.test_set = set()
         self.training_set = set()
-        self.rng = random.Random(seed) if seed is not None else random.Random()
+        self.rng = random.Random(config["seed"]) if config["seed"] else random.Random()
         self.all_words = set()
-        self.split_config = split_config
+        self.split_config = config["split_config"]
+        self.vowel_replacement_ratio = config["vowel_replacement_ratio"]
+        self.consonant_replacement_ratio = config["consonant_replacement_ratio"]
+        self.min_word_length = config["min_word_length"]
+
+        # Log the parameters
+        logging.info(f"Language Model for {self.corpus_name} initialized with:")
+        logging.info(f"Seed: {config['seed']}")
+        logging.info(f"Q-gram Range: {config['q_range']}")
+        logging.info(f"Train-Test Split Configuration: {self.split_config}")
+        logging.info(f"Vowel Replacement Ratio: {self.vowel_replacement_ratio}")
+        logging.info(f"Consonant Replacement Ratio: {self.consonant_replacement_ratio}")
+        logging.info(f"Minimum Word Length: {self.min_word_length}")
 
     def clean_text(self, text: str) -> set[str]:
         words = set()
         for word in self.CLEAN_PATTERN.findall(text):
-            # Split hyphenated words and add each part to the set
+            # Handle hyphenated words: split and process each component separately
             for part in word.split('-'):
-                if len(part) >= 3:  # Ensure each part meets the length criteria
-                    words.add(part.lower())  # Add lowercase version
+                # Include word parts that meet the minimum length requirement
+                if len(part) >= self.min_word_length:
+                    words.add(part.lower())  # Convert to lowercase and add to the set
         return words
 
     def load_corpus(self, corpus_name):
-        # Load a corpus either from a text file or using NLTK if it's a known dataset
         if corpus_name.endswith('.txt'):
             file_path = CORPUS_DIR / corpus_name
             with file_path.open('r', encoding='utf-8') as file:
+                # Read and process the contents of a text file
                 self.corpus = self.clean_text(file.read())
         else:
-            nltk.download(corpus_name, quiet=True)  # Downloads the corpus using NLTK if not already present
+            # Download and process a standard NLTK corpus
+            nltk.download(corpus_name, quiet=True)
             self.corpus = self.clean_text(' '.join(getattr(nltk.corpus, corpus_name).words()))
 
-    def _shuffle_and_split_corpus(self):
+    def _shuffle_and_split_corpus(self) -> tuple[set[str], set[str]]:
         # Shuffles the corpus and splits it into training and test sets based on the split configuration
         total_size = len(self.corpus)
         shuffled_corpus = list(self.corpus)
@@ -118,17 +132,17 @@ class LanguageModel:
         training_size = int(total_size * self.split_config)  # Calculate size of the training set
         return set(shuffled_corpus[:training_size]), set(shuffled_corpus[training_size:])
 
-    def prepare_datasets(self, vowel_replacement_ratio=0.2, consonant_replacement_ratio=0.8):
+    def prepare_datasets(self):
         # Prepares training and test datasets, modifying the test set to simulate missing letters
         self.training_set, unprocessed_test_set = self._shuffle_and_split_corpus()
         self.save_set_to_file(self.training_set, f"{self.corpus_name}_training_set.txt")
 
-        # For each word in the test set, replace a letter (vowel/consonant based on provided ratios)
-        self.test_set = {self.replace_random_letter(word, include_original=True, vowel_replacement_ratio=vowel_replacement_ratio, consonant_replacement_ratio=consonant_replacement_ratio) for word in unprocessed_test_set}
+        # For each word in the test set, replace a letter based on the class attributes for vowel and consonant replacement ratios
+        self.test_set = {self.replace_random_letter(word, include_original=True) for word in unprocessed_test_set}
         self.save_set_to_file(self.test_set, f"{self.corpus_name}_formatted_test_set.txt")
         self.all_words = self.training_set.union(self.test_set)  # Combines training and test sets for word verification during testing
 
-    def generate_formatted_corpus(self, data_set, formatted_corpus_path):
+    def generate_formatted_corpus(self, data_set, formatted_corpus_path) -> Path:
         # Formats and saves the dataset to a file, with each word separated by a space and each line representing a single word
         formatted_text = [" ".join(word) for word in data_set]
         formatted_corpus = '\n'.join(formatted_text)
@@ -166,47 +180,32 @@ class LanguageModel:
 
         self.save_set_to_file(formatted_test_set, file_name)  # Saves the modified test set to a specified file
 
-    def replace_random_letter(self, word, include_original=False, vowel_replacement_ratio=0.5, consonant_replacement_ratio=0.5):
-        # Replaces a random letter (vowel or consonant) in a given word based on specified ratios
-        # Categorize indices of vowels and consonants within the word
-        categorized_indices = {
-            LetterType.VOWEL: [i for i, letter in enumerate(word) if letter in VOWELS],
-            LetterType.CONSONANT: [i for i, letter in enumerate(word) if letter in CONSONANTS]
-        }
+    def replace_random_letter(self, word, include_original=False):
+        vowel_indices = [i for i, letter in enumerate(word) if letter in VOWELS]
+        consonant_indices = [i for i, letter in enumerate(word) if letter in CONSONANTS]
 
-        # Decide randomly whether to replace a vowel or a consonant based on the given replacement ratios
-        replace_vowel = random.random() < vowel_replacement_ratio and categorized_indices[LetterType.VOWEL]
-        replace_consonant = random.random() < consonant_replacement_ratio and categorized_indices[LetterType.CONSONANT]
+        random_choice = self.rng.random()
+        combined_probability = self.vowel_replacement_ratio + self.consonant_replacement_ratio
 
-        # Select the type of letter (vowel or consonant) to replace based on random choice
-        if replace_vowel and replace_consonant:
-            letter_type = self.rng.choice([LetterType.VOWEL, LetterType.CONSONANT])
-        elif replace_vowel:
-            letter_type = LetterType.VOWEL
-        elif replace_consonant:
-            letter_type = LetterType.CONSONANT
+        # Choose vowel or consonant based on the ratios and availability
+        if random_choice < self.vowel_replacement_ratio and vowel_indices:
+            letter_indices = vowel_indices
+        elif random_choice < combined_probability and consonant_indices:
+            letter_indices = consonant_indices
         else:
-            # Default fallback to select any letter type if neither vowel nor consonant is selected
-            letter_type = self.rng.choice([LetterType.VOWEL, LetterType.CONSONANT])
-            # Further fallback if the selected letter type does not exist in the word
-            if not categorized_indices[letter_type]:
-                letter_type = LetterType.VOWEL if letter_type == LetterType.CONSONANT else LetterType.CONSONANT
+            # Fallback: Choose from available letters, regardless of type
+            letter_indices = vowel_indices if vowel_indices else consonant_indices
 
-        # Randomly select an index from the chosen letter type to replace
-        letter_indices = categorized_indices[letter_type]
+        if not letter_indices:
+            raise ValueError(f"Unable to replace a letter in word: '{word}'.")
+
         letter_index = self.rng.choice(letter_indices)
-
-        # Replace the selected letter with a placeholder ('_') and store the original letter
         missing_letter = word[letter_index]
         modified_word = word[:letter_index] + '_' + word[letter_index + 1:]
 
-        # Returns a tuple containing the modified word, the missing letter, and optionally the original word
-        if include_original:
-            return (modified_word, missing_letter, word)
-        else:
-            return modified_word, missing_letter
+        return (modified_word, missing_letter, word) if include_original else (modified_word, missing_letter)
 
-    def evaluate_model(self, prediction_method):
+    def evaluate_model(self, prediction_method) -> tuple[dict[int, int], float, float, float]:
         # Initialize counters for correct predictions at different ranks
         correct_counts = {1: 0, 2: 0, 3: 0}
         total_words = len(self.test_set)  # Total number of words in the test set
@@ -272,8 +271,8 @@ class LanguageModel:
                 'Top3 Letter', 'Top3 Confidence'
             ])
 
-            # Retrieve default parameters for vowel and consonant replacement ratios
-            vowel_ratio, consonant_ratio = self.prepare_datasets.__defaults__[-2:]
+            # Use the class attributes for vowel and consonant replacement ratios
+            vowel_ratio, consonant_ratio = self.vowel_replacement_ratio, self.consonant_replacement_ratio
 
             # Writing the data rows with separate columns for letter and confidence
             for modified_word, missing_letter, original_word, top_three_predictions in predictions:
@@ -320,7 +319,7 @@ class LanguageModel:
                 file.write(formatted_line + "\n")
 
     @staticmethod
-    def format_data_for_saving(item):
+    def format_data_for_saving(item) -> str:
         # Converts data items into a string format suitable for saving to a file.
         if isinstance(item, tuple):
             # If the item is a tuple, format it as a string with each element separated by commas.
@@ -329,28 +328,13 @@ class LanguageModel:
             # If the item is not a tuple (just a single word), return it as a string.
             return f"{item}"
 
-def main():
-    # Set the global random seed at the start of the main function
-    seed = 42
-    # Sets up logging and runs the model processing for specified corpora.
-    setup_logging()
-    run("cmudict", seed)
-    run("brown", seed)
-    run("CLMET3.txt", seed)
-
-def run(corpus_name, seed):
-    # Processes a specified corpus for language model evaluation.
+def run(corpus_name, config):
     print(f"Processing {corpus_name} Corpus")
     print("-" * 40)
 
-    lm = LanguageModel(corpus_name, seed=seed)
+    lm = LanguageModel(corpus_name, config)
     lm.load_corpus(corpus_name)  # Load the corpus data
     logging.info(f"{corpus_name} Language model initialized")
-
-    # Retrieve default parameters for vowel and consonant replacement ratios.
-    vowel_ratio, consonant_ratio = LanguageModel.prepare_datasets.__defaults__[-2:]
-    logging.info(f"Vowel Replacement Ratio: {vowel_ratio}")
-    logging.info(f"Consonant Replacement Ratio: {consonant_ratio}")
 
     lm.prepare_datasets()  # Prepare the datasets for training and testing
     logging.info(f"Training set size: {len(lm.training_set)}")
@@ -372,6 +356,21 @@ def run(corpus_name, seed):
     logging.info(f"TOP2 RECALL: {top2_recall:.2%}")
     logging.info(f"TOP3 RECALL: {top3_recall:.2%}")
     print("-" * 40)
+
+def main():
+    # Configuration dictionary
+    config = {
+        "seed": 42,     # Random seed for reproducibility affects the test-train split and letter replacement
+        "q_range": (6, 6),      # Range of q-grams to use for the language model
+        "split_config": 0.5,    # Percentage of the corpus to use for training remaining for testing
+        "vowel_replacement_ratio": 0.5, # Ratio of vowels across all words to replace with '_'
+        "consonant_replacement_ratio": 0.5, # Ratio of consonants across all words to replace with '_'
+        "min_word_length": 4
+    }
+    setup_logging()
+    corpora = ["cmudict", "brown", "CLMET3.txt"]
+    for corpus_name in corpora:
+        run(corpus_name, config)
 
 if __name__ == "__main__":
     main()
