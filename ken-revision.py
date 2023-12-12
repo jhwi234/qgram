@@ -214,6 +214,7 @@ class LanguageModel:
         top2_valid_predictions = 0
         top3_valid_predictions = 0
         predictions = []
+        prediction_method_name = prediction_method.__name__
 
         for test_data in self.test_set:
             # Process each word in the test set
@@ -254,10 +255,10 @@ class LanguageModel:
         output_file_name = f"{self.corpus_name}_predictions.txt"
         output_file = TEXT_DIR / output_file_name
         self.save_predictions_to_file(correct_counts, top1_recall, top2_recall, top3_recall, total_words, predictions, output_file)
-        self.save_predictions_to_csv(predictions)
+        self.save_predictions_to_csv(predictions, prediction_method_name)
         return correct_counts, top1_recall, top2_recall, top3_recall
 
-    def save_predictions_to_csv(self, predictions):
+    def save_predictions_to_csv(self, predictions, prediction_method_name):
         csv_file_path = CSV_DIR / f"{self.corpus_name}_predictions.csv"
         
         with csv_file_path.open('w', newline='', encoding='utf-8') as file:
@@ -277,7 +278,7 @@ class LanguageModel:
             # Writing the data rows with separate columns for letter and confidence
             for modified_word, missing_letter, original_word, top_three_predictions in predictions:
                 row = [
-                    self.corpus_name, self.predictor.__class__.__name__, 
+                    self.corpus_name, prediction_method_name, 
                     len(self.training_set), len(self.test_set), 
                     vowel_ratio, consonant_ratio, modified_word, original_word, missing_letter
                 ]
