@@ -39,8 +39,9 @@ class Predictions:
         top_three = heapq.nlargest(3, log_probabilities.items(), key=lambda item: item[1])
         return [(letter, np.exp(log_prob)) for letter, log_prob in top_three]
 
+
     def context_sensitive(self, test_word):
-        """Prediction method that considers different q-gram contexts."""
+        """Prediction method that determines the context size with boundary markers."""
         missing_letter_index = test_word.index('_')
         log_probabilities = defaultdict(list)
 
@@ -48,7 +49,7 @@ class Predictions:
             model = self.model.get(q)
             if model is None:
                 continue
-
+            # Extract contexts with boundary markers
             left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=True)
             for letter in self.alphabet:
                 sequence = f"{left_context} {letter} {right_context}".strip()
@@ -57,6 +58,7 @@ class Predictions:
 
         sum_log_probabilities = {letter: sum(log_probs) for letter, log_probs in log_probabilities.items()}
         return self._select_top_predictions(sum_log_probabilities)
+
 
     def context_no_boundary(self, test_word):
         """Prediction method determines context size without boundary markers."""
@@ -215,3 +217,51 @@ class Predictions:
         """Calculates lambda weights for each n-gram size."""
         lambda_weights = {q: 1.0 / len(self.q_range) for q in self.q_range}
         return lambda_weights
+
+    def _calculate_perplexity(self, model, left_context, right_context):
+        """Calculates the perplexity for the current context."""
+        log_probs = [model.score(f"{left_context} {c} {right_context}") for c in self.alphabet]
+        entropy = -np.mean(log_probs)  # Average log probability (entropy)
+        perplexity = np.exp(entropy)  # Perplexity as exp(entropy)
+        return perplexity
+
+    def _apply_perplexity_weights(self, log_probabilities, perplexity_weights):
+        """Applies perplexity weights to log probabilities."""
+        averaged_log_probabilities = {}
+        for letter, log_probs_list in log_probabilities.items():
+            if log_probs_list:
+                weighted_log_probs = np.sum([perplexity_weights[i] * log_probs
+                                            for i, log_probs in enumerate(log_probs_list)], axis=0)
+                averaged_log_probabilities[letter] = weighted_log_probs
+        return averaged_log_probabilities
+
+    def perplexity_weighted(self, test_word):
+        """Context sensitive prediction method using perplexity weighting."""
+        missing_letter_index = test_word.index('_')
+        log_probabilities = {letter: [] for letter in self.alphabet}
+        perplexity_weights = []
+
+        for q in self.q_range:
+            model = self.model.get(q)
+            if not model:
+                continue
+
+            left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=True)
+
+            perplexity = self._calculate_perplexity(model, left_context, right_context)
+            perplexity_weights.append(perplexity)
+
+            for letter in self.alphabet:
+                full_sequence = self._format_sequence(left_context, letter, right_context)
+                log_prob_full = self._calculate_log_probability(model, full_sequence)
+                log_probabilities[letter].append(log_prob_full)
+
+        # Normalize perplexity weights (higher perplexity should have lower weight)
+        perplexity_weights = 1 / np.array(perplexity_weights)
+        perplexity_weights /= perplexity_weights.sum()
+
+        # Apply perplexity weights
+        averaged_log_probabilities = self._apply_perplexity_weights(log_probabilities, perplexity_weights)
+
+        # Select top three predictions
+        return self._select_top_predictions(averaged_log_probabilities)

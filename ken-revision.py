@@ -352,7 +352,7 @@ def run(corpus_name, config):
     logging.info(f"{corpus_name} Q-gram models generated and loaded")
 
     # Select and log the prediction method being evaluated
-    prediction_method = lm.predictor.context_sensitive
+    prediction_method = lm.predictor.perplexity_weighted # Name of the prediction method being used
     logging.info(f"Evaluated with: {prediction_method.__name__}")
 
     # Evaluate the model and capture metrics
