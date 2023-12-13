@@ -125,7 +125,6 @@ class LanguageModel:
         prediction_methods = {
             'context_sensitive': self.predictor.context_sensitive,
             'context_no_boundary': self.predictor.context_no_boundary,
-            'context_insensitive': self.predictor.context_insensitive,
             'base_prediction': self.predictor.base_prediction
         }
         self.prediction_method = prediction_methods.get(config.prediction_method_name, self.predictor.context_sensitive)
