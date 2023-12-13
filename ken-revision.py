@@ -86,8 +86,6 @@ class LanguageModel:
         self.q_range = range(config.q_range[0], config.q_range[1] + 1)
         # Initialize dictionary to store models for each q-gram
         self.model = {}
-        # Initialize prediction class with models and q-gram range
-        self.predictor = Predictions(self.model, self.q_range)
         # Initialize sets for storing corpus, test set, and training set
         self.corpus = set()
         self.test_set = set()
@@ -101,6 +99,26 @@ class LanguageModel:
         self.vowel_replacement_ratio = config.vowel_replacement_ratio
         self.consonant_replacement_ratio = config.consonant_replacement_ratio
         self.min_word_length = config.min_word_length
+
+        # Load corpus data and extract unique characters
+        self.load_corpus(corpus_name)
+        unique_characters = self.extract_unique_characters()
+        # Store the count of unique characters
+        self.unique_character_count = len(unique_characters)
+
+        # Initialize prediction class with models, q-gram range, and unique characters
+        self.predictor = Predictions(self.model, self.q_range, unique_characters)
+
+        # Log initialization information
+        logging.info(f'Language Model for {self.corpus_name} initialized with:')
+        logging.info(f'Seed: {config.seed}')
+        logging.info(f'Q-gram Range: {config.q_range}')
+        logging.info(f'Train-Test Split Configuration: {self.split_config}')
+        logging.info(f'Vowel Replacement Ratio: {self.vowel_replacement_ratio}')
+        logging.info(f'Consonant Replacement Ratio: {self.consonant_replacement_ratio}')
+        logging.info(f'Unique Character Count: {self.unique_character_count}')
+        logging.info(f'Minimum Word Length: {self.min_word_length}')
+
         # Retrieve the prediction method based on the name
         prediction_methods = {
             'context_sensitive': self.predictor.context_sensitive,
@@ -110,14 +128,12 @@ class LanguageModel:
         }
         self.prediction_method = prediction_methods.get(config.prediction_method_name, self.predictor.context_sensitive)
 
-        # Log initialization information
-        logging.info(f'Language Model for {self.corpus_name} initialized with:')
-        logging.info(f'Seed: {config.seed}')
-        logging.info(f'Q-gram Range: {config.q_range}')
-        logging.info(f'Train-Test Split Configuration: {self.split_config}')
-        logging.info(f'Vowel Replacement Ratio: {self.vowel_replacement_ratio}')
-        logging.info(f'Consonant Replacement Ratio: {self.consonant_replacement_ratio}')
-        logging.info(f'Minimum Word Length: {self.min_word_length}')
+    def extract_unique_characters(self) -> set:
+        # Extracts unique characters from the corpus
+        unique_chars = set()
+        for word in self.corpus:
+            unique_chars.update(word)
+        return unique_chars
 
     def clean_text(self, text: str) -> set[str]:
         # Extract and clean words from the given text using the defined regex pattern
@@ -280,7 +296,7 @@ class LanguageModel:
             writer = csv.writer(file)
             # Define the header with columns for prediction details and additional metrics
             writer.writerow([
-                'Corpus', 'Prediction Method', 'Training Size', 'Testing Size',
+                'Corpus', 'Unique Character Count', 'Prediction Method', 'Training Size', 'Testing Size',
                 'Vowel Ratio', 'Consonant Ratio', 'Tested Word', 'Original Word',
                 'Missing Letter Position', 'Word Length', 'Correct Letter',
                 'Predicted Letter', 'Prediction Rank', 'Confidence', 'Is Valid', 'Is Accurate', 'Correct Letter Rank'
@@ -297,7 +313,7 @@ class LanguageModel:
                     is_accurate = predicted_letter == missing_letter
 
                     row = [
-                        self.corpus_name, prediction_method_name,
+                        self.corpus_name, self.unique_character_count, prediction_method_name,
                         len(self.training_set), len(self.test_set),
                         self.vowel_replacement_ratio, self.consonant_replacement_ratio,
                         modified_word, original_word, missing_letter_position,
@@ -314,7 +330,8 @@ class LanguageModel:
         # Save detailed predictions and metrics to a text file for easy review.
         with output_file_path.open('w', encoding='utf-8') as file:
             # Document the prediction method and evaluation metrics at the top of the file
-            file.write(f'Prediction Method: {prediction_method_name}\n\n')
+            file.write(f'Prediction Method: {prediction_method_name}\n')
+            file.write(f'Unique Character Count: {self.unique_character_count}\n\n')
             accuracy = evaluation_metrics['accuracy']
             validity = evaluation_metrics['validity']
             file.write(f'TOP1 ACCURACY: {accuracy[1]:.2%}\n')
@@ -329,15 +346,17 @@ class LanguageModel:
             file.write(f'Vowel Ratio: {self.vowel_replacement_ratio}, Consonant Ratio: {self.consonant_replacement_ratio}\n\n')
 
             for modified_word, missing_letter, original_word, top_three_predictions, correct_letter_rank in predictions:
+                # Document the tested word, original word, correct letter, and rank of correct letter
                 file.write(f'Tested Word: {modified_word}, Original Word: {original_word}, Correct Letter: {missing_letter}\n')
+                file.write(f'Rank of Correct Letter: {correct_letter_rank}\n')
 
                 for rank, (predicted_letter, confidence) in enumerate(top_three_predictions, start=1):
                     reconstructed_word = modified_word.replace('_', predicted_letter)
-                    is_valid_word = reconstructed_word in self.all_words  # Check if reconstructed word is in all words
+                    is_valid_word = reconstructed_word in self.all_words
 
                     file.write(f"Rank {rank}: '{predicted_letter}' (Confidence: {confidence:.8f}), Valid: {is_valid_word}\n")
-
-                file.write(f'Rank of Correct Letter: {correct_letter_rank}\n\n')
+                
+                file.write('\n')
 
     def save_set_to_file(self, data_set, file_name):
         # Write the contents of a data set to a file, formatting tuples for readability

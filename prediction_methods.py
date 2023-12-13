@@ -3,13 +3,11 @@ import heapq
 import numpy as np
 
 class Predictions:
-
-    alphabet = 'abcdefghijklmnopqrstuvwxyzæœ'
-
-    def __init__(self, model, q_range):
-        """Initialize with a set of models and a range of n-gram sizes."""
+    def __init__(self, model, q_range, unique_characters):
+        """Initialize with a set of models, a range of n-gram sizes, and unique characters."""
         self.model = model
         self.q_range = q_range
+        self.unique_characters = unique_characters
 
     def _extract_contexts(self, test_word, q, missing_letter_index, with_boundaries=True):
         """Extracts left and right contexts around the missing letter in the word."""
@@ -33,11 +31,6 @@ class Predictions:
     def _calculate_log_probability(self, model, sequence, bos=True, eos=True):
         """Calculates the log probability of a sequence using a specified model."""
         return model.score(sequence, bos=bos, eos=eos)
-
-    def _select_top_predictions(self, log_probabilities):
-        """Selects the top three predictions based on their log probabilities."""
-        top_three = heapq.nlargest(3, log_probabilities.items(), key=lambda item: item[1])
-        return [(letter, np.exp(log_prob)) for letter, log_prob in top_three]
     
     def _select_all_predictions(self, log_probabilities):
         """Selects all predictions based on their log probabilities."""
@@ -55,7 +48,7 @@ class Predictions:
                 continue
             # Extract contexts with boundary markers
             left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=True)
-            for letter in self.alphabet:
+            for letter in self.unique_characters:
                 sequence = f"{left_context} {letter} {right_context}".strip()
                 log_prob = model.score(sequence)
                 log_probabilities[letter].append(log_prob)
@@ -66,7 +59,7 @@ class Predictions:
     def context_no_boundary(self, test_word):
         """Prediction method determines context size without boundary markers."""
         missing_letter_index = test_word.index('_')
-        log_probabilities = {letter: [] for letter in self.alphabet}
+        log_probabilities = {letter: [] for letter in self.unique_characters}
 
         for q in self.q_range:
             model = self.model.get(q)
@@ -76,7 +69,7 @@ class Predictions:
             # Extract contexts without boundary markers
             left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=False)
 
-            for letter in self.alphabet:
+            for letter in self.unique_characters:
                 sequence = self._format_sequence(left_context, letter, right_context)
                 log_prob = self._calculate_log_probability(model, sequence, bos=False, eos=False)
                 log_probabilities[letter].append(log_prob)
@@ -87,7 +80,7 @@ class Predictions:
     def context_insensitive(self, test_word):
         """Prediction method that ignores context size and boundary markers."""
         missing_letter_index = test_word.index('_')
-        log_probabilities = {letter: [] for letter in self.alphabet}
+        log_probabilities = {letter: [] for letter in self.unique_characters}
 
         # Format the test word to match the training format (with spaces between characters).
         formatted_test_word = " ".join(test_word)
@@ -97,7 +90,7 @@ class Predictions:
             if not model:
                 continue
 
-            for letter in self.alphabet:
+            for letter in self.unique_characters:
                 # Form the candidate word by replacing the underscore with the letter and adding spaces.
                 candidate_word = formatted_test_word[:missing_letter_index * 2] + letter + formatted_test_word[missing_letter_index * 2 + 1:]
                 
@@ -123,7 +116,7 @@ class Predictions:
         if not model:
             return []
 
-        for letter in self.alphabet:
+        for letter in self.unique_characters:
             # Form the candidate word by replacing the underscore with the letter and adding spaces.
             candidate_word = formatted_test_word[:missing_letter_index * 2] + letter + formatted_test_word[missing_letter_index * 2 + 1:]
             
