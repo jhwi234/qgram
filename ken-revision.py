@@ -3,7 +3,6 @@ import logging
 import re
 import csv
 from pathlib import Path
-import enum
 import subprocess
 
 import nltk
@@ -50,7 +49,6 @@ CONSONANTS = ''.join(ALL_LETTERS - set(VOWELS))
 def run_kenlm(corpus_name, q, corpus_path, model_directory) -> tuple[int, str]:
 
     # Automates the creation of ARPA and binary language models for a given corpus.
-
     arpa_file = model_directory / f'{corpus_name}_{q}gram.arpa'
     binary_file = model_directory / f'{corpus_name}_{q}gram.klm'
 
@@ -118,15 +116,13 @@ class LanguageModel:
         logging.info(f"Minimum Word Length: {self.min_word_length}")
 
     def clean_text(self, text: str) -> set[str]:
-        words = set()
-        for word in self.CLEAN_PATTERN.findall(text):
-            # Split hyphenated words and add all parts to the list
-            parts = word.split('-')
-            words.update(parts)
-
-        # Filter out words that do not meet the minimum length requirement
-        filtered_words = {word.lower() for word in words if len(word) >= self.min_word_length}
-        return filtered_words
+    # Directly filter and process words in a single comprehension
+        return {part.lower() 
+                for word in self.CLEAN_PATTERN.findall(text)
+                # Split hyphenated words and add all parts to the list 
+                for part in word.split('-')
+                # Filter out words that do not meet the minimum length requirement
+                if len(part) >= self.min_word_length}
 
     def load_corpus(self, corpus_name):
         # Loads the corpus data from a file or NLTK
@@ -156,7 +152,11 @@ class LanguageModel:
         # For each word in the test set, replace a letter based on the class attributes for vowel and consonant replacement ratios
         self.test_set = {self.replace_random_letter(word, include_original=True) for word in unprocessed_test_set}
         self.save_set_to_file(self.test_set, f"{self.corpus_name}_formatted_test_set.txt")
-        self.all_words = self.training_set.union(self.test_set)  # Combines training and test sets for word verification during testing
+
+        # Extract original words from the test_set tuples and combine with training_set for word verification during testing
+        self.all_words = self.training_set.union({original_word for _, _, original_word in self.test_set})
+        # Save the combined set to a file
+        self.save_set_to_file(self.all_words, f"{self.corpus_name}_all_words.txt")
 
     def generate_formatted_corpus(self, data_set, formatted_corpus_path) -> Path:
         # Formats and saves the dataset to a file, with each word separated by a space and each line representing a single word
@@ -286,29 +286,29 @@ class LanguageModel:
         
         with csv_file_path.open('w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            # Writing the header with separate columns for letter and confidence
+             # Writing the header with separate columns for letter and confidence
             writer.writerow([
                 'Corpus', 'Prediction Method', 'Training Size', 'Testing Size',
                 'Vowel Ratio', 'Consonant Ratio', 'Tested Word', 'Original Word', 'Correct Letter',
-                'Top1 Letter', 'Top1 Confidence',
-                'Top2 Letter', 'Top2 Confidence',
-                'Top3 Letter', 'Top3 Confidence'
+                'Top1 Letter', 'Top1 Confidence', 'Top1 Validity',
+                'Top2 Letter', 'Top2 Confidence', 'Top2 Validity',
+                'Top3 Letter', 'Top3 Confidence', 'Top3 Validity'
             ])
-
-            # Use the class attributes for vowel and consonant replacement ratios
-            vowel_ratio, consonant_ratio = self.vowel_replacement_ratio, self.consonant_replacement_ratio
 
             # Writing the data rows with separate columns for letter and confidence
             for modified_word, missing_letter, original_word, top_three_predictions in predictions:
                 row = [
                     self.corpus_name, prediction_method_name, 
                     len(self.training_set), len(self.test_set), 
-                    vowel_ratio, consonant_ratio, modified_word, original_word, missing_letter
+                    self.vowel_replacement_ratio, self.consonant_replacement_ratio, 
+                    modified_word, original_word, missing_letter
                 ]
 
                 # Adding predictions with separated letter and confidence, formatted consistently
                 for predicted_letter, confidence in top_three_predictions:
-                    row.extend([predicted_letter, f"{confidence:.7f}"])
+                    reconstructed_word = modified_word.replace('_', predicted_letter)
+                    is_valid_word = reconstructed_word in self.all_words
+                    row.extend([predicted_letter, f"{confidence:.7f}", is_valid_word])
 
                 writer.writerow(row)
 
