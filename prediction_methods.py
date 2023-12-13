@@ -38,7 +38,11 @@ class Predictions:
         """Selects the top three predictions based on their log probabilities."""
         top_three = heapq.nlargest(3, log_probabilities.items(), key=lambda item: item[1])
         return [(letter, np.exp(log_prob)) for letter, log_prob in top_three]
-
+    
+    def _select_all_predictions(self, log_probabilities):
+        """Selects all predictions based on their log probabilities."""
+        all_predictions = heapq.nlargest(len(log_probabilities), log_probabilities.items(), key=lambda item: item[1])
+        return [(letter, np.exp(log_prob)) for letter, log_prob in all_predictions]
 
     def context_sensitive(self, test_word):
         """Prediction method that determines the context size with boundary markers."""
@@ -57,8 +61,7 @@ class Predictions:
                 log_probabilities[letter].append(log_prob)
 
         sum_log_probabilities = {letter: sum(log_probs) for letter, log_probs in log_probabilities.items()}
-        return self._select_top_predictions(sum_log_probabilities)
-
+        return self._select_all_predictions(sum_log_probabilities)
 
     def context_no_boundary(self, test_word):
         """Prediction method determines context size without boundary markers."""
@@ -79,7 +82,7 @@ class Predictions:
                 log_probabilities[letter].append(log_prob)
 
         sum_log_probabilities = {letter: sum(log_probs) for letter, log_probs in log_probabilities.items() if log_probs}
-        return self._select_top_predictions(sum_log_probabilities)
+        return self._select_all_predictions(sum_log_probabilities)
 
     def context_insensitive(self, test_word):
         """Prediction method that ignores context size and boundary markers."""
@@ -104,7 +107,7 @@ class Predictions:
 
         # Sum log probabilities across all q values and select top three predictions.
         sum_log_probabilities = {letter: sum(log_probs) for letter, log_probs in log_probabilities.items() if log_probs}
-        return self._select_top_predictions(sum_log_probabilities)
+        return self._select_all_predictions(sum_log_probabilities)
 
     def base_prediction(self, test_word):
         """Base prediction method using the highest q-value model."""
@@ -129,139 +132,4 @@ class Predictions:
             log_probabilities[letter] = log_probability
 
         # Select the top three letters with the highest log probabilities.
-        return self._select_top_predictions(log_probabilities)
-    
-    def entropy_weighted(self, test_word):
-        """Context sensitive prediction method using entropy weighting."""
-        missing_letter_index = test_word.index('_')
-        log_probabilities = {letter: [] for letter in self.alphabet}
-        entropy_weights = []
-
-        for q in self.q_range:
-            model = self.model.get(q)
-            if not model:
-                continue
-
-            # Extract contexts using helper method
-            left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=True)
-
-            # Calculate entropy for the current context
-            entropy = self._calculate_entropy(model, left_context, right_context)
-            entropy_weights.append(entropy)
-
-            # Calculate log probabilities for each letter
-            for letter in self.alphabet:
-                full_sequence = self._format_sequence(left_context, letter, right_context)
-                log_prob_full = self._calculate_log_probability(model, full_sequence)
-                log_probabilities[letter].append(log_prob_full)
-
-        # Normalize entropy weights
-        entropy_weights = self._normalize_entropy_weights(entropy_weights)
-
-        # Average the log probabilities across all q values with entropy weights
-        averaged_log_probabilities = self._apply_entropy_weights(log_probabilities, entropy_weights)
-
-        # Select top three predictions
-        return self._select_top_predictions(averaged_log_probabilities)
-
-    def interpolation_weighted(self, test_word):
-        """Context sensitive prediction method using interpolation weighting."""
-        missing_letter_index = test_word.index('_')
-        probabilities = {letter: [] for letter in self.alphabet}
-        lambda_weights = self.calculate_lambda_weights()
-
-        for q in self.q_range:
-            model = self.model.get(q)
-            if not model:
-                continue
-
-            left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=True)
-
-            # Probability calculation using list comprehension
-            for letter in self.alphabet:
-                full_sequence = self._format_sequence(left_context, letter, right_context)
-                prob_full = np.exp(self._calculate_log_probability(model, full_sequence))  # Convert log probability to linear probability
-                probabilities[letter].append(prob_full * lambda_weights[q])
-
-        # Interpolation using dictionary comprehension
-        interpolated_probabilities = {
-            letter: sum(probs_list)
-            for letter, probs_list in probabilities.items() if probs_list
-        }
-
-        # Efficient selection of top three predictions
-        return self._select_top_predictions(interpolated_probabilities)
-
-    # Supporting methods for entropy-weighted
-    def _calculate_entropy(self, model, left_context, right_context):
-        """Calculates the entropy for the current context."""
-        return -sum(np.exp(model.score(f"{left_context} {c} {right_context}")) for c in self.alphabet)
-
-    def _normalize_entropy_weights(self, entropy_weights):
-        """Normalizes entropy weights."""
-        entropy_weights = np.exp(entropy_weights - np.max(entropy_weights))
-        entropy_weights /= entropy_weights.sum()
-        return entropy_weights
-
-    def _apply_entropy_weights(self, log_probabilities, entropy_weights):
-        """Applies entropy weights to log probabilities."""
-        averaged_log_probabilities = {}
-        for letter, log_probs_list in log_probabilities.items():
-            if log_probs_list:
-                weighted_log_probs = np.sum([entropy_weights[i] * log_probs
-                                            for i, log_probs in enumerate(log_probs_list)], axis=0)
-                averaged_log_probabilities[letter] = weighted_log_probs
-        return averaged_log_probabilities
-
-    def _calculate_lambda_weights(self):
-        """Calculates lambda weights for each n-gram size."""
-        lambda_weights = {q: 1.0 / len(self.q_range) for q in self.q_range}
-        return lambda_weights
-
-    def _calculate_perplexity(self, model, left_context, right_context):
-        """Calculates the perplexity for the current context."""
-        log_probs = [model.score(f"{left_context} {c} {right_context}") for c in self.alphabet]
-        entropy = -np.mean(log_probs)  # Average log probability (entropy)
-        perplexity = np.exp(entropy)  # Perplexity as exp(entropy)
-        return perplexity
-
-    def _apply_perplexity_weights(self, log_probabilities, perplexity_weights):
-        """Applies perplexity weights to log probabilities."""
-        averaged_log_probabilities = {}
-        for letter, log_probs_list in log_probabilities.items():
-            if log_probs_list:
-                weighted_log_probs = np.sum([perplexity_weights[i] * log_probs
-                                            for i, log_probs in enumerate(log_probs_list)], axis=0)
-                averaged_log_probabilities[letter] = weighted_log_probs
-        return averaged_log_probabilities
-
-    def perplexity_weighted(self, test_word):
-        """Context sensitive prediction method using perplexity weighting."""
-        missing_letter_index = test_word.index('_')
-        log_probabilities = {letter: [] for letter in self.alphabet}
-        perplexity_weights = []
-
-        for q in self.q_range:
-            model = self.model.get(q)
-            if not model:
-                continue
-
-            left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=True)
-
-            perplexity = self._calculate_perplexity(model, left_context, right_context)
-            perplexity_weights.append(perplexity)
-
-            for letter in self.alphabet:
-                full_sequence = self._format_sequence(left_context, letter, right_context)
-                log_prob_full = self._calculate_log_probability(model, full_sequence)
-                log_probabilities[letter].append(log_prob_full)
-
-        # Normalize perplexity weights (higher perplexity should have lower weight)
-        perplexity_weights = 1 / np.array(perplexity_weights)
-        perplexity_weights /= perplexity_weights.sum()
-
-        # Apply perplexity weights
-        averaged_log_probabilities = self._apply_perplexity_weights(log_probabilities, perplexity_weights)
-
-        # Select top three predictions
-        return self._select_top_predictions(averaged_log_probabilities)
+        return self._select_all_predictions(log_probabilities)
