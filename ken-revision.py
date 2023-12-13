@@ -1,6 +1,6 @@
 import random
 import logging
-import re
+import regex as reg
 import csv
 from pathlib import Path
 import subprocess
@@ -73,9 +73,11 @@ class Config:
 
 # Language model class for processing and predicting text
 class LanguageModel:
-    # Regex pattern to extract words, allowing for hyphenated words.
-    # \b indicates word boundary, [a-zA-Z]+ matches one or more letters, and (?:-[a-zA-Z]+)* allows for optional hyphenated parts.
-    CLEAN_PATTERN = re.compile(r'\b[a-zA-Z]+(?:-[a-zA-Z]+)*\b')
+    # Regex pattern for extracting words, including hyphenated words, in various scripts.
+    # \b indicates word boundaries.
+    # \p{L}+ matches one or more Unicode letters, covering a wide range of characters beyond ASCII.
+    # (?:-\p{L}+)* allows for optional hyphenated parts, matching additional Unicode letters after a hyphen.
+    CLEAN_PATTERN = reg.compile(r'\b\p{L}+(?:-\p{L}+)*\b')
 
     def __init__(self, corpus_name, config):
         # Remove '.txt' extension from corpus name if present
