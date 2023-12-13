@@ -4,12 +4,14 @@ import re
 import csv
 from pathlib import Path
 import subprocess
+from collections import defaultdict
+from enum import Enum
 
 import nltk
 import kenlm
 from prediction_methods import Predictions
 
-# Directory Setup
+# Directory Setup: Define paths for data and output directories
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 MODEL_DIR = DATA_DIR / "models"
@@ -20,11 +22,11 @@ TEXT_DIR = OUTPUT_DIR / "texts"
 CSV_DIR = OUTPUT_DIR / "csv"
 SETS_DIR = OUTPUT_DIR / "sets"
 
-# Create directories if they don't exist
+# Ensures necessary directories exist
 for directory in [DATA_DIR, MODEL_DIR, LOG_DIR, CORPUS_DIR, OUTPUT_DIR, SETS_DIR, TEXT_DIR, CSV_DIR]:
     directory.mkdir(exist_ok=True)
 
-# Logging Configuration
+# Logging Configuration: Setup log file and console output formats
 def setup_logging():
     logfile = LOG_DIR / 'logfile.log'
     file_handler = logging.FileHandler(logfile, mode='a')
@@ -37,71 +39,69 @@ def setup_logging():
 
     logging.basicConfig(level=logging.INFO, handlers=[file_handler, console_handler])
 
-# Constants for vowels and consonants
-VOWELS = 'aeiouæœ'
-CONSONANTS = 'bcdfghjklmnpqrstvwxyz'
+# Define constants for vowels and consonants using Enum for better organization
+class Letters(Enum):
+    VOWELS = 'aeiouæœ'
+    CONSONANTS = ''.join(set('abcdefghijklmnopqrstuvwxyzæœ') - set(VOWELS))
 
-# Ensure the unique characters in both sets (especially for extended characters like æ, œ)
-ALL_LETTERS = set('abcdefghijklmnopqrstuvwxyzæœ')
-CONSONANTS = ''.join(ALL_LETTERS - set(VOWELS))
-
-# KenLM Wrapper Function
+# Function to build language models with KenLM for specified q-gram sizes
 def run_kenlm(corpus_name, q, corpus_path, model_directory) -> tuple[int, str]:
-
-    # Automates the creation of ARPA and binary language models for a given corpus.
     arpa_file = model_directory / f'{corpus_name}_{q}gram.arpa'
     binary_file = model_directory / f'{corpus_name}_{q}gram.klm'
 
-    # Run 'lmplz' to build an ARPA file and 'build_binary' to convert it to binary format
+    # Build ARPA file and convert it to binary format for efficient usage
     subprocess.run(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     subprocess.run(['build_binary', '-s', str(arpa_file), str(binary_file)],
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+    # Return q-gram size and path to the binary model file
     return q, str(binary_file)
+
+# Configuration class for language model testing parameters
 class Config:
-    """
-    Configuration class for setting up language model testing parameters.
-
-    Attributes:
-    - seed (int): Seed for random number generator to ensure reproducibility.
-    - q_range (tuple): Range of q-grams to use for the language model.
-    - split_config (float): Proportion of corpus to use for training; remainder for testing.
-    - vowel_replacement_ratio (float): Probability of replacing vowels in test data.
-    - consonant_replacement_ratio (float): Probability of replacing consonants in test data.
-    - min_word_length (int): Minimum length of word strings to be included in the word set.
-    """
-
     def __init__(self, seed: int = 42, q_range: tuple = (6, 6), split_config: float = 0.5,
                  vowel_replacement_ratio: float = 0.5, consonant_replacement_ratio: float = 0.5, 
                  min_word_length: int = 4):
-        
         self.seed = seed
         self.q_range = q_range
-        self.split_config = 0.9
+        self.split_config = split_config
         self.vowel_replacement_ratio = vowel_replacement_ratio
         self.consonant_replacement_ratio = consonant_replacement_ratio
         self.min_word_length = min_word_length
-class LanguageModel:
 
+# Language model class for processing and predicting text
+class LanguageModel:
+    # Regex pattern to extract words, allowing for hyphenated words.
+    # \b indicates word boundary, [a-zA-Z]+ matches one or more letters, and (?:-[a-zA-Z]+)* allows for optional hyphenated parts.
     CLEAN_PATTERN = re.compile(r'\b[a-zA-Z]+(?:-[a-zA-Z]+)*\b')
 
     def __init__(self, corpus_name, config):
+        # Remove '.txt' extension from corpus name if present
         self.corpus_name = corpus_name.replace('.txt', '')
+        # Store configuration parameters
         self.config = config
+        # Define range of q-grams to be used in the model
         self.q_range = range(config.q_range[0], config.q_range[1] + 1)
+        # Initialize dictionary to store models for each q-gram
         self.model = {}
-        self.predictor = Predictions(self.model, self.q_range) 
+        # Initialize prediction class with models and q-gram range
+        self.predictor = Predictions(self.model, self.q_range)
+        # Initialize sets for storing corpus, test set, and training set
         self.corpus = set()
         self.test_set = set()
         self.training_set = set()
+        # Initialize random number generator with seed for reproducibility
         self.rng = random.Random(config.seed)
+        # Initialize set to store all words (union of training and test sets)
         self.all_words = set()
+        # Store other configuration parameters
         self.split_config = config.split_config
         self.vowel_replacement_ratio = config.vowel_replacement_ratio
         self.consonant_replacement_ratio = config.consonant_replacement_ratio
         self.min_word_length = config.min_word_length
 
+        # Log initialization information
         logging.info(f"Language Model for {self.corpus_name} initialized with:")
         logging.info(f"Seed: {config.seed}")
         logging.info(f"Q-gram Range: {config.q_range}")
@@ -111,129 +111,122 @@ class LanguageModel:
         logging.info(f"Minimum Word Length: {self.min_word_length}")
 
     def clean_text(self, text: str) -> set[str]:
-    # Directly filter and process words in a single comprehension
-        return {part.lower() 
-                for word in self.CLEAN_PATTERN.findall(text)
-                # Split hyphenated words and add all parts to the list 
-                for part in word.split('-')
-                # Filter out words that do not meet the minimum length requirement
-                if len(part) >= self.min_word_length}
+        # Extract and clean words from the given text using the defined regex pattern
+        # Lowercase each word part and filter by minimum length requirement
+        return {part.lower() for word in self.CLEAN_PATTERN.findall(text) for part in word.split('-') if len(part) >= self.min_word_length}
 
-    def load_corpus(self, corpus_name):
-        # Loads the corpus data from a file or NLTK
+    def load_corpus(self, corpus_name) -> set[str]:
+        # Load corpus data from a text file or an NLTK corpus
         if corpus_name.endswith('.txt'):
-            file_path = CORPUS_DIR / corpus_name # CLMET3.txt is the only corpus that is not in the NLTK library
+            # If corpus is a file, read it and extract words
+            file_path = CORPUS_DIR / corpus_name
             with file_path.open('r', encoding='utf-8') as file:
-                # Read and process the contents of a text file
-                self.corpus = self.clean_text(file.read())
+                self.corpus = {word for word in self.clean_text(file.read())}
         else:
-            # Download and process a standard NLTK corpus
+            # If corpus is an NLTK corpus, download and extract words
             nltk.download(corpus_name, quiet=True)
-            self.corpus = self.clean_text(' '.join(getattr(nltk.corpus, corpus_name).words()))
+            self.corpus = {word for word in self.clean_text(' '.join(getattr(nltk.corpus, corpus_name).words()))}
 
     def _shuffle_and_split_corpus(self) -> tuple[set[str], set[str]]:
-        # Shuffles the corpus and splits it into training and test sets based on the split configuration
+        # Convert the corpus to a list, shuffle it, and then split into training and test sets.
         total_size = len(self.corpus)
         shuffled_corpus = list(self.corpus)
-        self.rng.shuffle(shuffled_corpus) 
-        training_size = int(total_size * self.split_config)  # Calculate size of the training set
+        self.rng.shuffle(shuffled_corpus)  # Randomize the order of the corpus elements
+        training_size = int(total_size * self.split_config)  # Calculate the size of the training set
+        # Split the shuffled corpus into training and test sets and return
         return set(shuffled_corpus[:training_size]), set(shuffled_corpus[training_size:])
 
     def prepare_datasets(self):
-        # Prepares training and test datasets, modifying the test set to simulate missing letters
+        # Prepare training and test datasets from the corpus
         self.training_set, unprocessed_test_set = self._shuffle_and_split_corpus()
         self.save_set_to_file(self.training_set, f"{self.corpus_name}_training_set.txt")
 
-        # For each word in the test set, replace a letter based on the class attributes for vowel and consonant replacement ratios
-        self.test_set = {self.replace_random_letter(word, include_original=True) for word in unprocessed_test_set}
-        self.save_set_to_file(self.test_set, f"{self.corpus_name}_formatted_test_set.txt")
+        # Process the test set by replacing a letter in each word with an underscore
+        formatted_test_set = []
+        for word in unprocessed_test_set:
+            modified_word, missing_letter = self.replace_random_letter(word)
+            formatted_test_set.append((modified_word, missing_letter, word))
 
-        # Extract original words from the test_set tuples and combine with training_set for word verification during testing
+        self.test_set = set(formatted_test_set)
+        self.save_set_to_file(self.test_set, f"{self.corpus_name}_formatted_test_set.txt")
+        # Combine training and test sets for a comprehensive word list
         self.all_words = self.training_set.union({original_word for _, _, original_word in self.test_set})
-        # Save the combined set to a file
         self.save_set_to_file(self.all_words, f"{self.corpus_name}_all_words.txt")
 
     def generate_formatted_corpus(self, data_set, formatted_corpus_path) -> Path:
-        # Formats and saves the dataset to a file, with each word separated by a space and each line representing a single word
+        # Prepare a corpus file formatted for KenLM training, with each word on a new line
         formatted_text = [" ".join(word) for word in data_set]
         formatted_corpus = '\n'.join(formatted_text)
 
+        # Save the formatted corpus to a file
         with formatted_corpus_path.open('w', encoding='utf-8') as f:
             f.write(formatted_corpus)
 
         return formatted_corpus_path
 
     def generate_models_from_corpus(self, corpus_path):
-        # Builds and saves KenLM language models for each q-gram range specified
+        # Create the directory for storing language models
         model_directory = MODEL_DIR / self.corpus_name
-        model_directory.mkdir(parents=True, exist_ok=True)  # Ensures the model directory exists
+        model_directory.mkdir(parents=True, exist_ok=True)
 
         for q in self.q_range:
-            _, binary_file = run_kenlm(self.corpus_name, q, corpus_path, model_directory)  # Generates n-gram models
+            # Generate and load KenLM models for each q-gram size
+            _, binary_file = run_kenlm(self.corpus_name, q, corpus_path, model_directory)
             if binary_file:
-                self.model[q] = kenlm.Model(binary_file)  # Loads the generated KenLM model
+                self.model[q] = kenlm.Model(binary_file)  # Load and store the KenLM model
                 logging.info(f"Model for {q}-gram loaded.")
 
     def generate_and_load_models(self):
-        # Orchestrates the generation of formatted corpus and subsequent language model creation
+        # Generate a formatted training set and build language models from it
         formatted_training_set_path = SETS_DIR / f"{self.corpus_name}_formatted_training_set.txt"
-        self.generate_formatted_corpus(self.training_set, formatted_training_set_path)  # Formats and saves the training set
-
-        self.generate_models_from_corpus(formatted_training_set_path)  # Generates language models from the formatted training set
-
-    def prepare_and_save_test_set(self, data_set, file_name):
-        # Prepares the test set by modifying each word and saving it to a file
-        formatted_test_set = []
-        for word in data_set:
-            modified_word, missing_letter = self.replace_random_letter(word)
-            # Creates a tuple with the modified word (with a letter replaced by '_'), the missing letter, and the original word
-            formatted_test_set.append((modified_word, missing_letter, word))
-
-        self.save_set_to_file(formatted_test_set, file_name)  # Saves the modified test set to a specified file
+        # Format and save the training set for KenLM processing
+        self.generate_formatted_corpus(self.training_set, formatted_training_set_path)
+        # Generate KenLM language models from the formatted training set
+        self.generate_models_from_corpus(formatted_training_set_path)
 
     def replace_random_letter(self, word, include_original=False) -> tuple[str, str, str]:
-        # Randomly replaces a vowel or a consonant in a word with an underscore (_).
+        # Randomly replaces a vowel or a consonant in 'word' with an underscore.
 
-        # Collect indices of vowels and consonants in the word.
-        vowel_indices = [i for i, letter in enumerate(word) if letter in VOWELS]
-        consonant_indices = [i for i, letter in enumerate(word) if letter in CONSONANTS]
+        # Gather indices of vowels and consonants for potential replacement.
+        vowel_indices = [i for i, letter in enumerate(word) if letter in Letters.VOWELS.value]
+        consonant_indices = [i for i, letter in enumerate(word) if letter in Letters.CONSONANTS.value]
 
-        # Generate a random number to decide whether to replace a vowel or a consonant.
-        # The probability of replacing a vowel or consonant is determined by the predefined ratios.
+        # Randomly decide whether to replace a vowel or consonant based on set ratios.
         random_choice = self.rng.random()
         combined_probability = self.vowel_replacement_ratio + self.consonant_replacement_ratio
 
-        # Determine the indices for replacement based on the random choice and availability of letter types.
+        # Choose the letter type to replace based on the random choice and their availability.
         if random_choice < self.vowel_replacement_ratio and vowel_indices:
             letter_indices = vowel_indices
         elif random_choice < combined_probability and consonant_indices:
             letter_indices = consonant_indices
         else:
-            # Fallback: Use whichever type of letters is available.
             letter_indices = vowel_indices if vowel_indices else consonant_indices
 
-        # Handle cases where no suitable letter is available for replacement.
+        # Ensure there are available letters to replace; raise an error otherwise.
         if not letter_indices:
             raise ValueError(f"Unable to replace a letter in word: '{word}'.")
 
-        # Randomly select one of the available letters to replace with '_'.
+        # Select a random letter from the chosen type and replace it with an underscore.
         letter_index = self.rng.choice(letter_indices)
         missing_letter = word[letter_index]
         modified_word = word[:letter_index] + '_' + word[letter_index + 1:]
 
-        # Return the modified word with the missing letter, and optionally the original word.
+        # Return the modified word, the missing letter, and optionally the original word.
         return (modified_word, missing_letter, word) if include_original else (modified_word, missing_letter)
 
     def evaluate_model(self, prediction_method) -> tuple:
-        # Initialize metrics for accuracy and validity
-        accuracy_counts = {1: 0, 2: 0, 3: 0}
-        validity_counts = {1: 0, 2: 0, 3: 0}
+        # Initialize counters for accuracy and validity.
+        accuracy_counts = defaultdict(int)
+        validity_counts = defaultdict(int)
         total_test_words = len(self.test_set)
         predictions = []
 
-        for test_data in self.test_set:
-            modified_word, missing_letter, original_word = test_data
+        # Iterate through each word in the test set for evaluation.
+        for modified_word, missing_letter, original_word in self.test_set:
             top_three_predictions = prediction_method(modified_word)
+            
+            # Initialize flags for each word to track if a correct or valid prediction has been found
             correct_found = False
             valid_word_found = False
 
@@ -244,12 +237,13 @@ class LanguageModel:
                 if predicted_letter == missing_letter:
                     for i in range(rank, 4):
                         accuracy_counts[i] += 1
+                    correct_found = True  # Indicate that a correct prediction was found
 
-                # Update validity if the reconstructed word exists in the corpus and a valid word hasn't been found yet
+                # Update validity if the reconstructed word exists in the corpus
                 if not valid_word_found and reconstructed_word in self.all_words:
                     for i in range(rank, 4):
                         validity_counts[i] += 1
-                    valid_word_found = True
+                    valid_word_found = True  # Indicate that a valid word was found
 
             predictions.append((modified_word, missing_letter, original_word, top_three_predictions))
 
@@ -266,48 +260,50 @@ class LanguageModel:
         return evaluation_metrics, predictions
 
     def save_predictions_to_csv(self, evaluation_metrics, predictions, prediction_method_name):
+        # Save prediction results and related metrics to a CSV file with additional details.
         csv_file_path = CSV_DIR / f"{self.corpus_name}_predictions.csv"
-        total_words = evaluation_metrics['total_words']
-        
+
         with csv_file_path.open('w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-             # Writing the header with separate columns for letter and confidence
+            # Define the header with columns for prediction details and additional metrics
             writer.writerow([
                 'Corpus', 'Prediction Method', 'Training Size', 'Testing Size',
                 'Vowel Ratio', 'Consonant Ratio', 'Tested Word', 'Original Word', 'Correct Letter',
-                'Top1 Letter', 'Top1 Confidence', 'Top1 Validity',
-                'Top2 Letter', 'Top2 Confidence', 'Top2 Validity',
-                'Top3 Letter', 'Top3 Confidence', 'Top3 Validity'
+                'Prediction Rank', 'Predicted Letter', 'Confidence', 'Is Valid Word',
+                'Missing Letter Position', 'Word Length'
             ])
 
-            # Writing the data rows with separate columns for letter and confidence
             for modified_word, missing_letter, original_word, top_three_predictions in predictions:
-                row = [
-                    self.corpus_name, prediction_method_name, 
-                    len(self.training_set), len(self.test_set), 
-                    self.vowel_replacement_ratio, self.consonant_replacement_ratio, 
-                    modified_word, original_word, missing_letter
-                ]
+                # Calculate the position of the missing letter and the length of the original word
+                missing_letter_position = modified_word.index('_')
+                word_length = len(original_word)
 
-                # Adding predictions with separated letter and confidence, formatted consistently
-                for predicted_letter, confidence in top_three_predictions:
+                for rank, (predicted_letter, confidence) in enumerate(top_three_predictions, start=1):
+                    # Check if the reconstructed word (with predicted letter) is valid
                     reconstructed_word = modified_word.replace('_', predicted_letter)
                     is_valid_word = reconstructed_word in self.all_words
-                    row.extend([predicted_letter, f"{confidence:.7f}", is_valid_word])
 
-                writer.writerow(row)
+                    # Prepare a row with corpus details, prediction results, and additional metrics
+                    row = [
+                        self.corpus_name, prediction_method_name, 
+                        len(self.training_set), len(self.test_set), 
+                        self.vowel_replacement_ratio, self.consonant_replacement_ratio, 
+                        modified_word, original_word, missing_letter,
+                        rank, predicted_letter, f"{confidence:.7f}", is_valid_word,
+                        missing_letter_position, word_length
+                    ]
+
+                    writer.writerow(row)
 
     def save_predictions_to_file(self, evaluation_metrics, predictions, file_path, prediction_method_name):
+        # Save detailed predictions and metrics to a text file for easy review.
         with file_path.open('w', encoding='utf-8') as file:
-            # Write the prediction method name at the top
+            # Document the prediction method used at the top of the file
             file.write(f"Prediction Method: {prediction_method_name}\n\n")
 
-            # Unpack accuracy and validity metrics
+            # Write overall accuracy and validity metrics for easy reference
             accuracy = evaluation_metrics['accuracy']
             validity = evaluation_metrics['validity']
-            total_words = evaluation_metrics['total_words']
-
-            # Write overall accuracy and validity metrics
             file.write(f"TOP1 ACCURACY: {accuracy[1]:.2%}\n")
             file.write(f"TOP2 ACCURACY: {accuracy[2]:.2%}\n")
             file.write(f"TOP3 ACCURACY: {accuracy[3]:.2%}\n")
@@ -315,7 +311,7 @@ class LanguageModel:
             file.write(f"TOP2 VALIDITY: {validity[2]:.2%}\n")
             file.write(f"TOP3 VALIDITY: {validity[3]:.2%}\n\n")
 
-            # Write detailed predictions for each test word
+            # Detail each prediction for individual test words
             for modified_word, missing_letter, original_word, top_three_predictions in predictions:
                 file.write(f"Test Word: {modified_word}\nOriginal Word: {original_word}\nMissing Letter: {missing_letter}\n")
                 for rank, (predicted_letter, confidence) in enumerate(top_three_predictions, start=1):
@@ -325,15 +321,12 @@ class LanguageModel:
                 file.write("\n")
 
     def save_set_to_file(self, data_set, file_name):
-        # Saves a given data set to a file
+        # Write the contents of a data set to a file, formatting tuples for readability
         file_path = SETS_DIR / file_name
         with file_path.open('w', encoding='utf-8') as file:
             for item in data_set:
-                # Check if the item is a tuple and format it accordingly
-                if isinstance(item, tuple):
-                    formatted_line = f"({', '.join(map(str, item))})"
-                else:
-                    formatted_line = str(item)
+                # Format tuples with parentheses and comma separation
+                formatted_line = f"({', '.join(map(str, item))})" if isinstance(item, tuple) else str(item)
                 file.write(formatted_line + "\n")
 
 def run(corpus_name, config):
