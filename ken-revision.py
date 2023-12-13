@@ -13,14 +13,14 @@ from prediction_methods import Predictions
 
 # Directory Setup: Define paths for data and output directories
 BASE_DIR = Path(__file__).parent
-DATA_DIR = BASE_DIR / "data"
-MODEL_DIR = DATA_DIR / "models"
-LOG_DIR = DATA_DIR / "logs"
-CORPUS_DIR = DATA_DIR / "corpora"
-OUTPUT_DIR = DATA_DIR / "outputs"
-TEXT_DIR = OUTPUT_DIR / "texts"
-CSV_DIR = OUTPUT_DIR / "csv"
-SETS_DIR = OUTPUT_DIR / "sets"
+DATA_DIR = BASE_DIR / 'data'
+MODEL_DIR = DATA_DIR / 'models'
+LOG_DIR = DATA_DIR / 'logs'
+CORPUS_DIR = DATA_DIR / 'corpora'
+OUTPUT_DIR = DATA_DIR / 'outputs'
+TEXT_DIR = OUTPUT_DIR / 'texts'
+CSV_DIR = OUTPUT_DIR / 'csv'
+SETS_DIR = OUTPUT_DIR / 'sets'
 
 # Ensures necessary directories exist
 for directory in [DATA_DIR, MODEL_DIR, LOG_DIR, CORPUS_DIR, OUTPUT_DIR, SETS_DIR, TEXT_DIR, CSV_DIR]:
@@ -62,13 +62,14 @@ def run_kenlm(corpus_name, q, corpus_path, model_directory) -> tuple[int, str]:
 class Config:
     def __init__(self, seed: int = 42, q_range: tuple = (6, 6), split_config: float = 0.5,
                  vowel_replacement_ratio: float = 0.5, consonant_replacement_ratio: float = 0.5, 
-                 min_word_length: int = 4):
+                 min_word_length: int = 4, prediction_method_name: str = 'context_sensitive'):
         self.seed = seed
         self.q_range = q_range
         self.split_config = split_config
         self.vowel_replacement_ratio = vowel_replacement_ratio
         self.consonant_replacement_ratio = consonant_replacement_ratio
         self.min_word_length = min_word_length
+        self.prediction_method_name = prediction_method_name
 
 # Language model class for processing and predicting text
 class LanguageModel:
@@ -100,15 +101,25 @@ class LanguageModel:
         self.vowel_replacement_ratio = config.vowel_replacement_ratio
         self.consonant_replacement_ratio = config.consonant_replacement_ratio
         self.min_word_length = config.min_word_length
+        # Retrieve the prediction method based on the name
+        prediction_methods = {
+            'context_sensitive': self.predictor.context_sensitive,
+            'context_no_boundary': self.predictor.context_no_boundary,
+            'context_insensitive': self.predictor.context_insensitive,
+            'base_prediction': self.predictor.base_prediction,
+            'entropy_weighted': self.predictor.entropy_weighted,
+            'interpolation_weighted': self.predictor.interpolation_weighted
+        }
+        self.prediction_method = prediction_methods.get(config.prediction_method_name, self.predictor.context_sensitive)
 
         # Log initialization information
-        logging.info(f"Language Model for {self.corpus_name} initialized with:")
-        logging.info(f"Seed: {config.seed}")
-        logging.info(f"Q-gram Range: {config.q_range}")
-        logging.info(f"Train-Test Split Configuration: {self.split_config}")
-        logging.info(f"Vowel Replacement Ratio: {self.vowel_replacement_ratio}")
-        logging.info(f"Consonant Replacement Ratio: {self.consonant_replacement_ratio}")
-        logging.info(f"Minimum Word Length: {self.min_word_length}")
+        logging.info(f'Language Model for {self.corpus_name} initialized with:')
+        logging.info(f'Seed: {config.seed}')
+        logging.info(f'Q-gram Range: {config.q_range}')
+        logging.info(f'Train-Test Split Configuration: {self.split_config}')
+        logging.info(f'Vowel Replacement Ratio: {self.vowel_replacement_ratio}')
+        logging.info(f'Consonant Replacement Ratio: {self.consonant_replacement_ratio}')
+        logging.info(f'Minimum Word Length: {self.min_word_length}')
 
     def clean_text(self, text: str) -> set[str]:
         # Extract and clean words from the given text using the defined regex pattern
@@ -139,7 +150,7 @@ class LanguageModel:
     def prepare_datasets(self):
         # Prepare training and test datasets from the corpus
         self.training_set, unprocessed_test_set = self._shuffle_and_split_corpus()
-        self.save_set_to_file(self.training_set, f"{self.corpus_name}_training_set.txt")
+        self.save_set_to_file(self.training_set, f'{self.corpus_name}_training_set.txt')
 
         # Process the test set by replacing a letter in each word with an underscore
         formatted_test_set = []
@@ -148,14 +159,14 @@ class LanguageModel:
             formatted_test_set.append((modified_word, missing_letter, word))
 
         self.test_set = set(formatted_test_set)
-        self.save_set_to_file(self.test_set, f"{self.corpus_name}_formatted_test_set.txt")
+        self.save_set_to_file(self.test_set, f'{self.corpus_name}_formatted_test_set.txt')
         # Combine training and test sets for a comprehensive word list
         self.all_words = self.training_set.union({original_word for _, _, original_word in self.test_set})
-        self.save_set_to_file(self.all_words, f"{self.corpus_name}_all_words.txt")
+        self.save_set_to_file(self.all_words, f'{self.corpus_name}_all_words.txt')
 
     def generate_formatted_corpus(self, data_set, formatted_corpus_path) -> Path:
         # Prepare a corpus file formatted for KenLM training, with each word on a new line
-        formatted_text = [" ".join(word) for word in data_set]
+        formatted_text = [' '.join(word) for word in data_set]
         formatted_corpus = '\n'.join(formatted_text)
 
         # Save the formatted corpus to a file
@@ -174,11 +185,11 @@ class LanguageModel:
             _, binary_file = run_kenlm(self.corpus_name, q, corpus_path, model_directory)
             if binary_file:
                 self.model[q] = kenlm.Model(binary_file)  # Load and store the KenLM model
-                logging.info(f"Model for {q}-gram loaded.")
+                logging.info(f'Model for {q}-gram loaded.')
 
     def generate_and_load_models(self):
         # Generate a formatted training set and build language models from it
-        formatted_training_set_path = SETS_DIR / f"{self.corpus_name}_formatted_training_set.txt"
+        formatted_training_set_path = SETS_DIR / f'{self.corpus_name}_formatted_training_set.txt'
         # Format and save the training set for KenLM processing
         self.generate_formatted_corpus(self.training_set, formatted_training_set_path)
         # Generate KenLM language models from the formatted training set
@@ -261,7 +272,11 @@ class LanguageModel:
 
     def save_predictions_to_csv(self, evaluation_metrics, predictions, prediction_method_name):
         # Save prediction results and related metrics to a CSV file with additional details.
-        csv_file_path = CSV_DIR / f"{self.corpus_name}_predictions.csv"
+        csv_file_path = CSV_DIR / f'{self.corpus_name}_predictions.csv'
+
+        # Extract overall accuracy and validity metrics from evaluation metrics
+        accuracy = evaluation_metrics['accuracy']
+        validity = evaluation_metrics['validity']
 
         with csv_file_path.open('w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
@@ -270,7 +285,7 @@ class LanguageModel:
                 'Corpus', 'Prediction Method', 'Training Size', 'Testing Size',
                 'Vowel Ratio', 'Consonant Ratio', 'Tested Word', 'Original Word', 'Correct Letter',
                 'Prediction Rank', 'Predicted Letter', 'Confidence', 'Is Valid Word',
-                'Missing Letter Position', 'Word Length'
+                'Missing Letter Position', 'Word Length', 'Overall Accuracy', 'Overall Validity'
             ])
 
             for modified_word, missing_letter, original_word, top_three_predictions in predictions:
@@ -289,8 +304,9 @@ class LanguageModel:
                         len(self.training_set), len(self.test_set), 
                         self.vowel_replacement_ratio, self.consonant_replacement_ratio, 
                         modified_word, original_word, missing_letter,
-                        rank, predicted_letter, f"{confidence:.7f}", is_valid_word,
-                        missing_letter_position, word_length
+                        rank, predicted_letter, f'{confidence:.7f}', is_valid_word,
+                        missing_letter_position, word_length,
+                        accuracy.get(rank, 0), validity.get(rank, 0)  # Add overall accuracy and validity for the current rank
                     ]
 
                     writer.writerow(row)
@@ -299,26 +315,26 @@ class LanguageModel:
         # Save detailed predictions and metrics to a text file for easy review.
         with file_path.open('w', encoding='utf-8') as file:
             # Document the prediction method used at the top of the file
-            file.write(f"Prediction Method: {prediction_method_name}\n\n")
+            file.write(f'Prediction Method: {prediction_method_name}\n\n')
 
             # Write overall accuracy and validity metrics for easy reference
             accuracy = evaluation_metrics['accuracy']
             validity = evaluation_metrics['validity']
-            file.write(f"TOP1 ACCURACY: {accuracy[1]:.2%}\n")
-            file.write(f"TOP2 ACCURACY: {accuracy[2]:.2%}\n")
-            file.write(f"TOP3 ACCURACY: {accuracy[3]:.2%}\n")
-            file.write(f"TOP1 VALIDITY: {validity[1]:.2%}\n")
-            file.write(f"TOP2 VALIDITY: {validity[2]:.2%}\n")
-            file.write(f"TOP3 VALIDITY: {validity[3]:.2%}\n\n")
+            file.write(f'TOP1 ACCURACY: {accuracy[1]:.2%}\n')
+            file.write(f'TOP2 ACCURACY: {accuracy[2]:.2%}\n')
+            file.write(f'TOP3 ACCURACY: {accuracy[3]:.2%}\n')
+            file.write(f'TOP1 VALIDITY: {validity[1]:.2%}\n')
+            file.write(f'TOP2 VALIDITY: {validity[2]:.2%}\n')
+            file.write(f'TOP3 VALIDITY: {validity[3]:.2%}\n\n')
 
             # Detail each prediction for individual test words
             for modified_word, missing_letter, original_word, top_three_predictions in predictions:
-                file.write(f"Test Word: {modified_word}\nOriginal Word: {original_word}\nMissing Letter: {missing_letter}\n")
+                file.write(f'Test Word: {modified_word}\nOriginal Word: {original_word}\nMissing Letter: {missing_letter}\n')
                 for rank, (predicted_letter, confidence) in enumerate(top_three_predictions, start=1):
                     reconstructed_word = modified_word.replace('_', predicted_letter)
                     is_valid_word = reconstructed_word in self.all_words
                     file.write(f"Rank {rank}: '{predicted_letter}' (confidence {confidence:.7f}, valid: {is_valid_word})\n")
-                file.write("\n")
+                file.write('\n')
 
     def save_set_to_file(self, data_set, file_name):
         # Write the contents of a data set to a file, formatting tuples for readability
@@ -327,58 +343,55 @@ class LanguageModel:
             for item in data_set:
                 # Format tuples with parentheses and comma separation
                 formatted_line = f"({', '.join(map(str, item))})" if isinstance(item, tuple) else str(item)
-                file.write(formatted_line + "\n")
+                file.write(formatted_line + '\n')
 
 def run(corpus_name, config):
     # Start processing the specified corpus
-    logging.info(f"Processing {corpus_name} Corpus")
-    logging.info("-" * 40)
+    logging.info(f'Processing {corpus_name} Corpus')
+    logging.info('-' * 40)
 
     # Initialize the Language Model with the given corpus and configuration
     lm = LanguageModel(corpus_name, config)
-    logging.info(f"{corpus_name} Language model initialized")
+    logging.info(f'{corpus_name} Language model initialized')
 
     # Load corpus data
     lm.load_corpus(corpus_name)
-    logging.info("Corpus data loaded")
+    logging.info('Corpus data loaded')
 
     # Prepare the training and test datasets
     lm.prepare_datasets()
-    logging.info(f"Training set size: {len(lm.training_set)}")
-    logging.info(f"Test set size: {len(lm.test_set)}")
+    logging.info(f'Training set size: {len(lm.training_set)}')
+    logging.info(f'Test set size: {len(lm.test_set)}')
 
     # Generate and load Q-gram models
     lm.generate_and_load_models()
-    logging.info(f"{corpus_name} Q-gram models generated and loaded")
+    logging.info(f'{corpus_name} Q-gram models generated and loaded')
 
-    # Select and log the prediction method being evaluated
-    prediction_method = lm.predictor.perplexity_weighted # Name of the prediction method being used
-    logging.info(f"Evaluated with: {prediction_method.__name__}")
-
-    # Evaluate the model and capture metrics
-    evaluation_metrics, predictions = lm.evaluate_model(prediction_method)
+    # Use the prediction method from the configuration and evaluate the model
+    evaluation_metrics, predictions = lm.evaluate_model(lm.prediction_method)
+    logging.info(f'Evaluated with: {lm.prediction_method.__name__}')
 
     # Log the accuracy and validity results
     accuracy = evaluation_metrics['accuracy']
     validity = evaluation_metrics['validity']
-    logging.info(f"Model evaluation completed for: {corpus_name}")
-    logging.info(f"TOP1 ACCURACY: {accuracy[1]:.2%} | TOP1 VALIDITY: {validity[1]:.2%}")
-    logging.info(f"TOP2 ACCURACY: {accuracy[2]:.2%} | TOP2 VALIDITY: {validity[2]:.2%}")
-    logging.info(f"TOP3 ACCURACY: {accuracy[3]:.2%} | TOP3 VALIDITY: {validity[3]:.2%}")
+    logging.info(f'Model evaluation completed for: {corpus_name}')
+    logging.info(f'TOP1 ACCURACY: {accuracy[1]:.2%} | TOP1 VALIDITY: {validity[1]:.2%}')
+    logging.info(f'TOP2 ACCURACY: {accuracy[2]:.2%} | TOP2 VALIDITY: {validity[2]:.2%}')
+    logging.info(f'TOP3 ACCURACY: {accuracy[3]:.2%} | TOP3 VALIDITY: {validity[3]:.2%}')
 
     # Save the predictions to CSV and text files
-    lm.save_predictions_to_csv(evaluation_metrics, predictions, prediction_method.__name__)
-    output_file = TEXT_DIR / f"{lm.corpus_name}_predictions.txt"
-    lm.save_predictions_to_file(evaluation_metrics, predictions, output_file, prediction_method.__name__)
+    lm.save_predictions_to_csv(evaluation_metrics, predictions, lm.prediction_method.__name__)
+    output_file = TEXT_DIR / f'{lm.corpus_name}_predictions.txt'
+    lm.save_predictions_to_file(evaluation_metrics, predictions, output_file, lm.prediction_method.__name__)
 
-    logging.info("-" * 40)
+    logging.info('-' * 40)
 
 def main():
     config = Config()
     setup_logging()
-    corpora = ["cmudict", "brown", "CLMET3.txt"]
+    corpora = ['cmudict', 'brown', 'CLMET3.txt']
     for corpus_name in corpora:
         run(corpus_name, config)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
