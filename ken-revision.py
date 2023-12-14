@@ -58,9 +58,9 @@ def build_kenlm_model(corpus_name, q, corpus_path, model_directory) -> tuple[int
     # Return q-gram size and path to the binary model file
     return q, str(binary_file)
 
-# Configuration class for language model testing parameters
+# Configuration class for language model testing parameters. Change the testing inputs here.
 class Config:
-    def __init__(self, seed: int = 42, q_range: tuple = (6, 6), split_config: float = 0.5,
+    def __init__(self, seed: int = 42, q_range: tuple = (6, 6), split_config: float = 0.9,
                  vowel_replacement_ratio: float = 0.5, consonant_replacement_ratio: float = 0.5, 
                  min_word_length: int = 4, prediction_method_name: str = 'context_sensitive'):
         self.seed = seed
