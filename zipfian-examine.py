@@ -30,8 +30,8 @@ corpora = ['brown', 'gutenberg', 'reuters', 'webtext', 'inaugural']
 for corpus_name in corpora:
     prob_top_half, prob_bottom_half, top_half_count, total_words, unique_word_types = calculate_zipfian_probabilities(corpus_name)
     print(f"Corpus: {corpus_name}")
-    print(f"Probability of a word being in the top half of most common words: {prob_top_half:.4f}")
-    print(f"Probability of a word being in the bottom half of most common words: {prob_bottom_half:.4f}")
-    print(f"Number of words in the top half: {top_half_count}")
-    print(f"Total number of words in the corpus: {total_words}")
+    print(f"Probability of a word being in the top half of token occurences: {prob_top_half:.4f}")
+    print(f"Probability of a word being in the bottom half of token occurences: {prob_bottom_half:.4f}")
+    print(f"Number of word types in the top half: {top_half_count}")
+    print(f"Total number of word tokens in the corpus: {total_words}")
     print(f"Number of unique word types in the corpus: {unique_word_types}\n")
