@@ -58,7 +58,7 @@ def build_kenlm_model(corpus_name, q, corpus_path, model_directory) -> tuple[int
     # Return q-gram size and path to the binary model file
     return q, str(binary_file)
 
-def format_corpus_name(corpus_name):
+def format_corpus_name(corpus_name) -> str:
     formatted_name = corpus_name.replace('.txt', '')
     parts = formatted_name.split('_')
     return parts[0] if len(parts) > 1 and parts[0] == parts[1] else formatted_name
@@ -131,7 +131,7 @@ class CorpusManager:
         # Split the shuffled corpus into training and test sets and return
         return set(shuffled_corpus[:training_size]), set(shuffled_corpus[training_size:])
 
-    def prepare_datasets(self):
+    def prepare_datasets(self) -> tuple[set[str], set[str]]:
         # Prepare training and test datasets from the corpus
         self.training_set, unprocessed_test_set = self._shuffle_and_split_corpus()
 
@@ -243,15 +243,23 @@ class EvaluateModel:
         self.all_words = corpus_manager.all_words
 
         # Extract unique characters
-        self.unique_character_count = len(corpus_manager.extract_unique_characters())
+        unique_characters = corpus_manager.extract_unique_characters()
+        self.unique_character_count = len(unique_characters)
 
-        self.actual_occurrences = {char: 0 for char in corpus_manager.extract_unique_characters()}
-        self.correct_retrievals = {char: 0 for char in corpus_manager.extract_unique_characters()}
+        # Initialize counts for recall calculation
+        self.actual_missing_letter_occurrences = {char: 0 for char in unique_characters}
+        self.correct_top_predictions = {char: 0 for char in unique_characters}
+
+        # Initialize counts for precision calculation
+        self.top_predicted_counts = {char: 0 for char in unique_characters}
+        self.top_correct_retrievals = {char: 0 for char in unique_characters}
 
         # Initialize prediction class with models, q-gram range, and unique characters
         self.q_range = range(self.config.q_range[0], self.config.q_range[1] + 1)
-        self.predictor = Predictions(self.model, self.q_range, corpus_manager.extract_unique_characters())
+        self.predictor = Predictions(self.model, self.q_range, unique_characters)
 
+        # Log initialization information using the config from corpus_manager
+        logging.info(f'Language Model for {self.corpus_name} initialized with:')
         # Log initialization information using the config from corpus_manager
         logging.info(f'Language Model for {self.corpus_name} initialized with:')
         logging.info(f'Seed: {self.config.seed}')
@@ -270,69 +278,77 @@ class EvaluateModel:
         }
         self.prediction_method = prediction_methods.get(self.config.prediction_method_name, self.predictor.context_sensitive)
 
-    def compute_accuracy(self, predictions):
-        # Initialize a dictionary to track accuracy counts for TOP1, TOP2, and TOP3
-        accuracy_counts = {1: 0, 2: 0, 3: 0}  # Ensuring all ranks are initialized
-        total_test_words = len(self.test_set)
+    def compute_accuracy(self, predictions) -> dict:
+        # Initialize a dictionary to track accuracy for three ranks: TOP1, TOP2, and TOP3.
+        accuracy_counts = {1: 0, 2: 0, 3: 0}  # Ensuring all ranks are initialized.
+        total_test_words = len(self.test_set)  # Total number of words in the test set.
 
         for _, missing_letter, _, all_predictions, _ in predictions:
-            # Find the highest rank at which the correct prediction is made
+            # Identify the highest rank (1, 2, or 3) where the correct prediction (missing_letter) is made.
             correct_rank = next((rank for rank, (predicted_letter, _) in enumerate(all_predictions, start=1) if predicted_letter == missing_letter), None)
             
-            # Update accuracy counts for all ranks up to the correct rank
+            # If a correct prediction is made, increment accuracy counts for that rank and all higher ranks.
             if correct_rank:
-                for rank in range(correct_rank, 4):
-                    accuracy_counts[rank] += 1
+                for rank in range(correct_rank, 4):  # Loop from correct rank to 3.
+                    accuracy_counts[rank] += 1  # Increment the count for each relevant rank.
 
-        # Calculate total accuracy for each rank
+        # Calculate total accuracy for each rank (1, 2, 3) by dividing the number of accurate predictions by total test words.
         total_accuracy = {k: accuracy_counts[k] / total_test_words for k in accuracy_counts}
         return total_accuracy
 
-    def compute_validity(self, predictions):
-        # Updated method to calculate validity based on in-memory sets
+    def compute_validity(self, predictions) -> dict:
+        # Initialize a dictionary to track validity for three ranks: TOP1, TOP2, and TOP3.
         validity_counts = {1: 0, 2: 0, 3: 0}
-        total_test_words = len(self.test_set)
+        total_test_words = len(self.test_set)  # Total number of words in the test set.
 
         for modified_word, _, _, all_predictions, _ in predictions:
-            valid_word_found = False
+            valid_word_found = False  # Flag to indicate if a valid word has been found.
             for rank, (predicted_letter, _) in enumerate(all_predictions, start=1):
+                # If a valid word hasn't been found yet, check the current prediction.
                 if not valid_word_found:
+                    # Reconstruct the word by replacing the underscore with the predicted letter.
                     reconstructed_word = modified_word.replace('_', predicted_letter)
+                    # Check if the reconstructed word exists in the corpus (valid word).
                     if reconstructed_word in self.all_words:
-                        for i in range(rank, 4):
+                        # If valid, increment validity counts for that rank and all higher ranks.
+                        for i in range(rank, 4):  # Loop from current rank to 3.
                             validity_counts[i] += 1
-                        valid_word_found = True
+                        valid_word_found = True  # Update flag since a valid word is found.
 
+        # Calculate total validity for each rank (1, 2, 3) by dividing the number of valid predictions by total test words.
         total_validity = {k: validity_counts[k] / total_test_words for k in validity_counts}
         return total_validity
 
-    def compute_recall(self):
+    def compute_recall(self) -> dict:
         # Calculate recall for each character in the corpus
-        # Recall = Correctly Retrieved / Total Relevant
         recall_metrics = {
-            char: (self.correct_retrievals[char] / self.actual_occurrences[char] 
-                if self.actual_occurrences[char] > 0 else 0)
-            for char in self.actual_occurrences
+            # Iterate over each character that was missing and needed prediction
+            char: (
+                # Recall is calculated as the number of times the character was correctly predicted as the top choice (True Positives)
+                # divided by the total number of times the character was the missing letter (True Positives + False Negatives)
+                self.correct_top_predictions[char] / self.actual_missing_letter_occurrences[char]
+                if self.actual_missing_letter_occurrences[char] > 0 # Ensure denominator is not zero
+                else 0
+            )
+            for char in self.actual_missing_letter_occurrences
         }
         return recall_metrics
 
-    def compute_precision(self):
-        # Initialize a Counter for the number of times each character is retrieved
-        retrieved_counts = Counter()
-
-        # Count each occurrence of retrieved (predicted) characters
-        for _, _, _, all_predictions, _ in self.evaluate_predictions(self.prediction_method)[1]:
-            for retrieved_char, _ in all_predictions:
-                retrieved_counts[retrieved_char] += 1
-
+    def compute_precision(self) -> dict:
         # Calculate precision for each character
-        # Precision = Correctly Retrieved / Total Retrieved
         precision_metrics = {}
-        for char in self.actual_occurrences:
-            correctly_retrieved = self.correct_retrievals[char]
-            total_retrieved = retrieved_counts[char]
-            precision_metrics[char] = correctly_retrieved / total_retrieved if total_retrieved > 0 else 0
-
+        for char in self.top_predicted_counts:
+            # For each character, count how often it was correctly predicted as the top choice
+            correctly_predicted_as_top = self.correct_top_predictions[char]
+            # Count how often the character was predicted as the top choice in total
+            total_predicted_as_top = self.top_predicted_counts[char]
+            # Precision is calculated as the number of correct top predictions (True Positives)
+            # divided by the total number of top predictions (True Positives + False Positives)
+            precision_metrics[char] = (
+                correctly_predicted_as_top / total_predicted_as_top
+                if total_predicted_as_top > 0 # Ensure denominator is not zero
+                else 0
+            )
         return precision_metrics
 
     def save_recall_precision_stats(self):
@@ -340,50 +356,58 @@ class EvaluateModel:
         recall_metrics = self.compute_recall()
         precision_metrics = self.compute_precision()
 
-        # Sort metrics by Total Relevant (Actual Occurrences) in descending order
+        # Sort metrics by Total Relevant (Actual Missing Letter Occurrences) in descending order
         sorted_metrics = sorted(
-            [(char, self.actual_occurrences[char], recall_metrics[char], precision_metrics[char]) 
-            for char in recall_metrics], 
+            [
+                (char, 
+                 self.actual_missing_letter_occurrences[char], 
+                 self.correct_top_predictions[char], 
+                 recall_metrics[char], 
+                 precision_metrics[char]
+                ) for char in recall_metrics
+            ], 
             key=lambda item: item[1], reverse=True
         )
 
         # Save sorted metrics to a file
-        metrics_file_path = TEXT_DIR / f'{self.corpus_name}_recall_precision_metrics.txt'
+        metrics_file_path = CSV_DIR / f'{self.corpus_name}_recall_precision_metrics.csv'
         with metrics_file_path.open('w', encoding='utf-8') as file:
-            file.write('Character, Total Relevant, Correctly Retrieved, Recall, Precision\n')
-            for char, total_relevant, recall, precision in sorted_metrics:
-                file.write(f'{char}, {total_relevant}, {self.correct_retrievals[char]}, {recall:.4f}, {precision:.4f}\n')
+            file.write('Character, Total Missing Letter Occurrences, Total Correctly Retrieved, Recall, Precision\n')
+            for char, total_relevant, correctly_retrieved, recall, precision in sorted_metrics:
+                file.write(f'{char}, {total_relevant}, {correctly_retrieved}, {recall:.4f}, {precision:.4f}\n')
 
-    def evaluate_predictions(self, prediction_method) -> tuple[dict, list]:
+    def evaluate_character_predictions(self, prediction_method) -> tuple[dict, list]:
         predictions = []
 
         for modified_word, target_letter, original_word in self.test_set:
-            # Increase the count of actual occurrences (Total Relevant) for the target letter
-            self.actual_occurrences[target_letter] += 1
+            # Update counts for recall
+            self.actual_missing_letter_occurrences[target_letter] += 1
 
             all_predictions = prediction_method(modified_word)
 
-            # Determine the rank at which the correct letter appears
+            # Update counts for precision
+            if all_predictions:
+                top_predicted_char = all_predictions[0][0]
+                self.top_predicted_counts[top_predicted_char] += 1
+                if top_predicted_char == target_letter:
+                    self.top_correct_retrievals[target_letter] += 1
+
+            # Update correct retrievals for recall calculation
+            if all_predictions and all_predictions[0][0] == target_letter:
+                self.correct_top_predictions[target_letter] += 1  # Corrected line
+
+            # Other calculations remain the same
             correct_letter_rank = next((rank for rank, (retrieved_letter, _) in enumerate(all_predictions, start=1) 
                                         if retrieved_letter == target_letter), None)
-            
-            # Update the count of correctly retrieved instances if the target letter is within the top 3 predictions
-            if correct_letter_rank and correct_letter_rank <= 3:
-                self.correct_retrievals[target_letter] += 1
-
             predictions.append((modified_word, target_letter, original_word, all_predictions[:3], correct_letter_rank))
 
-        total_accuracy = self.compute_accuracy(predictions)
-        total_validity = self.compute_validity(predictions)
-        total_recall = self.compute_recall()
+        # Calculate various metrics
+        accuracy_metrics = self.compute_accuracy(predictions)
+        validity_metrics = self.compute_validity(predictions)
+        recall_metrics = self.compute_recall()
+        precision_metrics = self.compute_precision()
 
-        evaluation_metrics = {
-            'accuracy': total_accuracy,
-            'validity': total_validity,
-            'recall': total_recall,
-            'total_words': len(self.test_set)
-        }
-        return evaluation_metrics, predictions
+        return {'accuracy': accuracy_metrics, 'validity': validity_metrics, 'recall': recall_metrics, 'precision': precision_metrics, 'total_words': len(self.test_set)}, predictions
 
     def export_prediction_details_to_csv(self, predictions, prediction_method_name):
         # Adjust file name to include test-train split and q-gram range
@@ -459,7 +483,7 @@ def run(corpus_name, config):
 
     # Retrieve the prediction method from the Predictions object
     prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
-    evaluation_metrics, predictions = eval_model.evaluate_predictions(prediction_method)
+    evaluation_metrics, predictions = eval_model.evaluate_character_predictions(prediction_method)
     logging.info(f'Evaluated with: {prediction_method.__name__}')
 
     # Log the accuracy and validity results
