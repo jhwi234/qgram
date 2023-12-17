@@ -58,6 +58,11 @@ def build_kenlm_model(corpus_name, q, corpus_path, model_directory) -> tuple[int
     # Return q-gram size and path to the binary model file
     return q, str(binary_file)
 
+def format_corpus_name(corpus_name):
+    formatted_name = corpus_name.replace('.txt', '')
+    parts = formatted_name.split('_')
+    return parts[0] if len(parts) > 1 and parts[0] == parts[1] else formatted_name
+
 # Configuration class for language model testing parameters. Change the testing inputs here.
 class Config:
     def __init__(self, seed: int = 42, q_range: tuple = (6, 6), split_config: float = 0.5,
@@ -70,7 +75,6 @@ class Config:
         self.consonant_replacement_ratio = consonant_replacement_ratio
         self.min_word_length = min_word_length
         self.prediction_method_name = prediction_method_name
-
 class CorpusManager:
     # Regex pattern for extracting words, including hyphenated words, in various scripts.
     # \b indicates word boundaries.
@@ -78,15 +82,19 @@ class CorpusManager:
     # (?:-\p{L}+)* allows for optional hyphenated parts, matching additional Unicode letters after a hyphen.
     CLEAN_PATTERN = reg.compile(r'\b\p{L}+(?:-\p{L}+)*\b')
 
-    def __init__(self, corpus_name, config):
-        self.corpus_name = corpus_name
+    def __init__(self, corpus_name, config, debug=False):
+        self.corpus_name = format_corpus_name(corpus_name)
         self.config = config
+        self.debug = debug
         self.rng = random.Random(config.seed)
         self.corpus = set()
         self.training_set = set()
         self.test_set = set()
         self.all_words = set()
         self.model = {}
+        self.load_corpus()
+        self.prepare_datasets()
+        self.generate_and_load_models()
 
     def extract_unique_characters(self) -> set:
         # Use set comprehension for efficiency
@@ -98,20 +106,21 @@ class CorpusManager:
         return {part.lower() for word in self.CLEAN_PATTERN.findall(text) for part in word.split('-') if len(part) >= self.config.min_word_length}
 
     def load_corpus(self) -> set[str]:
-        # Check if the corpus is a file first
-        file_path = CORPUS_DIR / self.corpus_name
+        # Check if the corpus is a text file
+        file_path = CORPUS_DIR / f'{self.corpus_name}.txt'
         if file_path.is_file():
             with file_path.open('r', encoding='utf-8') as file:
                 self.corpus = {word for word in self.clean_text(file.read())}
         else:
-            # If not a file, treat it as an NLTK corpus
-            # Remove '.txt' for NLTK corpus
-            nltk_corpus_name = self.corpus_name.replace('.txt', '')
+            # If not a file, try treating it as an NLTK corpus
             try:
+                nltk_corpus_name = self.corpus_name.replace('.txt', '')
                 nltk.download(nltk_corpus_name, quiet=True)
                 self.corpus = {word for word in self.clean_text(' '.join(getattr(nltk.corpus, nltk_corpus_name).words()))}
             except AttributeError:
-                raise ValueError(f"NLTK corpus '{nltk_corpus_name}' not found.")
+                raise ValueError(f"File '{file_path}' does not exist and NLTK corpus '{nltk_corpus_name}' not found.")
+
+        return self.corpus
 
     def _shuffle_and_split_corpus(self) -> tuple[set[str], set[str]]:
         # Convert the corpus to a list, shuffle it, and then split into training and test sets.
@@ -125,19 +134,25 @@ class CorpusManager:
     def prepare_datasets(self):
         # Prepare training and test datasets from the corpus
         self.training_set, unprocessed_test_set = self._shuffle_and_split_corpus()
-        self.save_set_to_file(self.training_set, f'{self.corpus_name}_training_set.txt')
+
+        # Save the formatted training set for KenLM
+        formatted_training_set_path = SETS_DIR / f'{self.corpus_name}_formatted_training_set.txt'
+        self.generate_formatted_corpus(self.training_set, formatted_training_set_path)
 
         # Process the test set by replacing a letter in each word with an underscore
         formatted_test_set = []
         for word in unprocessed_test_set:
-            modified_word, missing_letter = self.replace_random_letter(word)
+            modified_word, missing_letter, _ = self.replace_random_letter(word)
             formatted_test_set.append((modified_word, missing_letter, word))
 
         self.test_set = set(formatted_test_set)
-        self.save_set_to_file(self.test_set, f'{self.corpus_name}_formatted_test_set.txt')
-        # Combine training and test sets for a comprehensive word list
         self.all_words = self.training_set.union({original_word for _, _, original_word in self.test_set})
-        self.save_set_to_file(self.all_words, f'{self.corpus_name}_all_words.txt')
+
+        # Save additional sets in debug mode, including the regular training set
+        if self.debug:
+            self.save_set_to_file(self.training_set, f'{self.corpus_name}_training_set.txt')
+            self.save_set_to_file(self.test_set, f'{self.corpus_name}_formatted_test_set.txt')
+            self.save_set_to_file(self.all_words, f'{self.corpus_name}_all_words.txt')
 
     def generate_formatted_corpus(self, data_set, formatted_corpus_path) -> Path:
         # Prepare a corpus file formatted for KenLM training, with each word on a new line
@@ -155,22 +170,27 @@ class CorpusManager:
         model_directory = MODEL_DIR / self.corpus_name
         model_directory.mkdir(parents=True, exist_ok=True)
 
+        model_loaded = False
         for q in self.config.q_range:
-            # Generate and load KenLM models for each q-gram size
-            _, binary_file = build_kenlm_model(self.corpus_name, q, corpus_path, model_directory)
-            if binary_file:
-                self.model[q] = kenlm.Model(binary_file)  # Load and store the KenLM model
-                logging.info(f'Model for {q}-gram loaded.')
+            if q not in self.model:
+                # Generate and load KenLM models for each q-gram size
+                _, binary_file = build_kenlm_model(self.corpus_name, q, corpus_path, model_directory)
+                if binary_file:
+                    self.model[q] = kenlm.Model(binary_file)
+                    model_loaded = True
+
+        if model_loaded:
+            logging.info(f'Model for {q}-gram loaded from {self.corpus_name}')
 
     def generate_and_load_models(self):
-        # Generate a formatted training set and build language models from it
-        formatted_training_set_path = SETS_DIR / f'{self.corpus_name}_formatted_training_set.txt'
-        # Format and save the training set for KenLM processing
-        self.generate_formatted_corpus(self.training_set, formatted_training_set_path)
-        # Generate KenLM language models from the formatted training set
-        self.generate_models_from_corpus(formatted_training_set_path)
+        # Generate and load models only if they haven't been loaded for the specified q-range
+        for q in self.config.q_range:
+            if q not in self.model:
+                formatted_training_set_path = SETS_DIR / f'{self.corpus_name}_formatted_training_set.txt'
+                self.generate_formatted_corpus(self.training_set, formatted_training_set_path)
+                self.generate_models_from_corpus(formatted_training_set_path)
 
-    def replace_random_letter(self, word, include_original=False) -> tuple[str, str, str]:
+    def replace_random_letter(self, word) -> tuple[str, str, str]:
         # Randomly replaces a vowel or a consonant in 'word' with an underscore.
 
         # Gather indices of vowels and consonants for potential replacement.
@@ -180,7 +200,7 @@ class CorpusManager:
         # Randomly decide whether to replace a vowel or consonant based on set ratios.
         random_choice = self.rng.random()
         combined_probability = self.config.vowel_replacement_ratio + self.config.consonant_replacement_ratio
-        # Choose the letter type to replace based on the random choice and their availability.
+
         if random_choice < self.config.vowel_replacement_ratio and vowel_indices:
             letter_indices = vowel_indices
         elif random_choice < combined_probability and consonant_indices:
@@ -197,25 +217,22 @@ class CorpusManager:
         missing_letter = word[letter_index]
         modified_word = word[:letter_index] + '_' + word[letter_index + 1:]
 
-        # Return the modified word, the missing letter, and optionally the original word.
-        return (modified_word, missing_letter, word) if include_original else (modified_word, missing_letter)
+        # Return the modified word, the missing letter, and the original word
+        return modified_word, missing_letter, word
     
     def save_set_to_file(self, data_set, file_name):
-        # Write the contents of a data set to a file, formatting tuples for readability
+        # Simplified version without redundant check
         file_path = SETS_DIR / file_name
         with file_path.open('w', encoding='utf-8') as file:
             for item in data_set:
-                # Format tuples with parentheses and comma separation
                 formatted_line = f"({', '.join(map(str, item))})" if isinstance(item, tuple) else str(item)
                 file.write(formatted_line + '\n')
 
 class EvaluateModel:
     def __init__(self, corpus_manager):
-        # Use the corpus manager provided in the parameter
         self.corpus_manager = corpus_manager
+        self.corpus_name = format_corpus_name(corpus_manager.corpus_name)
 
-        # Set properties from the corpus manager
-        self.corpus_name = corpus_manager.corpus_name.replace('.txt', '')
         self.config = corpus_manager.config
         self.model = corpus_manager.model  # Use the loaded models
 
@@ -228,8 +245,8 @@ class EvaluateModel:
         # Extract unique characters
         self.unique_character_count = len(corpus_manager.extract_unique_characters())
 
-        self.character_occurrences = {char: 0 for char in corpus_manager.extract_unique_characters()}
-        self.correct_predictions = {char: 0 for char in corpus_manager.extract_unique_characters()}
+        self.actual_occurrences = {char: 0 for char in corpus_manager.extract_unique_characters()}
+        self.correct_retrievals = {char: 0 for char in corpus_manager.extract_unique_characters()}
 
         # Initialize prediction class with models, q-gram range, and unique characters
         self.q_range = range(self.config.q_range[0], self.config.q_range[1] + 1)
@@ -272,93 +289,89 @@ class EvaluateModel:
         return total_accuracy
 
     def compute_validity(self, predictions):
-        # Dictionary to store validity counts for TOP1, TOP2, and TOP3
-        validity_counts = {1: 0, 2: 0, 3: 0}  # Ensuring all ranks are initialized
+        # Updated method to calculate validity based on in-memory sets
+        validity_counts = {1: 0, 2: 0, 3: 0}
         total_test_words = len(self.test_set)
 
         for modified_word, _, _, all_predictions, _ in predictions:
-            # Flag to indicate if a valid word has been found
             valid_word_found = False
-
             for rank, (predicted_letter, _) in enumerate(all_predictions, start=1):
                 if not valid_word_found:
-                    # Reconstruct word with the predicted letter
                     reconstructed_word = modified_word.replace('_', predicted_letter)
-
-                    # Check if reconstructed word is valid and update counts
                     if reconstructed_word in self.all_words:
                         for i in range(rank, 4):
                             validity_counts[i] += 1
                         valid_word_found = True
 
-        # Calculate total validity for each rank
         total_validity = {k: validity_counts[k] / total_test_words for k in validity_counts}
         return total_validity
 
     def compute_recall(self):
         # Calculate recall for each character in the corpus
+        # Recall = Correctly Retrieved / Total Relevant
         recall_metrics = {
-            char: (self.correct_predictions[char] / self.character_occurrences[char] if self.character_occurrences[char] > 0 else 0)
-            for char in self.character_occurrences
+            char: (self.correct_retrievals[char] / self.actual_occurrences[char] 
+                if self.actual_occurrences[char] > 0 else 0)
+            for char in self.actual_occurrences
         }
         return recall_metrics
-    
-    def compute_precision(self):
-        # Initialize a Counter to keep track of total predictions for each character
-        total_predictions = Counter()
 
-        # Iterate through all predictions to count the occurrences of each character
+    def compute_precision(self):
+        # Initialize a Counter for the number of times each character is retrieved
+        retrieved_counts = Counter()
+
+        # Count each occurrence of retrieved (predicted) characters
         for _, _, _, all_predictions, _ in self.evaluate_predictions(self.prediction_method)[1]:
-            for predicted, _ in all_predictions:
-                total_predictions[predicted] += 1
+            for retrieved_char, _ in all_predictions:
+                retrieved_counts[retrieved_char] += 1
 
         # Calculate precision for each character
+        # Precision = Correctly Retrieved / Total Retrieved
         precision_metrics = {}
-        for char in self.character_occurrences:
-            correct_count = self.correct_predictions[char]
-            total_predicted = total_predictions[char]
-            precision_metrics[char] = correct_count / total_predicted if total_predicted > 0 else 0
+        for char in self.actual_occurrences:
+            correctly_retrieved = self.correct_retrievals[char]
+            total_retrieved = retrieved_counts[char]
+            precision_metrics[char] = correctly_retrieved / total_retrieved if total_retrieved > 0 else 0
 
         return precision_metrics
 
     def save_recall_precision_stats(self):
-        # Calculate recall and precision metrics
+        # Calculate and sort recall and precision metrics
         recall_metrics = self.compute_recall()
         precision_metrics = self.compute_precision()
 
-        # Sort metrics by total occurrences of each character in descending order
-        sorted_metrics = sorted([(char, self.character_occurrences[char], recall_metrics[char], precision_metrics[char]) 
-                                for char in recall_metrics], 
-                                key=lambda item: item[1], reverse=True)
+        # Sort metrics by Total Relevant (Actual Occurrences) in descending order
+        sorted_metrics = sorted(
+            [(char, self.actual_occurrences[char], recall_metrics[char], precision_metrics[char]) 
+            for char in recall_metrics], 
+            key=lambda item: item[1], reverse=True
+        )
 
-        # Path for recall and precision metrics file
+        # Save sorted metrics to a file
         metrics_file_path = TEXT_DIR / f'{self.corpus_name}_recall_precision_metrics.txt'
-
-        # Write sorted metrics to file
         with metrics_file_path.open('w', encoding='utf-8') as file:
-            file.write('Character, Total Occurrences, Correct Predictions, Recall, Precision\n')
-            for char, total_occurrences, recall, precision in sorted_metrics:
-                correct_predictions = self.correct_predictions[char]
-                file.write(f'{char}, {total_occurrences}, {correct_predictions}, {recall:.4f}, {precision:.4f}\n')
-
-        logging.info(f'Recall and Precision metrics saved to {metrics_file_path}')
+            file.write('Character, Total Relevant, Correctly Retrieved, Recall, Precision\n')
+            for char, total_relevant, recall, precision in sorted_metrics:
+                file.write(f'{char}, {total_relevant}, {self.correct_retrievals[char]}, {recall:.4f}, {precision:.4f}\n')
 
     def evaluate_predictions(self, prediction_method) -> tuple[dict, list]:
         predictions = []
 
-        for modified_word, missing_letter, original_word in self.test_set:
-            self.character_occurrences[missing_letter] += 1
+        for modified_word, target_letter, original_word in self.test_set:
+            # Increase the count of actual occurrences (Total Relevant) for the target letter
+            self.actual_occurrences[target_letter] += 1
 
             all_predictions = prediction_method(modified_word)
 
             # Determine the rank at which the correct letter appears
-            correct_letter_rank = next((rank for rank, (predicted_letter, _) in enumerate(all_predictions, start=1) if predicted_letter == missing_letter), None)
+            correct_letter_rank = next((rank for rank, (retrieved_letter, _) in enumerate(all_predictions, start=1) 
+                                        if retrieved_letter == target_letter), None)
             
-            # Update correct predictions count if the correct letter is within the top 3 predictions
+            # Update the count of correctly retrieved instances if the target letter is within the top 3 predictions
             if correct_letter_rank and correct_letter_rank <= 3:
-                self.correct_predictions[missing_letter] += 1
+                self.correct_retrievals[target_letter] += 1
 
-            predictions.append((modified_word, missing_letter, original_word, all_predictions[:3], correct_letter_rank))
+            predictions.append((modified_word, target_letter, original_word, all_predictions[:3], correct_letter_rank))
 
         total_accuracy = self.compute_accuracy(predictions)
         total_validity = self.compute_validity(predictions)
@@ -434,19 +447,15 @@ class EvaluateModel:
                 file.write('\n')
 
 def run(corpus_name, config):
-    logging.info(f'Processing {corpus_name} Corpus')
+    formatted_corpus_name = format_corpus_name(corpus_name)
+    logging.info(f'Processing {formatted_corpus_name} Corpus')
     logging.info('-' * 40)
 
-    # Initialize CorpusManager and prepare datasets
-    corpus_manager = CorpusManager(corpus_name, config)
-    corpus_manager.load_corpus()
-    corpus_manager.prepare_datasets()
-    corpus_manager.generate_and_load_models()  # Load the models
-    logging.info(f'{corpus_name} Q-gram models generated and loaded')
+    # Initialize CorpusManager
+    corpus_manager = CorpusManager(formatted_corpus_name, config)
 
-    # Initialize EvaluateModel with the corpus manager (which now includes the models)
+    # Initialize EvaluateModel with the corpus manager
     eval_model = EvaluateModel(corpus_manager)
-    logging.info(f'{corpus_name} EvaluateModel initialized')
 
     # Retrieve the prediction method from the Predictions object
     prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
