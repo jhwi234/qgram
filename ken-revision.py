@@ -4,7 +4,7 @@ import regex as reg
 import csv
 from pathlib import Path
 import subprocess
-from collections import defaultdict
+from collections import Counter
 from enum import Enum
 
 import nltk
@@ -89,11 +89,8 @@ class CorpusManager:
         self.model = {}
 
     def extract_unique_characters(self) -> set:
-        # Extracts unique characters from the corpus
-        unique_chars = set()
-        for word in self.corpus:
-            unique_chars.update(word)
-        return unique_chars
+        # Use set comprehension for efficiency
+        return {char for word in self.corpus for char in word}
 
     def clean_text(self, text: str) -> set[str]:
         # Extract and clean words from the given text using the defined regex pattern
@@ -307,8 +304,8 @@ class EvaluateModel:
         return recall_metrics
     
     def compute_precision(self):
-        # Initialize a dictionary to keep track of total predictions for each character
-        total_predictions = {char: 0 for char in self.character_occurrences}
+        # Initialize a Counter to keep track of total predictions for each character
+        total_predictions = Counter()
 
         # Iterate through all predictions to count the occurrences of each character
         for _, _, _, all_predictions, _ in self.evaluate_predictions(self.prediction_method)[1]:
@@ -317,8 +314,10 @@ class EvaluateModel:
 
         # Calculate precision for each character
         precision_metrics = {}
-        for char, correct_count in self.correct_predictions.items():
-            precision_metrics[char] = correct_count / total_predictions[char] if total_predictions[char] > 0 else 0
+        for char in self.character_occurrences:
+            correct_count = self.correct_predictions[char]
+            total_predicted = total_predictions[char]
+            precision_metrics[char] = correct_count / total_predicted if total_predicted > 0 else 0
 
         return precision_metrics
 
