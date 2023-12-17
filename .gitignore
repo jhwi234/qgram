@@ -145,7 +145,7 @@ Historical English corpora/
 ciphers-copy/
 *_models/
 data/models/
-data/output/
+data/outputs/
 
 # Ignore files
 *.klm
