@@ -11,21 +11,29 @@ class Predictions:
 
     # Extracts left and right context around the missing letter
     def _extract_contexts(self, test_word, q, missing_letter_index, with_boundaries=True):
-        # Calculate the size of left and right contexts based on the position of the missing letter
-        left_size = min(missing_letter_index, q - 1)
-        right_size = min(len(test_word) - missing_letter_index - 1, q - 1)
+        # Determine the maximum possible context size based on the q-gram model
+        max_context_size = q - 1
 
-        # With boundary markers, add start and end symbols to the word
+        # Dynamically calculate the size of the left context based on the position of the missing letter
+        # Ensuring the context size does not exceed the maximum size determined by the q-gram model
+        left_context_size = min(missing_letter_index, max_context_size)
+
+        # Similarly, calculate the size of the right context, taking into account the word length and position of the missing letter
+        right_context_size = min(len(test_word) - missing_letter_index - 1, max_context_size)
+
+        # If with_boundaries is True, include boundary markers at the start and end of the word
         if with_boundaries:
-            test_word = f"<s> {test_word} </s>"
-            # Extract contexts considering boundary markers
-            left_context = test_word[max(4, missing_letter_index - left_size + 4):missing_letter_index + 4]
-            right_context = test_word[missing_letter_index + 5:missing_letter_index + 5 + right_size]
+            test_word = f"<s> {test_word} </s>"  # Adding start <s> and end </s> markers
+            # Extract the left context, considering the added boundary markers and adjusted context size
+            left_context = test_word[max(4, missing_letter_index - left_context_size + 4):missing_letter_index + 4]
+            # Extract the right context similarly, adjusting for the added boundary markers
+            right_context = test_word[missing_letter_index + 5:missing_letter_index + 5 + right_context_size]
         else:
-            # Extract contexts without boundary markers
-            left_context = test_word[:missing_letter_index][-left_size:]
-            right_context = test_word[missing_letter_index + 1:][:right_size]
+            # Extract contexts without boundary markers, using the dynamically calculated context sizes
+            left_context = test_word[:missing_letter_index][-left_context_size:]
+            right_context = test_word[missing_letter_index + 1:][:right_context_size]
 
+        # Return the extracted contexts, ensuring any leading or trailing whitespace is removed
         return ' '.join(left_context.strip()), ' '.join(right_context.strip())
 
     # Formats a sequence by combining contexts with a candidate letter
@@ -38,11 +46,18 @@ class Predictions:
         # Compute the log probability of the sequence with the given model
         return model.score(sequence, bos=bos, eos=eos)
 
-    # Selects all predictions based on their log probabilities
+    # Selects all predictions based on their log probabilities and normalizes them
     def _select_all_predictions(self, log_probabilities):
-        # Select all predictions sorted by log probability, converting log to actual probabilities
-        all_predictions = heapq.nlargest(len(log_probabilities), log_probabilities.items(), key=lambda item: item[1])
-        return [(letter, np.exp(log_prob)) for letter, log_prob in all_predictions]
+        # Convert log probabilities to actual probabilities
+        probabilities = {letter: np.exp(log_prob) for letter, log_prob in log_probabilities.items()}
+
+        # Normalize probabilities
+        total_prob = sum(probabilities.values())
+        normalized_probabilities = {letter: prob / total_prob for letter, prob in probabilities.items()}
+
+        # Select all predictions sorted by normalized probability
+        all_predictions = heapq.nlargest(len(normalized_probabilities), normalized_probabilities.items(), key=lambda item: item[1])
+        return all_predictions
 
     # Context-sensitive prediction using boundary markers
     def context_sensitive(self, test_word):
