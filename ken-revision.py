@@ -11,69 +11,85 @@ import nltk
 import kenlm
 from prediction_methods import Predictions
 
-# Directory Setup: Define paths for data and output directories
-BASE_DIR = Path(__file__).parent
-DATA_DIR = BASE_DIR / 'data'
-MODEL_DIR = DATA_DIR / 'models'
-LOG_DIR = DATA_DIR / 'logs'
-CORPUS_DIR = DATA_DIR / 'corpora'
-OUTPUT_DIR = DATA_DIR / 'outputs'
-TEXT_DIR = OUTPUT_DIR / 'texts'
-CSV_DIR = OUTPUT_DIR / 'csv'
-SETS_DIR = OUTPUT_DIR / 'sets'
-
-# Ensures necessary directories exist
-for directory in [DATA_DIR, MODEL_DIR, LOG_DIR, CORPUS_DIR, OUTPUT_DIR, SETS_DIR, TEXT_DIR, CSV_DIR]:
-    directory.mkdir(exist_ok=True)
-
-# Logging Configuration: Setup log file and console output formats
-def setup_logging():
-    logfile = LOG_DIR / 'logfile.log'
-    file_handler = logging.FileHandler(logfile, mode='a')
-    file_format = logging.Formatter('%(asctime)s - %(message)s')
-    file_handler.setFormatter(file_format)
-
-    console_handler = logging.StreamHandler()
-    console_format = logging.Formatter('%(message)s')
-    console_handler.setFormatter(console_format)
-
-    logging.basicConfig(level=logging.INFO, handlers=[file_handler, console_handler])
-
-# Define constants for vowels and consonants using Enum for better organization
+# Define constants for vowels and consonants using Enum for better organizationclass Letters(Enum):
 class Letters(Enum):
     VOWELS = 'aeiouæœ'
     CONSONANTS = 'bcdfghjklmnpqrstvwxyz'
+
+    @staticmethod
+    def is_vowel(char):
+        return char in Letters.VOWELS.value
+
+    @staticmethod
+    def is_consonant(char):
+        return char in Letters.CONSONANTS.value
 
 # Function to build language models with KenLM for specified q-gram sizes
 def build_kenlm_model(corpus_name, q, corpus_path, model_directory) -> tuple[int, str]:
     arpa_file = model_directory / f"{corpus_name}_{q}gram.arpa"
     binary_file = model_directory / f"{corpus_name}_{q}gram.klm"
 
-    # Build ARPA file and convert it to binary format for efficient usage
-    subprocess.run(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
-                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    subprocess.run(['build_binary', '-s', str(arpa_file), str(binary_file)],
-                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        # Build ARPA file and convert it to binary format for efficient usage
+        with subprocess.Popen(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)], 
+                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE) as process:
+            _, stderr = process.communicate()
+            if process.returncode != 0:
+                raise subprocess.SubprocessError(f"lmplz failed: {stderr.decode()}")
+
+        with subprocess.Popen(['build_binary', '-s', str(arpa_file), str(binary_file)], 
+                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE) as process:
+            _, stderr = process.communicate()
+            if process.returncode != 0:
+                raise subprocess.SubprocessError(f"build_binary failed: {stderr.decode()}")
+
+    except subprocess.SubprocessError as e:
+        logging.error(f"Error in building KenLM model for {corpus_name} with q={q}: {e}")
+        return q, None
 
     # Return q-gram size and path to the binary model file
     return q, str(binary_file)
 
-def format_corpus_name(corpus_name) -> str:
-    parts = corpus_name.replace('.txt', '').split('_')
-    return parts[0] if len(parts) > 1 and parts[0] == parts[1] else corpus_name.replace('.txt', '')
-
-# Configuration class for language model testing parameters. Change the testing inputs here.
+# Configuration class for language model testing parameters. Change the testing inputs here.class Config:
 class Config:
-    def __init__(self, seed: int = 42, q_range: tuple = (6, 6), split_config: float = 0.5,
-                 vowel_replacement_ratio: float = 0.3, consonant_replacement_ratio: float = 0.7, 
-                 min_word_length: int = 4, prediction_method_name: str = 'context_sensitive'):
-        self.seed = seed
-        self.q_range = q_range
-        self.split_config = split_config
-        self.vowel_replacement_ratio = vowel_replacement_ratio
-        self.consonant_replacement_ratio = consonant_replacement_ratio
-        self.min_word_length = min_word_length
-        self.prediction_method_name = prediction_method_name
+    def __init__(self, base_dir=None):
+        self.base_dir = Path(base_dir if base_dir else __file__).parent
+        self.data_dir = self.base_dir / 'data'
+        self.model_dir = self.data_dir / 'models'
+        self.log_dir = self.data_dir / 'logs'
+        self.corpus_dir = self.data_dir / 'corpora'
+        self.output_dir = self.data_dir / 'outputs'
+        self.text_dir = self.output_dir / 'texts'
+        self.csv_dir = self.output_dir / 'csv'
+        self.sets_dir = self.output_dir / 'sets'
+        
+        # Default values for other configurations
+        self.seed = 42
+        self.q_range = (6, 6)
+        self.split_config = 0.5
+        self.vowel_replacement_ratio = 0.3
+        self.consonant_replacement_ratio = 0.7
+        self.min_word_length = 4
+        self.prediction_method_name = 'context_sensitive'
+        self.log_level = logging.INFO
+
+    # Logging Configuration: Setup log file and console output formats
+    def setup_logging(self):
+        logfile = self.log_dir / 'logfile.log'
+        file_handler = logging.FileHandler(logfile, mode='a')
+        file_format = logging.Formatter('%(asctime)s - %(message)s')
+        file_handler.setFormatter(file_format)
+
+        console_handler = logging.StreamHandler()
+        console_format = logging.Formatter('%(message)s')
+        console_handler.setFormatter(console_format)
+
+        logging.basicConfig(level=logging.INFO, handlers=[file_handler, console_handler])
+
+    def create_directories(self):
+        for directory in [self.data_dir, self.model_dir, self.log_dir, self.corpus_dir, self.output_dir, self.sets_dir, self.text_dir, self.csv_dir]:
+            directory.mkdir(exist_ok=True)
+
 class CorpusManager:
     # Regex pattern for extracting words, including hyphenated words, in various scripts.
     # \b indicates word boundaries.
@@ -81,8 +97,13 @@ class CorpusManager:
     # (?:-\p{L}+)* allows for optional hyphenated parts, matching additional Unicode letters after a hyphen.
     CLEAN_PATTERN = reg.compile(r'\b\p{L}+(?:-\p{L}+)*\b')
 
+    @staticmethod
+    def format_corpus_name(corpus_name) -> str:
+        parts = corpus_name.replace('.txt', '').split('_')
+        return parts[0] if len(parts) > 1 and parts[0] == parts[1] else corpus_name.replace('.txt', '')
+
     def __init__(self, corpus_name, config, debug=False):
-        self.corpus_name = format_corpus_name(corpus_name)
+        self.corpus_name = self.format_corpus_name(corpus_name)
         self.config = config
         self.debug = debug
         self.rng = random.Random(config.seed)
@@ -106,7 +127,7 @@ class CorpusManager:
 
     def load_corpus(self) -> set[str]:
         # Check if the corpus is a text file
-        file_path = CORPUS_DIR / f'{self.corpus_name}.txt'
+        file_path = self.config.corpus_dir / f'{self.corpus_name}.txt'
         if file_path.is_file():
             with file_path.open('r', encoding='utf-8') as file:
                 # Read the file and clean the text, then store the unique words in self.corpus
@@ -141,7 +162,7 @@ class CorpusManager:
         self.training_set, unprocessed_test_set = self._shuffle_and_split_corpus()
 
         # Save the formatted training set for KenLM
-        formatted_training_set_path = SETS_DIR / f'{self.corpus_name}_formatted_training_set.txt'
+        formatted_training_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_training_set.txt'
         self.generate_formatted_corpus(self.training_set, formatted_training_set_path)
 
         # Process the test set by replacing a letter in each word with an underscore
@@ -172,7 +193,7 @@ class CorpusManager:
 
     def generate_models_from_corpus(self, corpus_path):
         # Create the directory for storing language models
-        model_directory = MODEL_DIR / self.corpus_name
+        model_directory = self.config.corpus_dir / self.corpus_name
         model_directory.mkdir(parents=True, exist_ok=True)
 
         model_loaded = False
@@ -191,7 +212,7 @@ class CorpusManager:
         # Generate and load models only if they haven't been loaded for the specified q-range
         for q in self.config.q_range:
             if q not in self.model:
-                formatted_training_set_path = SETS_DIR / f'{self.corpus_name}_formatted_training_set.txt'
+                formatted_training_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_training_set.txt'
                 self.generate_formatted_corpus(self.training_set, formatted_training_set_path)
                 self.generate_models_from_corpus(formatted_training_set_path)
 
@@ -217,14 +238,14 @@ class CorpusManager:
         return modified_word, missing_letter, word
     
     def save_set_to_file(self, data_set, file_name):
-        file_path = SETS_DIR / file_name
+        file_path = self.config.sets_dir / file_name
         with file_path.open('w', encoding='utf-8') as file:
             file.writelines(f"{item}\n" for item in data_set)
 
 class EvaluateModel:
     def __init__(self, corpus_manager):
         self.corpus_manager = corpus_manager
-        self.corpus_name = format_corpus_name(corpus_manager.corpus_name)
+        self.corpus_name = corpus_manager.corpus_name 
 
         self.config = corpus_manager.config
         self.model = corpus_manager.model  # Use the loaded models
@@ -359,7 +380,7 @@ class EvaluateModel:
         )
 
         # Save sorted metrics to a file
-        metrics_file_path = CSV_DIR / f'{self.corpus_name}_recall_precision_metrics.csv'
+        metrics_file_path = self.config.csv_dir / f'{self.corpus_name}_recall_precision_metrics.csv'
         with metrics_file_path.open('w', encoding='utf-8') as file:
             file.write('Character, Total Missing Letter Occurrences, Total Correctly Retrieved, Recall, Precision\n')
             for char, total_relevant, correctly_retrieved, recall, precision in sorted_metrics:
@@ -400,7 +421,7 @@ class EvaluateModel:
 
     def export_prediction_details_to_csv(self, predictions, prediction_method_name):
         # Adjust file name to include test-train split and q-gram range
-        csv_file_path = CSV_DIR / f'{self.corpus_name}_{prediction_method_name}_split{self.config.split_config}_qrange{self.config.q_range[0]}-{self.config.q_range[1]}_prediction.csv'
+        csv_file_path = self.config.csv_dir / f'{self.corpus_name}_{prediction_method_name}_split{self.config.split_config}_qrange{self.config.q_range[0]}-{self.config.q_range[1]}_prediction.csv'
 
         with csv_file_path.open('w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
@@ -424,7 +445,7 @@ class EvaluateModel:
 
     def save_summary_stats_txt(self, evaluation_metrics, predictions, prediction_method_name):
         # File path for saving prediction summary
-        output_file_path = TEXT_DIR / f'{self.corpus_name}_predictions.txt'
+        output_file_path = self.config.text_dir / f'{self.corpus_name}_predictions.txt'
 
         # Write prediction summary and metrics to text file
         with output_file_path.open('w', encoding='utf-8') as file:
@@ -460,11 +481,12 @@ class EvaluateModel:
                 file.write('\n')
 
 def run(corpus_name, config):
-    formatted_corpus_name = format_corpus_name(corpus_name)
+    # Correctly use the static method from CorpusManager
+    formatted_corpus_name = CorpusManager.format_corpus_name(corpus_name)
     logging.info(f'Processing {formatted_corpus_name} Corpus')
     logging.info('-' * 40)
 
-    # Initialize CorpusManager
+    # Create an instance of CorpusManager
     corpus_manager = CorpusManager(formatted_corpus_name, config)
 
     # Initialize EvaluateModel with the corpus manager
@@ -492,7 +514,9 @@ def run(corpus_name, config):
 
 def main():
     config = Config()
-    setup_logging()
+    config.setup_logging()
+    config.create_directories()
+
     for corpus_name in ['cmudict', 'brown', 'CLMET3.txt']:
         run(corpus_name, config)
 
