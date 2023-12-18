@@ -4,7 +4,6 @@ import regex as reg
 import csv
 from pathlib import Path
 import subprocess
-from collections import Counter
 from enum import Enum
 
 import nltk
@@ -102,6 +101,12 @@ class CorpusManager:
         parts = corpus_name.replace('.txt', '').split('_')
         return parts[0] if len(parts) > 1 and parts[0] == parts[1] else corpus_name.replace('.txt', '')
 
+    unique_words_all_corpora = set()  # Static variable to store unique words from all corpora
+
+    @staticmethod
+    def add_to_global_corpus(unique_words):
+        CorpusManager.unique_words_all_corpora.update(unique_words)
+
     def __init__(self, corpus_name, config, debug=False):
         self.corpus_name = self.format_corpus_name(corpus_name)
         self.config = config
@@ -193,7 +198,7 @@ class CorpusManager:
 
     def generate_models_from_corpus(self, corpus_path):
         # Create the directory for storing language models
-        model_directory = self.config.corpus_dir / self.corpus_name
+        model_directory = self.config.model_dir / self.corpus_name
         model_directory.mkdir(parents=True, exist_ok=True)
 
         model_loaded = False
@@ -277,6 +282,8 @@ class EvaluateModel:
         logging.info(f'Seed: {self.config.seed}')
         logging.info(f'Q-gram Range: {self.config.q_range}')
         logging.info(f'Train-Test Split Configuration: {self.config.split_config}')
+        logging.info(f'Training Set Size: {len(corpus_manager.training_set)}')
+        logging.info(f'Testing Set Size: {len(corpus_manager.test_set)}')
         logging.info(f'Vowel Replacement Ratio: {self.config.vowel_replacement_ratio}')
         logging.info(f'Consonant Replacement Ratio: {self.config.consonant_replacement_ratio}')
         logging.info(f'Unique Character Count: {self.unique_character_count}')
@@ -382,7 +389,7 @@ class EvaluateModel:
         # Save sorted metrics to a file
         metrics_file_path = self.config.csv_dir / f'{self.corpus_name}_recall_precision_metrics.csv'
         with metrics_file_path.open('w', encoding='utf-8') as file:
-            file.write('Character, Total Missing Letter Occurrences, Total Correctly Retrieved, Recall, Precision\n')
+            file.write('Character, Total_Missing Letter_Occurrences, Total_Correctly_Retrieved, Recall, Precision\n')
             for char, total_relevant, correctly_retrieved, recall, precision in sorted_metrics:
                 file.write(f'{char}, {total_relevant}, {correctly_retrieved}, {recall:.4f}, {precision:.4f}\n')
 
@@ -426,9 +433,9 @@ class EvaluateModel:
         with csv_file_path.open('w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             # Reordered columns
-            writer.writerow(['Tested Word', 'Original Word', 'Missing Letter Position', 'Word Length', 
-                            'Correct Letter', 'Predicted Letter', 'Prediction Rank', 'Confidence', 
-                            'Correct Letter Rank', 'Is Valid', 'Is Accurate'])
+            writer.writerow(['Tested_Word', 'Original_Word', 'Missing_Letter_Position', 'Word_Length', 
+                            'Correct_Letter', 'Predicted_Letter', 'Prediction_Rank', 'Confidence', 
+                            'Correct_Letter Rank', 'Is_Valid', 'Is_Accurate'])
             
             for modified_word, missing_letter, original_word, top_three_predictions, correct_letter_rank in predictions:
                 missing_letter_position = modified_word.index('_') + 1
@@ -488,6 +495,7 @@ def run(corpus_name, config):
 
     # Create an instance of CorpusManager
     corpus_manager = CorpusManager(formatted_corpus_name, config)
+    CorpusManager.add_to_global_corpus(corpus_manager.corpus) 
 
     # Initialize EvaluateModel with the corpus manager
     eval_model = EvaluateModel(corpus_manager)
@@ -517,8 +525,16 @@ def main():
     config.setup_logging()
     config.create_directories()
 
-    for corpus_name in ['cmudict', 'brown', 'CLMET3.txt']:
+    corpora = ['cmudict', 'brown', 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural']
+    for corpus_name in corpora:
         run(corpus_name, config)
+
+    # Create and evaluate the mega-corpus
+    mega_corpus_name = 'mega_corpus'
+    with open(config.corpus_dir / f'{mega_corpus_name}.txt', 'w', encoding='utf-8') as file:
+        file.write('\n'.join(CorpusManager.unique_words_all_corpora))
+
+    run(mega_corpus_name, config)
 
 if __name__ == '__main__':
     main()

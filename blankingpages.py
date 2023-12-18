@@ -1,48 +1,57 @@
-import nltk
-from nltk.corpus import brown
-import random
-from collections import Counter
+import pandas as pd
+import os
 
-def simulate_letter_blanking(words, sample_size=400):
-    """
-    Simulates the blanking out of a random letter from a given sample of words
-    and returns words that contain the blanked-out letter.
-    """
-    # Flatten the sample into a single string of letters
-    letters = ''.join(filter(str.isalpha, ''.join(words)))
+# Define the directory where the CSV files are located
+csv_dir = 'data/outputs/csv/'
 
-    # Choose a random letter position to blank out
-    blank_position = random.randint(0, len(letters) - 1)
+# Check if the directory exists
+if not os.path.exists(csv_dir):
+    print(f"Directory not found: {csv_dir}")
+    exit()
 
-    # Identify the blanked-out letter
-    blanked_letter = letters[blank_position]
+print(f"Processing files in: {csv_dir}")
 
-    # Find words that contain the blanked-out letter
-    blanked_words = [word for word in words if blanked_letter in word]
+# Function to compute average of precision and recall from CSV files with 'recall' in their name
+def average_precision_recall_per_file(csv_directory):
+    results = {}
 
-    return blanked_words
+    for file in os.listdir(csv_directory):
+        if 'recall' in file and file.endswith('.csv'):
+            print(f"Processing file: {file}")
+            file_path = os.path.join(csv_directory, file)
+            df = pd.read_csv(file_path)
 
-# Step 1: Download the Brown corpus
-nltk.download('brown')
-all_words = brown.words()
+            # Strip whitespace from column names
+            df.columns = df.columns.str.strip()
 
-# Initialize a Counter to hold the frequencies of words with a blanked-out letter
-word_freq = Counter()
+            combined_metrics = []
 
-# Step 2: Simulate the process for 100 pages
-for i in range(100):
-    # Take a sample of 400 words for each page
-    page_sample = all_words[i * 400: (i + 1) * 400]
+            if not df.empty and 'Character' in df.columns and 'Recall' in df.columns and 'Precision' in df.columns:
+                for _, row in df.iterrows():
+                    char = row['Character'].strip()
+                    recall = row['Recall']
+                    precision = row['Precision']
+                    average_combined = (recall + precision) / 2  # Compute average
+                    combined_metrics.append((char, recall, precision, average_combined))
 
-    # Simulate the letter blanking for this page
-    blanked_words = simulate_letter_blanking(page_sample)
+                # Sort by combined average score in descending order
+                combined_metrics.sort(key=lambda x: x[3], reverse=True)
 
-    # Update the overall word frequency counter
-    word_freq.update(blanked_words)
+                # Save sorted results for this file
+                results[file] = combined_metrics
 
-# Step 3: Identify the top ten word types most likely to have a letter blanked out
-top_ten_words = word_freq.most_common(10)
+            else:
+                print(f"Skipped {file} due to missing columns or empty DataFrame")
 
-print("Top ten words likely to have a letter blanked out in 100 pages:")
-for word, freq in top_ten_words:
-    print(f"{word}: {freq}")
+    return results
+
+# Calling the function
+results_per_file = average_precision_recall_per_file(csv_dir)
+
+# Printing the results in a readable format
+for file, metrics in results_per_file.items():
+    print(f"\nResults for {file}:")
+    print(f"{'Character':>10} | {'Recall':>6} | {'Precision':>9} | {'Average Combined':>15}")
+    print("-" * 55)
+    for char, recall, precision, average_combined in metrics:
+        print(f"{char:>10} | {recall:6.4f} | {precision:9.4f} | {average_combined:15.4f}")
