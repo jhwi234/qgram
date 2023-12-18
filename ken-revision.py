@@ -64,10 +64,10 @@ class Config:
         
         # Default values for other configurations
         self.seed = 42
-        self.q_range = (6, 6)
+        self.q_range = [6, 6]
         self.split_config = 0.5
-        self.vowel_replacement_ratio = 0.3
-        self.consonant_replacement_ratio = 0.7
+        self.vowel_replacement_ratio = 0.2
+        self.consonant_replacement_ratio = 0.8
         self.min_word_length = 4
         self.prediction_method_name = 'context_sensitive'
         self.log_level = logging.INFO
@@ -88,7 +88,6 @@ class Config:
     def create_directories(self):
         for directory in [self.data_dir, self.model_dir, self.log_dir, self.corpus_dir, self.output_dir, self.sets_dir, self.text_dir, self.csv_dir]:
             directory.mkdir(exist_ok=True)
-
 class CorpusManager:
     # Regex pattern for extracting words, including hyphenated words, in various scripts.
     # \b indicates word boundaries.
