@@ -42,12 +42,12 @@ def setup_logging():
 # Define constants for vowels and consonants using Enum for better organization
 class Letters(Enum):
     VOWELS = 'aeiouæœ'
-    CONSONANTS = ''.join(set('abcdefghijklmnopqrstuvwxyzæœ') - set(VOWELS))
+    CONSONANTS = 'bcdfghjklmnpqrstvwxyz'
 
 # Function to build language models with KenLM for specified q-gram sizes
 def build_kenlm_model(corpus_name, q, corpus_path, model_directory) -> tuple[int, str]:
-    arpa_file = model_directory / f'{corpus_name}_{q}gram.arpa'
-    binary_file = model_directory / f'{corpus_name}_{q}gram.klm'
+    arpa_file = model_directory / f"{corpus_name}_{q}gram.arpa"
+    binary_file = model_directory / f"{corpus_name}_{q}gram.klm"
 
     # Build ARPA file and convert it to binary format for efficient usage
     subprocess.run(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
@@ -59,14 +59,13 @@ def build_kenlm_model(corpus_name, q, corpus_path, model_directory) -> tuple[int
     return q, str(binary_file)
 
 def format_corpus_name(corpus_name) -> str:
-    formatted_name = corpus_name.replace('.txt', '')
-    parts = formatted_name.split('_')
-    return parts[0] if len(parts) > 1 and parts[0] == parts[1] else formatted_name
+    parts = corpus_name.replace('.txt', '').split('_')
+    return parts[0] if len(parts) > 1 and parts[0] == parts[1] else corpus_name.replace('.txt', '')
 
 # Configuration class for language model testing parameters. Change the testing inputs here.
 class Config:
     def __init__(self, seed: int = 42, q_range: tuple = (6, 6), split_config: float = 0.5,
-                 vowel_replacement_ratio: float = 0.5, consonant_replacement_ratio: float = 0.5, 
+                 vowel_replacement_ratio: float = 0.3, consonant_replacement_ratio: float = 0.7, 
                  min_word_length: int = 4, prediction_method_name: str = 'context_sensitive'):
         self.seed = seed
         self.q_range = q_range
@@ -110,15 +109,21 @@ class CorpusManager:
         file_path = CORPUS_DIR / f'{self.corpus_name}.txt'
         if file_path.is_file():
             with file_path.open('r', encoding='utf-8') as file:
+                # Read the file and clean the text, then store the unique words in self.corpus
                 self.corpus = {word for word in self.clean_text(file.read())}
         else:
-            # If not a file, try treating it as an NLTK corpus
+            # If the corpus is not a file, attempt to load it as an NLTK corpus
             try:
                 nltk_corpus_name = self.corpus_name.replace('.txt', '')
                 nltk.download(nltk_corpus_name, quiet=True)
+                # Retrieve words from the NLTK corpus, clean them, and store in self.corpus
                 self.corpus = {word for word in self.clean_text(' '.join(getattr(nltk.corpus, nltk_corpus_name).words()))}
             except AttributeError:
+                # This exception is raised if the NLTK corpus does not exist
                 raise ValueError(f"File '{file_path}' does not exist and NLTK corpus '{nltk_corpus_name}' not found.")
+            except Exception as e:
+                # Catch any other unexpected exceptions and provide a more informative error message
+                raise RuntimeError(f"Failed to load corpus '{self.corpus_name}': {e}")
 
         return self.corpus
 
@@ -191,42 +196,30 @@ class CorpusManager:
                 self.generate_models_from_corpus(formatted_training_set_path)
 
     def replace_random_letter(self, word) -> tuple[str, str, str]:
-        # Randomly replaces a vowel or a consonant in 'word' with an underscore.
-
-        # Gather indices of vowels and consonants for potential replacement.
         vowel_indices = [i for i, letter in enumerate(word) if letter in Letters.VOWELS.value]
         consonant_indices = [i for i, letter in enumerate(word) if letter in Letters.CONSONANTS.value]
 
-        # Randomly decide whether to replace a vowel or consonant based on set ratios.
-        random_choice = self.rng.random()
-        combined_probability = self.config.vowel_replacement_ratio + self.config.consonant_replacement_ratio
-
-        if random_choice < self.config.vowel_replacement_ratio and vowel_indices:
-            letter_indices = vowel_indices
-        elif random_choice < combined_probability and consonant_indices:
-            letter_indices = consonant_indices
-        else:
-            letter_indices = vowel_indices if vowel_indices else consonant_indices
-
-        # Ensure there are available letters to replace; raise an error otherwise.
-        if not letter_indices:
+        if not vowel_indices and not consonant_indices:
             raise ValueError(f"Unable to replace a letter in word: '{word}'.")
 
-        # Select a random letter from the chosen type and replace it with an underscore.
+        # Prioritize based on the configured ratios
+        if self.rng.random() < self.config.vowel_replacement_ratio and vowel_indices:
+            letter_indices = vowel_indices
+        elif consonant_indices:
+            letter_indices = consonant_indices
+        else:
+            letter_indices = vowel_indices
+
         letter_index = self.rng.choice(letter_indices)
         missing_letter = word[letter_index]
         modified_word = word[:letter_index] + '_' + word[letter_index + 1:]
 
-        # Return the modified word, the missing letter, and the original word
         return modified_word, missing_letter, word
     
     def save_set_to_file(self, data_set, file_name):
-        # Simplified version without redundant check
         file_path = SETS_DIR / file_name
         with file_path.open('w', encoding='utf-8') as file:
-            for item in data_set:
-                formatted_line = f"({', '.join(map(str, item))})" if isinstance(item, tuple) else str(item)
-                file.write(formatted_line + '\n')
+            file.writelines(f"{item}\n" for item in data_set)
 
 class EvaluateModel:
     def __init__(self, corpus_manager):
@@ -258,8 +251,6 @@ class EvaluateModel:
         self.q_range = range(self.config.q_range[0], self.config.q_range[1] + 1)
         self.predictor = Predictions(self.model, self.q_range, unique_characters)
 
-        # Log initialization information using the config from corpus_manager
-        logging.info(f'Language Model for {self.corpus_name} initialized with:')
         # Log initialization information using the config from corpus_manager
         logging.info(f'Language Model for {self.corpus_name} initialized with:')
         logging.info(f'Seed: {self.config.seed}')
@@ -327,7 +318,7 @@ class EvaluateModel:
                 # Recall is calculated as the number of times the character was correctly predicted as the top choice (True Positives)
                 # divided by the total number of times the character was the missing letter (True Positives + False Negatives)
                 self.correct_top_predictions[char] / self.actual_missing_letter_occurrences[char]
-                if self.actual_missing_letter_occurrences[char] > 0 # Ensure denominator is not zero
+                if self.actual_missing_letter_occurrences[char] > 0  # Ensure denominator is not zero
                 else 0
             )
             for char in self.actual_missing_letter_occurrences
@@ -336,19 +327,17 @@ class EvaluateModel:
 
     def compute_precision(self) -> dict:
         # Calculate precision for each character
-        precision_metrics = {}
-        for char in self.top_predicted_counts:
+        precision_metrics = {
             # For each character, count how often it was correctly predicted as the top choice
-            correctly_predicted_as_top = self.correct_top_predictions[char]
-            # Count how often the character was predicted as the top choice in total
-            total_predicted_as_top = self.top_predicted_counts[char]
-            # Precision is calculated as the number of correct top predictions (True Positives)
-            # divided by the total number of top predictions (True Positives + False Positives)
-            precision_metrics[char] = (
-                correctly_predicted_as_top / total_predicted_as_top
-                if total_predicted_as_top > 0 # Ensure denominator is not zero
+            char: (
+                # Precision is calculated as the number of correct top predictions (True Positives)
+                # divided by the total number of top predictions (True Positives + False Positives)
+                self.correct_top_predictions[char] / self.top_predicted_counts[char]
+                if self.top_predicted_counts[char] > 0  # Ensure denominator is not zero
                 else 0
             )
+            for char in self.top_predicted_counts
+        }
         return precision_metrics
 
     def save_recall_precision_stats(self):
@@ -504,8 +493,7 @@ def run(corpus_name, config):
 def main():
     config = Config()
     setup_logging()
-    corpora = ['cmudict', 'brown', 'CLMET3.txt']
-    for corpus_name in corpora:
+    for corpus_name in ['cmudict', 'brown', 'CLMET3.txt']:
         run(corpus_name, config)
 
 if __name__ == '__main__':
