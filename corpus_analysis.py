@@ -8,18 +8,18 @@ from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 import regex as re
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Third-party imports
 import nltk
 from nltk.corpus import PlaintextCorpusReader, stopwords
-from nltk.tokenize import RegexpTokenizer
-import matplotlib.pyplot as plt
-import numpy as np
+from nltk.tokenize import word_tokenize, RegexpTokenizer
 
 class LoggerConfig:
     def __init__(self, log_dir='logs'):
         self.log_dir = Path(log_dir)
-        self.log_dir.mkdir(exist_ok=True)  # Create the log directory if it doesn't exist
+        self.log_dir.mkdir(exist_ok=True)
 
     def setup_logging(self):
         # Setup log file handler
@@ -60,10 +60,11 @@ class CorpusLoader:
                 corpus_reader = getattr(nltk.corpus, self.corpus_source)
                 return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
 class Tokenizer:
-    def __init__(self, remove_stopwords=False, remove_punctuation=False, custom_regex=None):
+    def __init__(self, remove_stopwords=False, remove_punctuation=False, use_nltk_tokenizer=False):
         self.remove_stopwords = remove_stopwords
         self.remove_punctuation = remove_punctuation
-        self.custom_regex = re.compile(custom_regex) if custom_regex else None
+        self.use_nltk_tokenizer = use_nltk_tokenizer
+        self.custom_regex = None
         self._ensure_nltk_resources()
 
     def _ensure_nltk_resources(self):
@@ -73,17 +74,30 @@ class Tokenizer:
             except LookupError:
                 nltk.download('stopwords')
 
-    def tokenize(self, tokens) -> list:
-        if self.remove_stopwords or self.remove_punctuation:
-            punctuation_set = set(string.punctuation) if self.remove_punctuation else set()
-            stop_words = set(stopwords.words('english')) if self.remove_stopwords else set()
-            tokens = [token for token in tokens if token not in punctuation_set and token not in stop_words]
+    def set_custom_regex(self, pattern):
+        """Set a custom regex pattern for tokenization."""
+        self.custom_regex = re.compile(pattern)
 
+    def _remove_stopwords_and_punctuation(self, tokens):
+        punctuation = set(string.punctuation)
+        stop_words = set(stopwords.words('english')) if self.remove_stopwords else set()
+        return [token for token in tokens if token not in punctuation and token not in stop_words]
+
+    def tokenize(self, text) -> list:
+        # If text is a list, join it into a single string
+        if isinstance(text, list):
+            text = ' '.join(text)
+
+        # Initial tokenization
         if self.custom_regex:
-            joined_text = ' '.join(tokens)
-            tokens = self.custom_regex.findall(joined_text)
+            tokens = self.custom_regex.findall(text)
+        elif self.use_nltk_tokenizer:
+            tokens = word_tokenize(text)
+        else:
+            tokens = text.split()
 
-        return tokens
+        # Remove stopwords and punctuation
+        return self._remove_stopwords_and_punctuation(tokens)
 class BasicCorpusAnalyzer:
     def __init__(self, tokens):
         self.tokens = tokens
@@ -135,6 +149,8 @@ class BasicCorpusAnalyzer:
 class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
     def __init__(self, tokens):
         super().__init__(tokens)
+        # Calculate cumulative frequencies once during initialization
+        self.cum_freqs, self.token_ranks = self._calculate_cumulative_frequencies()
 
     def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100) -> list:
         """
@@ -143,18 +159,15 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         if not self.tokens:
             return []  # Handle empty token list
 
-        cum_freqs, token_ranks = self.cumulative_frequencies, self.token_ranks
-
         total = sum(self.frequency.values())
         lower_threshold = total * (lower_percent / 100)
         upper_threshold = total * (upper_percent / 100)
 
-        cumulative_freq = 0
         words_in_range = []
         for token, freq in self.sorted_tokens:
-            cumulative_freq += freq
+            cumulative_freq = self.cum_freqs[token]
             if lower_threshold <= cumulative_freq <= upper_threshold:
-                words_in_range.append((token, freq, token_ranks[token], cumulative_freq))
+                words_in_range.append((token, freq, self.token_ranks[token], cumulative_freq))
             elif cumulative_freq > upper_threshold:
                 break
 
@@ -230,92 +243,111 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
             interpretation = "limited vocabulary richness"
 
         return C, interpretation
-class ZipfianAnalysis:
+class ZipfianAnalysis(BasicCorpusAnalyzer):
     def __init__(self, tokens):
-        self.tokens = tokens
-        self.frequency = Counter(tokens)
-        # Ensure sorting is in descending order by frequency
-        self.sorted_tokens = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
-        self.total_token_count = sum(self.frequency.values())
+        super().__init__(tokens)
+        # Ensure that the tokens list is not empty for analysis
+        if not tokens:
+            raise ValueError("Token list is empty. Zipfian analysis requires a non-empty list of tokens.")
 
+    @lru_cache(maxsize=None)
     def _calculate_generalized_harmonic(self, n, alpha) -> float:
+        """
+        Calculate the generalized harmonic number of order 'n' for 'alpha'.
+        This is used in calculating expected frequencies based on Zipf's Law.
+        """
+        # Summation of 1/(i^alpha) for i from 1 to n
         return sum(1 / (i ** alpha) for i in range(1, n + 1))
 
-    def _calculate_zipfian_deviations(self, alpha=1) -> list:
+    def _calculate_zipfian_deviations(self, alpha=1) -> np.ndarray:
+        """
+        Calculate the deviations of actual word frequencies from the expected Zipfian frequencies.
+        Uses vectorized operations for efficiency.
+        """
         n = len(self.sorted_tokens)
+        if n == 0:
+            raise ValueError("No sorted tokens available for analysis.")
+
+        # Generate an array of ranks (1 to n)
+        ranks = np.arange(1, n + 1)
+
+        # Compute the generalized harmonic number
         harmonic_number = self._calculate_generalized_harmonic(n, alpha)
+
+        # Calculate the harmonic factor for expected frequency computation
         harmonic_factor = self.total_token_count / harmonic_number
 
-        zipfian_deviations = []
-        for rank, (_, actual_freq) in enumerate(self.sorted_tokens, 1):
-            expected_freq = harmonic_factor / (rank ** alpha)
-            deviation = actual_freq - expected_freq
-            zipfian_deviations.append((rank, actual_freq, expected_freq, deviation))
+        # Vectorized computation of expected frequencies based on Zipf's Law
+        expected_freqs = harmonic_factor / np.power(ranks, alpha)
 
-        return zipfian_deviations
+        # Extract actual frequencies and compute deviations from expected frequencies
+        actual_freqs = np.array([freq for _, freq in self.sorted_tokens])
+        deviations = actual_freqs - expected_freqs
 
-    def zipfs_law_analysis(self, alpha=1, frequency_range=None) -> tuple:
-        """
-        Analyze the corpus based on Zipf's Law with optional frequency range limit.
-        """
-        zipfian_deviations = self._calculate_zipfian_deviations(alpha)
-
-        if frequency_range:
-            zipfian_deviations = [dev for dev in zipfian_deviations if frequency_range[0] <= dev[0] <= frequency_range[1]]
-
-        deviations = [dev[3] for dev in zipfian_deviations]
-        mean_deviation = sum(deviations) / len(deviations)
-        median_deviation = statistics.median(deviations)
-        std_deviation = statistics.stdev(deviations)
-
-        return mean_deviation, median_deviation, std_deviation
-
-    def report_top_zipfian_deviations(self, top_n=10) -> dict:
-        """
-        Report the words with the highest positive and negative deviations from Zipf's Law.
-        """
-        zipfian_deviations = self._calculate_zipfian_deviations()
-        sorted_deviations = sorted(zipfian_deviations, key=lambda x: x[3], reverse=True)
-
-        top_positive = sorted_deviations[:top_n]
-        top_negative = sorted_deviations[-top_n:]
-
-        return {"top_positive": top_positive, "top_negative": top_negative}
-
-    def categorize_zipfian_deviations(self, threshold=10) -> dict:
-        """
-        Categorize words based on their deviation from Zipf's Law.
-        """
-        zipfian_deviations = self._calculate_zipfian_deviations()
-        categories = {'significantly_above': [], 'significantly_below': [], 'close_to_expected': []}
-
-        for rank, actual_freq, expected_freq, deviation in zipfian_deviations:
-            if deviation > threshold:
-                categories['significantly_above'].append((rank, actual_freq, expected_freq, deviation))
-            elif deviation < -threshold:
-                categories['significantly_below'].append((rank, actual_freq, expected_freq, deviation))
-            else:
-                categories['close_to_expected'].append((rank, actual_freq, expected_freq, deviation))
-
-        return categories
+        # Combine results into a structured array: ranks, actual frequencies, expected frequencies, deviations
+        return np.column_stack((ranks, actual_freqs, expected_freqs, deviations))
 
     def compare_with_ideal_zipf(self, alpha=1) -> dict:
         """
-        Compare the actual frequency distribution with an ideal Zipfian distribution.
+        Compare the actual frequency distribution of the corpus with the ideal Zipfian distribution.
+        Returns a dictionary with ranks, actual frequencies, expected frequencies, and deviations.
         """
-        harmonic_number = self._calculate_generalized_harmonic(len(self.sorted_tokens), alpha)
+        # Use the calculated Zipfian deviations for comparison
+        zipfian_deviations = self._calculate_zipfian_deviations(alpha)
+        return {
+            "rank": zipfian_deviations[:, 0],
+            "actual_frequency": zipfian_deviations[:, 1],
+            "expected_zipf_frequency": zipfian_deviations[:, 2],
+            "deviation": zipfian_deviations[:, 3]
+        }
 
-        zipfian_comparison = {'rank': [], 'actual_frequency': [], 'expected_zipf_frequency': [], 'deviation': []}
-        for rank, (_, actual_freq) in enumerate(self.sorted_tokens, 1):
-            expected_freq = self.total_tokens / (rank ** alpha * harmonic_number)
-            deviation = actual_freq - expected_freq
+    def summarize_zipfian_compliance(self, alpha=1) -> dict:
+        """
+        Summarize how closely the corpus follows Zipf's Law.
+        Calculates average and median deviations, and provides percentiles and deviation breakdown.
+        """
+        zipfian_data = self.compare_with_ideal_zipf(alpha)
+        deviations = np.abs(zipfian_data['deviation'])
 
-            zipfian_comparison['rank'].append(rank)
-            zipfian_comparison['actual_frequency'].append(actual_freq)
-            zipfian_comparison['expected_zipf_frequency'].append(expected_freq)
-            zipfian_comparison['deviation'].append(deviation)
+        # Calculate summary statistics
+        avg_deviation = np.mean(deviations)
+        median_deviation = np.median(deviations)
+        percentile_25 = np.percentile(deviations, 25)
+        percentile_75 = np.percentile(deviations, 75)
+        iqr = percentile_75 - percentile_25  # Interquartile Range
 
-        return zipfian_comparison
+        # Calculate deviation breakdown
+        low_deviation_count = np.sum(deviations < 1)
+        moderate_deviation_count = np.sum((deviations >= 1) & (deviations < 5))
+        high_deviation_count = np.sum(deviations >= 5)
+
+        return {
+            "average_deviation": avg_deviation,
+            "median_deviation": median_deviation,
+            "25th_percentile": percentile_25,
+            "75th_percentile": percentile_75,
+            "IQR": iqr,
+            "deviation_breakdown": {
+                "low_deviation": low_deviation_count,
+                "moderate_deviation": moderate_deviation_count,
+                "high_deviation": high_deviation_count
+            },
+            "interpretation": self._interpret_compliance(avg_deviation, iqr)
+        }
+
+    def _interpret_compliance(self, avg_deviation, iqr) -> str:
+        """
+        Provide a textual interpretation of the compliance based on average deviation and IQR.
+        """
+        # Adjusting thresholds to provide a more accurate interpretation
+        if avg_deviation < 2 and iqr < 2:
+            return "Excellent adherence to Zipf's Law."
+        elif avg_deviation < 4:
+            return "Good adherence to Zipf's Law with some deviations."
+        elif avg_deviation < 6:
+            return "Moderate adherence to Zipf's Law, notable deviations observed."
+        else:
+            return "Low adherence to Zipf's Law, significant deviations from expected frequency distribution."
 
 def main():
     logger_config = LoggerConfig()
@@ -324,16 +356,16 @@ def main():
     # Load and tokenize the corpus
     loader = CorpusLoader('brown')
     logger.info(f"CORPUS ANALYSIS REPORT FOR '{loader.corpus_source.upper()}'")
-    tokenizer = Tokenizer(remove_punctuation=True)
-    # After tokenization
+    tokenizer = Tokenizer(remove_punctuation=True, use_nltk_tokenizer=True)
     tokens = tokenizer.tokenize(loader.load_corpus())
+
     # Basic analysis of the corpus
     basic_analyzer = BasicCorpusAnalyzer(tokens)
     median_token, median_freq = basic_analyzer.find_median_token()
     mode_token, mode_freq = basic_analyzer.mode_token()
 
-    logger.info(f"Median Token: '{median_token}' (Frequency: {median_freq})")
     logger.info(f"Most Frequent Token: '{mode_token}' (Frequency: {mode_freq})")
+    logger.info(f"Median Token: '{median_token}' (Frequency: {median_freq})")
     logger.info(f"Average Token Frequency: {basic_analyzer.mean_token_frequency():.2f} tokens")
     logger.info(f"Type-Token Ratio: {basic_analyzer.type_token_ratio():.4f}")
 
@@ -347,14 +379,50 @@ def main():
 
     # Zipf's Law Analysis
     zipfian_analyzer = ZipfianAnalysis(tokens)
-    mean_deviation, median_deviation, std_deviation = zipfian_analyzer.zipfs_law_analysis()
 
-    logger.info("ZIPF'S LAW ANALYSIS")
-    logger.info(f"Mean Deviation: {mean_deviation:.4f}")
-    logger.info(f"Median Deviation: {median_deviation:.4f}")
-    logger.info(f"Standard Deviation: {std_deviation:.4f}")
+    zipfian_summary = zipfian_analyzer.summarize_zipfian_compliance()
+    logger.info("SUMMARY OF ZIPFIAN COMPLIANCE")
+    logger.info(f"Average Deviation: {zipfian_summary['average_deviation']:.4f}")
+    logger.info(f"Median Deviation: {zipfian_summary['median_deviation']:.4f}")
+    logger.info(f"25th Percentile of Deviations: {zipfian_summary['25th_percentile']:.4f}")
+    logger.info(f"75th Percentile of Deviations: {zipfian_summary['75th_percentile']:.4f}")
+    logger.info(f"Interquartile Range of Deviations: {zipfian_summary['IQR']:.4f}")
+
+    # Reporting deviation breakdown
+    deviation_breakdown = zipfian_summary['deviation_breakdown']
+    logger.info("Deviation Breakdown:")
+    logger.info(f"  Low Deviation Count: {deviation_breakdown['low_deviation']}")
+    logger.info(f"  Moderate Deviation Count: {deviation_breakdown['moderate_deviation']}")
+    logger.info(f"  High Deviation Count: {deviation_breakdown['high_deviation']}")
+
+    # Providing a textual interpretation of the compliance
+    logger.info("Interpretation of Compliance:")
+    logger.info(f"  {zipfian_summary['interpretation']}")
 
     logger.info('=' * 60)
+
+    # Assuming zipfian_deviations is the array returned by _calculate_zipfian_deviations method
+    zipfian_analyzer = ZipfianAnalysis(tokens)
+    zipfian_deviations = zipfian_analyzer._calculate_zipfian_deviations()
+
+    # Extracting ranks and actual frequencies
+    ranks = zipfian_deviations[:, 0]
+    actual_freqs = zipfian_deviations[:, 1]
+    expected_freqs = zipfian_deviations[:, 2]
+
+    # Creating the log-log plot
+    plt.figure(figsize=(10, 6))
+    plt.loglog(ranks, actual_freqs, label='Actual Frequencies', marker='o', linestyle='None', markersize=5)
+    plt.loglog(ranks, expected_freqs, label='Expected Zipfian Frequencies', linestyle='-', linewidth=2)
+
+    # Labeling the axes and the plot
+    plt.xlabel('Log(Rank)')
+    plt.ylabel('Log(Frequency)')
+    plt.title('Zipfian Analysis of the Brown Corpus')
+    plt.legend()
+
+    # Show the plot
+    plt.show()
 
 if __name__ == '__main__':
     main()
