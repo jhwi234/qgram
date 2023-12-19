@@ -8,13 +8,15 @@ from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 import regex as re
-import matplotlib.pyplot as plt
-import numpy as np
 
 # Third-party imports
 import nltk
 from nltk.corpus import PlaintextCorpusReader, stopwords
 from nltk.tokenize import word_tokenize, RegexpTokenizer
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+from scipy import stats
 
 class LoggerConfig:
     def __init__(self, log_dir='logs'):
@@ -290,64 +292,104 @@ class ZipfianAnalysis(BasicCorpusAnalyzer):
     def compare_with_ideal_zipf(self, alpha=1) -> dict:
         """
         Compare the actual frequency distribution of the corpus with the ideal Zipfian distribution.
-        Returns a dictionary with ranks, actual frequencies, expected frequencies, and deviations.
+        Includes a comparison of the regression line with the ideal Zipfian line.
         """
-        # Use the calculated Zipfian deviations for comparison
-        zipfian_deviations = self._calculate_zipfian_deviations(alpha)
+        # Perform regression analysis on actual frequencies
+        regression_results = self.fit_zipfian_regression()
+
+        # The ideal Zipfian slope for alpha=1 is -1
+        ideal_slope = -alpha
+
+        # Compare actual slope with ideal slope
+        slope_deviation = regression_results['slope'] - ideal_slope
+
         return {
-            "rank": zipfian_deviations[:, 0],
-            "actual_frequency": zipfian_deviations[:, 1],
-            "expected_zipf_frequency": zipfian_deviations[:, 2],
-            "deviation": zipfian_deviations[:, 3]
+            "actual_regression": regression_results,
+            "ideal_slope": ideal_slope,
+            "slope_deviation": slope_deviation
         }
 
     def summarize_zipfian_compliance(self, alpha=1) -> dict:
         """
         Summarize how closely the corpus follows Zipf's Law.
-        Calculates average and median deviations, and provides percentiles and deviation breakdown.
+        Focuses on the comparison of the regression line of actual frequencies with the ideal Zipfian line.
         """
         zipfian_data = self.compare_with_ideal_zipf(alpha)
-        deviations = np.abs(zipfian_data['deviation'])
-
-        # Calculate summary statistics
-        avg_deviation = np.mean(deviations)
-        median_deviation = np.median(deviations)
-        percentile_25 = np.percentile(deviations, 25)
-        percentile_75 = np.percentile(deviations, 75)
-        iqr = percentile_75 - percentile_25  # Interquartile Range
-
-        # Calculate deviation breakdown
-        low_deviation_count = np.sum(deviations < 1)
-        moderate_deviation_count = np.sum((deviations >= 1) & (deviations < 5))
-        high_deviation_count = np.sum(deviations >= 5)
+        slope_deviation = zipfian_data['slope_deviation']
+        regression_results = self.fit_zipfian_regression()
+        # Interpret the results based on slope deviation and R-value
+        interpretation = self._interpret_compliance(slope_deviation, regression_results['r_value'])
 
         return {
-            "average_deviation": avg_deviation,
-            "median_deviation": median_deviation,
-            "25th_percentile": percentile_25,
-            "75th_percentile": percentile_75,
-            "IQR": iqr,
-            "deviation_breakdown": {
-                "low_deviation": low_deviation_count,
-                "moderate_deviation": moderate_deviation_count,
-                "high_deviation": high_deviation_count
-            },
-            "interpretation": self._interpret_compliance(avg_deviation, iqr)
+            "slope_deviation": slope_deviation,
+            "r_value": regression_results['r_value'],
+            "p_value": regression_results['p_value'],
+            "std_err": regression_results['std_err'],
+            "interpretation": interpretation,
+            "actual_regression": regression_results  # Include this line
         }
 
-    def _interpret_compliance(self, avg_deviation, iqr) -> str:
+    def _interpret_compliance(self, slope_deviation, r_value) -> str:
         """
-        Provide a textual interpretation of the compliance based on average deviation and IQR.
+        Provide a textual interpretation of the compliance based on slope deviation and R-value.
         """
-        # Adjusting thresholds to provide a more accurate interpretation
-        if avg_deviation < 2 and iqr < 2:
+        if abs(slope_deviation) < 0.1 and r_value > 0.9:
             return "Excellent adherence to Zipf's Law."
-        elif avg_deviation < 4:
+        elif abs(slope_deviation) < 0.2 and r_value > 0.8:
             return "Good adherence to Zipf's Law with some deviations."
-        elif avg_deviation < 6:
+        elif abs(slope_deviation) < 0.3 and r_value > 0.7:
             return "Moderate adherence to Zipf's Law, notable deviations observed."
         else:
             return "Low adherence to Zipf's Law, significant deviations from expected frequency distribution."
+
+    @staticmethod
+    def power_law(x, a, b):
+        """
+        Power-law function for curve fitting.
+        """
+        return a * np.power(x, b)
+
+    def fit_power_law(self):
+        """
+        Fit a power-law distribution to the ranks and frequencies.
+        """
+        # Extract ranks and frequencies
+        ranks = np.arange(1, len(self.sorted_tokens) + 1)
+        frequencies = np.array([freq for _, freq in self.sorted_tokens])
+
+        # Perform the curve fit
+        params, _ = curve_fit(self.power_law, ranks, frequencies, p0=[1, -1])
+        return params
+
+    def plot_zipfian_comparison(self, alpha=1):
+        """
+        Plot the actual frequencies, fitted power-law, and ideal Zipfian distribution.
+        """
+        # Extract ranks and frequencies
+        ranks = np.arange(1, len(self.sorted_tokens) + 1)
+        frequencies = np.array([freq for _, freq in self.sorted_tokens])
+
+        # Fit power-law distribution
+        fitted_params = self.fit_power_law()
+
+        # Calculate expected frequencies using the fitted power-law parameters
+        fitted_freqs = self.power_law(ranks, *fitted_params)
+
+        # Calculate ideal Zipfian frequencies using a harmonic number
+        harmonic_number = self._calculate_generalized_harmonic(len(ranks), alpha)
+        zipfian_freqs = (self.total_token_count / harmonic_number) / np.power(ranks, alpha)
+
+        # Plot the frequencies
+        plt.figure(figsize=(10, 6))
+        plt.loglog(ranks, frequencies, 'bo', label='Actual Frequencies', markersize=5)
+        plt.loglog(ranks, fitted_freqs, 'r-', label='Fitted Power-Law', linewidth=2)
+        plt.loglog(ranks, zipfian_freqs, 'g--', label='Ideal Zipfian', linewidth=2)
+
+        plt.xlabel('Rank')
+        plt.ylabel('Frequency')
+        plt.title('Comparison of Actual, Fitted Power-Law, and Ideal Zipfian Frequencies')
+        plt.legend()
+        plt.show()
 
 def main():
     logger_config = LoggerConfig()
@@ -379,50 +421,15 @@ def main():
 
     # Zipf's Law Analysis
     zipfian_analyzer = ZipfianAnalysis(tokens)
+    logger.info("FITTING POWER-LAW DISTRIBUTION")
+    fitted_params = zipfian_analyzer.fit_power_law()
+    logger.info(f"Fitted Power-Law Parameters: a = {fitted_params[0]}, b = {fitted_params[1]}")
 
-    zipfian_summary = zipfian_analyzer.summarize_zipfian_compliance()
-    logger.info("SUMMARY OF ZIPFIAN COMPLIANCE")
-    logger.info(f"Average Deviation: {zipfian_summary['average_deviation']:.4f}")
-    logger.info(f"Median Deviation: {zipfian_summary['median_deviation']:.4f}")
-    logger.info(f"25th Percentile of Deviations: {zipfian_summary['25th_percentile']:.4f}")
-    logger.info(f"75th Percentile of Deviations: {zipfian_summary['75th_percentile']:.4f}")
-    logger.info(f"Interquartile Range of Deviations: {zipfian_summary['IQR']:.4f}")
+    # Plotting the comparison
+    zipfian_analyzer.plot_zipfian_comparison(alpha=1)
 
-    # Reporting deviation breakdown
-    deviation_breakdown = zipfian_summary['deviation_breakdown']
-    logger.info("Deviation Breakdown:")
-    logger.info(f"  Low Deviation Count: {deviation_breakdown['low_deviation']}")
-    logger.info(f"  Moderate Deviation Count: {deviation_breakdown['moderate_deviation']}")
-    logger.info(f"  High Deviation Count: {deviation_breakdown['high_deviation']}")
-
-    # Providing a textual interpretation of the compliance
-    logger.info("Interpretation of Compliance:")
-    logger.info(f"  {zipfian_summary['interpretation']}")
-
-    logger.info('=' * 60)
-
-    # Assuming zipfian_deviations is the array returned by _calculate_zipfian_deviations method
-    zipfian_analyzer = ZipfianAnalysis(tokens)
-    zipfian_deviations = zipfian_analyzer._calculate_zipfian_deviations()
-
-    # Extracting ranks and actual frequencies
-    ranks = zipfian_deviations[:, 0]
-    actual_freqs = zipfian_deviations[:, 1]
-    expected_freqs = zipfian_deviations[:, 2]
-
-    # Creating the log-log plot
-    plt.figure(figsize=(10, 6))
-    plt.loglog(ranks, actual_freqs, label='Actual Frequencies', marker='o', linestyle='None', markersize=5)
-    plt.loglog(ranks, expected_freqs, label='Expected Zipfian Frequencies', linestyle='-', linewidth=2)
-
-    # Labeling the axes and the plot
-    plt.xlabel('Log(Rank)')
-    plt.ylabel('Log(Frequency)')
-    plt.title('Zipfian Analysis of the Brown Corpus')
-    plt.legend()
-
-    # Show the plot
-    plt.show()
+if __name__ == '__main__':
+    main()
 
 if __name__ == '__main__':
     main()
