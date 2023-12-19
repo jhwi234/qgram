@@ -12,11 +12,14 @@ import regex as re
 # Third-party imports
 import nltk
 from nltk.corpus import PlaintextCorpusReader, stopwords
+from nltk.corpus import brown, gutenberg, reuters
 from nltk.tokenize import word_tokenize, RegexpTokenizer
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy import stats
+from scipy.stats import linregress
+import statsmodels.api as sm
 
 class LoggerConfig:
     def __init__(self, log_dir='logs'):
@@ -42,47 +45,75 @@ class LoggerConfig:
 
         return logging.getLogger(__name__)
 class CorpusLoader:
-    def __init__(self, corpus_source):
+    def __init__(self, corpus_source, allow_download=True, custom_download_dir=None):
         self.corpus_source = corpus_source
+        self.allow_download = allow_download
+        self.custom_download_dir = custom_download_dir
+        self.download_attempted = False  # Flag to track download attempts
+
+    def is_corpus_available(self):
+        try:
+            nltk.data.find(self.corpus_source)
+            return True
+        except LookupError:
+            return False
+
+    def download_corpus(self):
+        if self.custom_download_dir:
+            nltk.data.path.append(self.custom_download_dir)
+        nltk.download(self.corpus_source, download_dir=self.custom_download_dir, quiet=True)
+        self.download_attempted = True
 
     def load_corpus(self):
         """
         Load the entire corpus into a list of tokens.
         """
         if os.path.isfile(self.corpus_source) or os.path.isdir(self.corpus_source):
+            # Handle local file or directory
             corpus_reader = PlaintextCorpusReader(self.corpus_source, '.*')
             return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
+        elif self.is_corpus_available():
+            # Load from NLTK if available
+            corpus_reader = getattr(nltk.corpus, self.corpus_source)
+            return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
+        elif self.allow_download and not self.download_attempted:
+            # Attempt to download if not already attempted
+            self.download_corpus()
+            corpus_reader = getattr(nltk.corpus, self.corpus_source)
+            return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
         else:
-            try:
-                nltk.data.find(self.corpus_source)
-                corpus_reader = getattr(nltk.corpus, self.corpus_source)
-                return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
-            except LookupError:
-                nltk.download(self.corpus_source, quiet=True)
-                corpus_reader = getattr(nltk.corpus, self.corpus_source)
-                return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
+            # Corpus not found and either download is disabled or already attempted
+            raise RuntimeError(f"Failed to access or download the NLTK corpus: {self.corpus_source}")
 class Tokenizer:
-    def __init__(self, remove_stopwords=False, remove_punctuation=False, use_nltk_tokenizer=False):
+    def __init__(self, remove_stopwords=False, remove_punctuation=False, use_nltk_tokenizer=False, stopwords_language='english'):
         self.remove_stopwords = remove_stopwords
         self.remove_punctuation = remove_punctuation
         self.use_nltk_tokenizer = use_nltk_tokenizer
+        self.stopwords_language = stopwords_language
         self.custom_regex = None
         self._ensure_nltk_resources()
 
     def _ensure_nltk_resources(self):
         if self.remove_stopwords:
             try:
-                nltk.data.find('corpora/stopwords')
+                nltk.data.find(f'corpora/stopwords/{self.stopwords_language}')
             except LookupError:
-                nltk.download('stopwords')
+                nltk.download('stopwords', quiet=True)
 
     def set_custom_regex(self, pattern):
         """Set a custom regex pattern for tokenization."""
-        self.custom_regex = re.compile(pattern)
+        try:
+            self.custom_regex = re.compile(pattern)
+        except re.error as e:
+            raise ValueError(f"Invalid regex pattern: {e}")
 
     def _remove_stopwords_and_punctuation(self, tokens):
-        punctuation = set(string.punctuation)
-        stop_words = set(stopwords.words('english')) if self.remove_stopwords else set()
+        if not self.remove_stopwords and not self.remove_punctuation:
+            return tokens
+
+        stop_words = set(stopwords.words(self.stopwords_language)) if self.remove_stopwords else set()
+        punctuation = set(string.punctuation) if self.remove_punctuation else set()
+
         return [token for token in tokens if token not in punctuation and token not in stop_words]
 
     def tokenize(self, text) -> list:
@@ -90,7 +121,7 @@ class Tokenizer:
         if isinstance(text, list):
             text = ' '.join(text)
 
-        # Initial tokenization
+        # Perform initial tokenization
         if self.custom_regex:
             tokens = self.custom_regex.findall(text)
         elif self.use_nltk_tokenizer:
@@ -98,7 +129,7 @@ class Tokenizer:
         else:
             tokens = text.split()
 
-        # Remove stopwords and punctuation
+        # Apply removal of stopwords and punctuation
         return self._remove_stopwords_and_punctuation(tokens)
 class BasicCorpusAnalyzer:
     def __init__(self, tokens):
@@ -136,30 +167,50 @@ class BasicCorpusAnalyzer:
 
     def query_by_word_or_rank(self, query):
         if isinstance(query, int):
+            # Check if rank is within the valid range
             if 1 <= query <= len(self.sorted_tokens):
-                return self.sorted_tokens[query - 1]
-            raise ValueError(f"Rank {query} is out of range.")
+                token, freq = self.sorted_tokens[query - 1]
+                return token, freq, query
+            else:
+                raise ValueError(f"Rank {query} is out of range (1 to {len(self.sorted_tokens)}).")
         elif isinstance(query, str):
             word = query.lower()
-            return word, self.frequency.get(word, 0)
-        raise TypeError("Query must be a word (str) or a rank (int).")
+            freq = self.frequency.get(word, 0)
+            rank = self.token_ranks.get(word, None)
+            return word, freq, rank
+        else:
+            raise TypeError("Query must be a word (str) or a rank (int).")
 
     def get_words_in_rank_range(self, start_rank, end_rank):
-        if 1 <= start_rank <= end_rank <= len(self.sorted_tokens):
-            return self.sorted_tokens[start_rank - 1:end_rank]
-        raise ValueError("Invalid rank range.")
+        # Validate the rank range
+        if not (1 <= start_rank <= len(self.sorted_tokens)):
+            raise ValueError(f"Start rank {start_rank} is out of range (1 to {len(self.sorted_tokens)}).")
+        if not (start_rank <= end_rank <= len(self.sorted_tokens)):
+            raise ValueError(f"End rank {end_rank} is out of the valid range ({start_rank} to {len(self.sorted_tokens)}).")
+
+        # Extract tokens within the specified rank range
+        return [(token, freq, rank) for rank, (token, freq) in enumerate(self.sorted_tokens, start=1) if start_rank <= rank <= end_rank]
+
 class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
     def __init__(self, tokens):
         super().__init__(tokens)
-        # Calculate cumulative frequencies once during initialization
         self.cum_freqs, self.token_ranks = self._calculate_cumulative_frequencies()
 
     def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100) -> list:
         """
         Get words, their frequencies, and ranks that fall within a specified frequency range.
+        Validates input percentages to ensure they are within the 0-100 range and lower_percent is not greater than upper_percent.
         """
+        # Validate input percentages
+        if not 0 <= lower_percent <= 100:
+            raise ValueError("lower_percent must be between 0 and 100.")
+        if not 0 <= upper_percent <= 100:
+            raise ValueError("upper_percent must be between 0 and 100.")
+        if lower_percent > upper_percent:
+            raise ValueError("lower_percent must not be greater than upper_percent.")
+
         if not self.tokens:
-            return []  # Handle empty token list
+            return []
 
         total = sum(self.frequency.values())
         lower_threshold = total * (lower_percent / 100)
@@ -245,191 +296,88 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
             interpretation = "limited vocabulary richness"
 
         return C, interpretation
-class ZipfianAnalysis(BasicCorpusAnalyzer):
+class ZipfianAnalysis:
     def __init__(self, tokens):
-        super().__init__(tokens)
-        # Ensure that the tokens list is not empty for analysis
-        if not tokens:
-            raise ValueError("Token list is empty. Zipfian analysis requires a non-empty list of tokens.")
+        self.tokens = tokens
+        self.frequency = Counter(tokens)
+        self.sorted_tokens = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
+        self.total_token_count = sum(self.frequency.values())
 
     @lru_cache(maxsize=None)
-    def _calculate_generalized_harmonic(self, n, alpha) -> float:
-        """
-        Calculate the generalized harmonic number of order 'n' for 'alpha'.
-        This is used in calculating expected frequencies based on Zipf's Law.
-        """
-        # Summation of 1/(i^alpha) for i from 1 to n
+    def _calculate_generalized_harmonic(self, n, alpha):
         return sum(1 / (i ** alpha) for i in range(1, n + 1))
 
-    def _calculate_zipfian_deviations(self, alpha=1) -> np.ndarray:
-        """
-        Calculate the deviations of actual word frequencies from the expected Zipfian frequencies.
-        Uses vectorized operations for efficiency.
-        """
-        n = len(self.sorted_tokens)
-        if n == 0:
-            raise ValueError("No sorted tokens available for analysis.")
-
-        # Generate an array of ranks (1 to n)
-        ranks = np.arange(1, n + 1)
-
-        # Compute the generalized harmonic number
-        harmonic_number = self._calculate_generalized_harmonic(n, alpha)
-
-        # Calculate the harmonic factor for expected frequency computation
-        harmonic_factor = self.total_token_count / harmonic_number
-
-        # Vectorized computation of expected frequencies based on Zipf's Law
-        expected_freqs = harmonic_factor / np.power(ranks, alpha)
-
-        # Extract actual frequencies and compute deviations from expected frequencies
-        actual_freqs = np.array([freq for _, freq in self.sorted_tokens])
-        deviations = actual_freqs - expected_freqs
-
-        # Combine results into a structured array: ranks, actual frequencies, expected frequencies, deviations
-        return np.column_stack((ranks, actual_freqs, expected_freqs, deviations))
-
-    def compare_with_ideal_zipf(self, alpha=1) -> dict:
-        """
-        Compare the actual frequency distribution of the corpus with the ideal Zipfian distribution.
-        Includes a comparison of the regression line with the ideal Zipfian line.
-        """
-        # Perform regression analysis on actual frequencies
-        regression_results = self.fit_zipfian_regression()
-
-        # The ideal Zipfian slope for alpha=1 is -1
-        ideal_slope = -alpha
-
-        # Compare actual slope with ideal slope
-        slope_deviation = regression_results['slope'] - ideal_slope
-
-        return {
-            "actual_regression": regression_results,
-            "ideal_slope": ideal_slope,
-            "slope_deviation": slope_deviation
-        }
-
-    def summarize_zipfian_compliance(self, alpha=1) -> dict:
-        """
-        Summarize how closely the corpus follows Zipf's Law.
-        Focuses on the comparison of the regression line of actual frequencies with the ideal Zipfian line.
-        """
-        zipfian_data = self.compare_with_ideal_zipf(alpha)
-        slope_deviation = zipfian_data['slope_deviation']
-        regression_results = self.fit_zipfian_regression()
-        # Interpret the results based on slope deviation and R-value
-        interpretation = self._interpret_compliance(slope_deviation, regression_results['r_value'])
-
-        return {
-            "slope_deviation": slope_deviation,
-            "r_value": regression_results['r_value'],
-            "p_value": regression_results['p_value'],
-            "std_err": regression_results['std_err'],
-            "interpretation": interpretation,
-            "actual_regression": regression_results  # Include this line
-        }
-
-    def _interpret_compliance(self, slope_deviation, r_value) -> str:
-        """
-        Provide a textual interpretation of the compliance based on slope deviation and R-value.
-        """
-        if abs(slope_deviation) < 0.1 and r_value > 0.9:
-            return "Excellent adherence to Zipf's Law."
-        elif abs(slope_deviation) < 0.2 and r_value > 0.8:
-            return "Good adherence to Zipf's Law with some deviations."
-        elif abs(slope_deviation) < 0.3 and r_value > 0.7:
-            return "Moderate adherence to Zipf's Law, notable deviations observed."
-        else:
-            return "Low adherence to Zipf's Law, significant deviations from expected frequency distribution."
-
-    @staticmethod
-    def power_law(x, a, b):
-        """
-        Power-law function for curve fitting.
-        """
-        return a * np.power(x, b)
-
-    def fit_power_law(self):
-        """
-        Fit a power-law distribution to the ranks and frequencies.
-        """
-        # Extract ranks and frequencies
+    def plot_comparison(self, alpha=1):
         ranks = np.arange(1, len(self.sorted_tokens) + 1)
         frequencies = np.array([freq for _, freq in self.sorted_tokens])
-
-        # Perform the curve fit
-        params, _ = curve_fit(self.power_law, ranks, frequencies, p0=[1, -1])
-        return params
-
-    def plot_zipfian_comparison(self, alpha=1):
-        """
-        Plot the actual frequencies, fitted power-law, and ideal Zipfian distribution.
-        """
-        # Extract ranks and frequencies
-        ranks = np.arange(1, len(self.sorted_tokens) + 1)
-        frequencies = np.array([freq for _, freq in self.sorted_tokens])
-
-        # Fit power-law distribution
-        fitted_params = self.fit_power_law()
-
-        # Calculate expected frequencies using the fitted power-law parameters
-        fitted_freqs = self.power_law(ranks, *fitted_params)
-
-        # Calculate ideal Zipfian frequencies using a harmonic number
+        log_ranks = np.log(ranks)
+        log_freqs = np.log(frequencies)
         harmonic_number = self._calculate_generalized_harmonic(len(ranks), alpha)
-        zipfian_freqs = (self.total_token_count / harmonic_number) / np.power(ranks, alpha)
-
-        # Plot the frequencies
+        ideal_zipfian = (self.total_token_count / harmonic_number) / np.power(ranks, alpha)
+        log_ideal_zipfian = np.log(ideal_zipfian)
         plt.figure(figsize=(10, 6))
-        plt.loglog(ranks, frequencies, 'bo', label='Actual Frequencies', markersize=5)
-        plt.loglog(ranks, fitted_freqs, 'r-', label='Fitted Power-Law', linewidth=2)
-        plt.loglog(ranks, zipfian_freqs, 'g--', label='Ideal Zipfian', linewidth=2)
-
-        plt.xlabel('Rank')
-        plt.ylabel('Frequency')
-        plt.title('Comparison of Actual, Fitted Power-Law, and Ideal Zipfian Frequencies')
+        plt.scatter(log_ranks, log_freqs, color='blue', label='Actual Frequencies', s=10)
+        plt.plot(log_ranks, log_ideal_zipfian, 'g--', label='Ideal Zipfian', linewidth=2)
+        plt.xlabel('Log of Rank')
+        plt.ylabel('Log of Frequency')
+        plt.title('Comparison of Actual Frequencies with Ideal Zipfian')
         plt.legend()
         plt.show()
 
-def main():
+    def assess_zipfian_fit(self, alpha=1):
+        deviations = self._calculate_zipfian_deviations(alpha)
+        mean_deviation = np.mean(np.abs(deviations))
+        std_deviation = np.std(deviations)
+        return mean_deviation, std_deviation
+
+    def _calculate_zipfian_deviations(self, alpha=1):
+        n = len(self.sorted_tokens)
+        ranks = np.arange(1, n + 1)
+        harmonic_number = self._calculate_generalized_harmonic(n, alpha)
+        harmonic_factor = self.total_token_count / harmonic_number
+        expected_freqs = harmonic_factor / np.power(ranks, alpha)
+        actual_freqs = np.array([freq for _, freq in self.sorted_tokens])
+        deviations = actual_freqs - expected_freqs
+        return deviations
+
+def analyze_corpus(corpus_name):
+    logger = logging.getLogger(__name__)
+    logger.info(f"Analyzing corpus: {corpus_name}")
+
+    try:
+        # Check the type of corpus and load it accordingly
+        if corpus_name == 'brown':
+            tokens = brown.words()
+        elif corpus_name == 'gutenberg':
+            tokens = gutenberg.words()
+        elif corpus_name == 'reuters':
+            # Example of handling a categorized corpus
+            tokens = reuters.words()
+        else:
+            raise ValueError(f"Corpus {corpus_name} is not recognized.")
+
+        # Tokenize the corpus
+        tokenizer = Tokenizer(remove_punctuation=True)
+        tokens = tokenizer.tokenize(' '.join(tokens))
+
+        # Perform the Zipfian analysis
+        zipfian_analyzer = ZipfianAnalysis(tokens)
+        zipfian_analyzer.plot_comparison(alpha=1)
+        mean_dev, std_dev = zipfian_analyzer.assess_zipfian_fit(alpha=1)
+        logger.info(f"Mean deviation from Ideal Zipfian: {mean_dev:.4f}")
+        logger.info(f"Standard deviation from Ideal Zipfian: {std_dev:.4f}")
+
+    except Exception as e:
+        logger.error(f"An error occurred while analyzing {corpus_name}: {e}")
+
+def comprehensive_corpus_analysis():
     logger_config = LoggerConfig()
-    logger = logger_config.setup_logging()
+    logger_config.setup_logging()
 
-    # Load and tokenize the corpus
-    loader = CorpusLoader('brown')
-    logger.info(f"CORPUS ANALYSIS REPORT FOR '{loader.corpus_source.upper()}'")
-    tokenizer = Tokenizer(remove_punctuation=True, use_nltk_tokenizer=True)
-    tokens = tokenizer.tokenize(loader.load_corpus())
-
-    # Basic analysis of the corpus
-    basic_analyzer = BasicCorpusAnalyzer(tokens)
-    median_token, median_freq = basic_analyzer.find_median_token()
-    mode_token, mode_freq = basic_analyzer.mode_token()
-
-    logger.info(f"Most Frequent Token: '{mode_token}' (Frequency: {mode_freq})")
-    logger.info(f"Median Token: '{median_token}' (Frequency: {median_freq})")
-    logger.info(f"Average Token Frequency: {basic_analyzer.mean_token_frequency():.2f} tokens")
-    logger.info(f"Type-Token Ratio: {basic_analyzer.type_token_ratio():.4f}")
-
-    # Advanced analysis of the corpus
-    advanced_analyzer = AdvancedCorpusAnalyzer(tokens)
-    herdans_c_value, herdans_c_interpretation = advanced_analyzer.herdans_c()
-    yules_k_value, yules_k_interpretation = advanced_analyzer.yules_k()
-
-    logger.info(f"Herdan's C: {herdans_c_value:.4f} ({herdans_c_interpretation})")
-    logger.info(f"Yule's K: {yules_k_value:.2f} ({yules_k_interpretation})")
-
-    # Zipf's Law Analysis
-    zipfian_analyzer = ZipfianAnalysis(tokens)
-    logger.info("FITTING POWER-LAW DISTRIBUTION")
-    fitted_params = zipfian_analyzer.fit_power_law()
-    logger.info(f"Fitted Power-Law Parameters: a = {fitted_params[0]}, b = {fitted_params[1]}")
-
-    # Plotting the comparison
-    zipfian_analyzer.plot_zipfian_comparison(alpha=1)
+    # List of nltk corpora
+    corpora = ['brown', 'gutenberg', 'reuters']
+    for corpus_name in corpora:
+        analyze_corpus(corpus_name)
 
 if __name__ == '__main__':
-    main()
-
-if __name__ == '__main__':
-    main()
+    comprehensive_corpus_analysis()
