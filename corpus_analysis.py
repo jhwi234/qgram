@@ -7,6 +7,7 @@ import statistics
 from collections import Counter
 from functools import lru_cache
 from pathlib import Path
+import regex as re
 
 # Third-party imports
 import nltk
@@ -14,7 +15,6 @@ from nltk.corpus import PlaintextCorpusReader, stopwords
 from nltk.tokenize import RegexpTokenizer
 import matplotlib.pyplot as plt
 import numpy as np
-
 
 class LoggerConfig:
     def __init__(self, log_dir='logs'):
@@ -39,117 +39,59 @@ class LoggerConfig:
         logging.basicConfig(level=logging.DEBUG, handlers=[file_handler, console_handler])
 
         return logging.getLogger(__name__)
-
 class CorpusLoader:
     def __init__(self, corpus_source):
         self.corpus_source = corpus_source
-        self._corpus_data = None  # Initialize without loading data
 
-    def load_corpus(self) -> list:
-        if self._corpus_data is None:  # Load data only if it's not already loaded
-            self._corpus_data = self._load_data()
-        return self._corpus_data
-
-    def _load_data(self) -> list:
-        # Check if the source is a file or directory and load accordingly
+    def load_corpus(self):
+        """
+        Load the entire corpus into a list of tokens.
+        """
         if os.path.isfile(self.corpus_source) or os.path.isdir(self.corpus_source):
             corpus_reader = PlaintextCorpusReader(self.corpus_source, '.*')
-            return [token.lower() for token in corpus_reader.words()]
-        try:
-            # For named NLTK corpora, check if it's available or download it
-            nltk.data.find(self.corpus_source)
-        except LookupError:
-            nltk.download(self.corpus_source, quiet=True)
-        # Load the corpus from NLTK and convert all words to lowercase
-        return [word.lower() for word in getattr(nltk.corpus, self.corpus_source).words()]
-
+            return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
+        else:
+            try:
+                nltk.data.find(self.corpus_source)
+                corpus_reader = getattr(nltk.corpus, self.corpus_source)
+                return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
+            except LookupError:
+                nltk.download(self.corpus_source, quiet=True)
+                corpus_reader = getattr(nltk.corpus, self.corpus_source)
+                return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
 class Tokenizer:
     def __init__(self, remove_stopwords=False, remove_punctuation=False, custom_regex=None):
-        self.remove_stopwords = remove_stopwords  # Flag to remove stopwords
-        self.remove_punctuation = remove_punctuation  # Flag to remove punctuation
-        self.custom_regex = custom_regex  # Optional custom regular expression for tokenization
-        self._ensure_nltk_resources()  # Ensure necessary NLTK resources are downloaded
+        self.remove_stopwords = remove_stopwords
+        self.remove_punctuation = remove_punctuation
+        self.custom_regex = re.compile(custom_regex) if custom_regex else None
+        self._ensure_nltk_resources()
 
     def _ensure_nltk_resources(self):
-        # Download NLTK stopwords if necessary
-        if self.remove_stopwords and not nltk.data.find('corpora/stopwords'):
-            nltk.download('stopwords')
+        if self.remove_stopwords:
+            try:
+                nltk.data.find('corpora/stopwords')
+            except LookupError:
+                nltk.download('stopwords')
 
     def tokenize(self, tokens) -> list:
-        # Tokenize the text, optionally removing stopwords and punctuation
         if self.remove_stopwords or self.remove_punctuation:
-            punctuation_set = set(string.punctuation)
+            punctuation_set = set(string.punctuation) if self.remove_punctuation else set()
             stop_words = set(stopwords.words('english')) if self.remove_stopwords else set()
             tokens = [token for token in tokens if token not in punctuation_set and token not in stop_words]
 
-        # Apply custom regex tokenizer if provided
         if self.custom_regex:
-            tokenizer = RegexpTokenizer(self.custom_regex)
-            tokens = tokenizer.tokenize(' '.join(tokens))
+            joined_text = ' '.join(tokens)
+            tokens = self.custom_regex.findall(joined_text)
 
         return tokens
-
-class Display:
-    @staticmethod
-    def display_token_info(description, token, freq, additional_info=None):
-        info = f"{description}: '{token}' (Frequency: {freq})"
-        if additional_info is not None:
-            info += f", {additional_info}"
-        print(info)
-
-    @staticmethod
-    def display_query_result(result):
-        if isinstance(result, tuple) and len(result) == 2:
-            print(f"{'Rank' if isinstance(result[0], int) else 'Frequency of'} '{result[0]}': {result[1]}")
-
-    @staticmethod
-    def display_words_in_rank_range(words_in_range, start_rank, end_rank):
-        print(f"Words and Frequencies for Ranks {start_rank} to {end_rank}:")
-        for rank, (word, freq) in enumerate(words_in_range, start=start_rank):
-            print(f"  Rank {rank}: '{word}' (Frequency: {freq})")
-
-    @staticmethod
-    def display_token_frequency_distribution(frequency_distribution):
-        if not frequency_distribution:
-            print("No frequency distribution to display.")
-            return
-
-        # Prepare data for histogram
-        freqs, counts = zip(*frequency_distribution)
-        max_freq = max(freqs)
-
-        plt.figure(figsize=(10, 6))
-
-        # Create bins with logarithmic scale
-        bins = np.logspace(np.log10(1), np.log10(max_freq), 50)
-        plt.hist(freqs, bins=bins, weights=counts, log=True, color='skyblue', edgecolor='black')
-
-        plt.xlabel('Token Frequencies (Log scale)')
-        plt.ylabel('Number of Tokens (Log scale)')
-        plt.xscale('log')  # Set x-axis to logarithmic scale
-        plt.title('Token Frequency Distribution')
-        plt.grid(True)
-        plt.show()
-
-    @staticmethod
-    def display_dispersion_plot(tokens, words):
-        if not tokens:
-            print("The corpus is empty.")
-            return
-
-        text = nltk.Text(tokens)
-        text.dispersion_plot(words)
-
-class CorpusAnalyzer:
+class BasicCorpusAnalyzer:
     def __init__(self, tokens):
         self.tokens = tokens
         self.frequency = Counter(tokens)
         self.sorted_tokens = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
         self.total_token_count = sum(self.frequency.values())
-        self.cumulative_frequencies, self.token_ranks = self._calculate_cumulative_frequencies()
 
-    def _calculate_cumulative_frequencies(self) -> tuple:
-        # Calculate cumulative frequencies and ranks for each token
+    def _calculate_cumulative_frequencies(self):
         cumulative = 0
         cum_freqs = {}
         token_ranks = {}
@@ -159,89 +101,65 @@ class CorpusAnalyzer:
             token_ranks[token] = rank
         return cum_freqs, token_ranks
 
-    def cumulative_frequency_analysis(self, percent_list) -> dict:
-        # Get the words that represent certain percentage thresholds in terms of frequency
-        if not self.tokens:
-            return {}  # Handle empty token list
-
-        results = {}
-        total = sum(self.frequency.values())
+    def find_median_token(self):
+        median_index = self.total_token_count / 2
         cumulative = 0
-        sorted_percentages = sorted(percent_list)
-        percent_index = 0
-        threshold = total * (sorted_percentages[percent_index] / 100)
-
         for token, freq in self.sorted_tokens:
             cumulative += freq
-            while cumulative >= threshold:
-                results[sorted_percentages[percent_index]] = (token, freq)
-                percent_index += 1
-                if percent_index >= len(sorted_percentages):
-                    return results
-                threshold = total * (sorted_percentages[percent_index] / 100)
+            if cumulative >= median_index:
+                return token, freq
 
-        return results
+    def mode_token(self):
+        return self.sorted_tokens[0]
 
-    @lru_cache(maxsize=128)  # Cache results for repeated queries
-    def find_median_token(self) -> tuple:
-        if not self.tokens:
-            return None, 0, 0  # Handle empty token list
-        median_index = self.total_token_count / 2
-        for token, cum_freq in self.cumulative_frequencies.items():
-            if cum_freq >= median_index:
-                return token, self.frequency[token], self.token_ranks[token]
-
-    def mode_token(self) -> tuple:
-        # Get the most frequently occurring token in the corpus
-        mode, freq = self.sorted_tokens[0]
-        return mode, freq, 1
-
-    def mean_token_frequency(self) -> float:
-        # Calculate the average occurrence frequency of all tokens
+    def mean_token_frequency(self):
         return self.total_token_count / len(self.frequency)
 
-    def token_frequency_distribution(self) -> list:
-        # Get the distribution of token frequencies
-        frequency_count = Counter(self.frequency.values())
-        return sorted(frequency_count.items())
+    def type_token_ratio(self):
+        return len(self.frequency) / self.total_token_count
 
-    @lru_cache(maxsize=128)  # Cache results for repeated queries
-    def type_token_ratio(self) -> float:
-        # Calculate Type-Token Ratio (TTR)
-        return len(self.frequency) / sum(self.frequency.values())
-
-    def zipfs_law_analysis(self) -> list:
-        # Analyze the corpus based on Zipf's Law
-        return [(rank, freq, freq * rank) for rank, (_, freq) in enumerate(self.sorted_tokens, 1)]
-
-    def hapax_legomena(self) -> list:
-        # Get words that occur only once in the corpus
-        return [word for word, freq in self.frequency.items() if freq == 1]
-
-    @lru_cache(maxsize=128)  # Cache results for repeated queries
-    def query_by_word_or_rank(self, query) -> tuple:
+    def query_by_word_or_rank(self, query):
         if isinstance(query, int):
             if 1 <= query <= len(self.sorted_tokens):
                 return self.sorted_tokens[query - 1]
-            else:
-                raise ValueError(f"Rank {query} is out of range.")
+            raise ValueError(f"Rank {query} is out of range.")
         elif isinstance(query, str):
             word = query.lower()
-            if word in self.frequency:
-                return word, self.frequency[word]
-            else:
-                raise ValueError(f"Word '{word}' not found in corpus.")
-        else:
-            raise TypeError("Query must be a word (str) or a rank (int).")
+            return word, self.frequency.get(word, 0)
+        raise TypeError("Query must be a word (str) or a rank (int).")
 
-    def get_words_in_rank_range(self, start_rank, end_rank) -> list:
-        # Get words within a specified rank range
+    def get_words_in_rank_range(self, start_rank, end_rank):
         if 1 <= start_rank <= end_rank <= len(self.sorted_tokens):
             return self.sorted_tokens[start_rank - 1:end_rank]
-        else:
-            raise ValueError("Invalid rank range.")
+        raise ValueError("Invalid rank range.")
+class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
+    def __init__(self, tokens):
+        super().__init__(tokens)
 
-    @lru_cache(maxsize=128)  # Cache results for repeated queries
+    def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100) -> list:
+        """
+        Get words, their frequencies, and ranks that fall within a specified frequency range.
+        """
+        if not self.tokens:
+            return []  # Handle empty token list
+
+        cum_freqs, token_ranks = self.cumulative_frequencies, self.token_ranks
+
+        total = sum(self.frequency.values())
+        lower_threshold = total * (lower_percent / 100)
+        upper_threshold = total * (upper_percent / 100)
+
+        cumulative_freq = 0
+        words_in_range = []
+        for token, freq in self.sorted_tokens:
+            cumulative_freq += freq
+            if lower_threshold <= cumulative_freq <= upper_threshold:
+                words_in_range.append((token, freq, token_ranks[token], cumulative_freq))
+            elif cumulative_freq > upper_threshold:
+                break
+
+        return words_in_range
+
     def yules_k(self) -> tuple:
         # M1: Sum of the frequencies of all words in the corpus.
         # It represents the total number of word occurrences.
@@ -276,7 +194,6 @@ class CorpusAnalyzer:
 
         return K, interpretation
 
-    @lru_cache(maxsize=128)  # Cache results for repeated queries
     def herdans_c(self) -> tuple:
         # N: Total number of words in the corpus.
         # V: Number of unique words (vocabulary size).
@@ -313,6 +230,92 @@ class CorpusAnalyzer:
             interpretation = "limited vocabulary richness"
 
         return C, interpretation
+class ZipfianAnalysis:
+    def __init__(self, tokens):
+        self.tokens = tokens
+        self.frequency = Counter(tokens)
+        # Ensure sorting is in descending order by frequency
+        self.sorted_tokens = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
+        self.total_token_count = sum(self.frequency.values())
+
+    def _calculate_generalized_harmonic(self, n, alpha) -> float:
+        return sum(1 / (i ** alpha) for i in range(1, n + 1))
+
+    def _calculate_zipfian_deviations(self, alpha=1) -> list:
+        n = len(self.sorted_tokens)
+        harmonic_number = self._calculate_generalized_harmonic(n, alpha)
+        harmonic_factor = self.total_token_count / harmonic_number
+
+        zipfian_deviations = []
+        for rank, (_, actual_freq) in enumerate(self.sorted_tokens, 1):
+            expected_freq = harmonic_factor / (rank ** alpha)
+            deviation = actual_freq - expected_freq
+            zipfian_deviations.append((rank, actual_freq, expected_freq, deviation))
+
+        return zipfian_deviations
+
+    def zipfs_law_analysis(self, alpha=1, frequency_range=None) -> tuple:
+        """
+        Analyze the corpus based on Zipf's Law with optional frequency range limit.
+        """
+        zipfian_deviations = self._calculate_zipfian_deviations(alpha)
+
+        if frequency_range:
+            zipfian_deviations = [dev for dev in zipfian_deviations if frequency_range[0] <= dev[0] <= frequency_range[1]]
+
+        deviations = [dev[3] for dev in zipfian_deviations]
+        mean_deviation = sum(deviations) / len(deviations)
+        median_deviation = statistics.median(deviations)
+        std_deviation = statistics.stdev(deviations)
+
+        return mean_deviation, median_deviation, std_deviation
+
+    def report_top_zipfian_deviations(self, top_n=10) -> dict:
+        """
+        Report the words with the highest positive and negative deviations from Zipf's Law.
+        """
+        zipfian_deviations = self._calculate_zipfian_deviations()
+        sorted_deviations = sorted(zipfian_deviations, key=lambda x: x[3], reverse=True)
+
+        top_positive = sorted_deviations[:top_n]
+        top_negative = sorted_deviations[-top_n:]
+
+        return {"top_positive": top_positive, "top_negative": top_negative}
+
+    def categorize_zipfian_deviations(self, threshold=10) -> dict:
+        """
+        Categorize words based on their deviation from Zipf's Law.
+        """
+        zipfian_deviations = self._calculate_zipfian_deviations()
+        categories = {'significantly_above': [], 'significantly_below': [], 'close_to_expected': []}
+
+        for rank, actual_freq, expected_freq, deviation in zipfian_deviations:
+            if deviation > threshold:
+                categories['significantly_above'].append((rank, actual_freq, expected_freq, deviation))
+            elif deviation < -threshold:
+                categories['significantly_below'].append((rank, actual_freq, expected_freq, deviation))
+            else:
+                categories['close_to_expected'].append((rank, actual_freq, expected_freq, deviation))
+
+        return categories
+
+    def compare_with_ideal_zipf(self, alpha=1) -> dict:
+        """
+        Compare the actual frequency distribution with an ideal Zipfian distribution.
+        """
+        harmonic_number = self._calculate_generalized_harmonic(len(self.sorted_tokens), alpha)
+
+        zipfian_comparison = {'rank': [], 'actual_frequency': [], 'expected_zipf_frequency': [], 'deviation': []}
+        for rank, (_, actual_freq) in enumerate(self.sorted_tokens, 1):
+            expected_freq = self.total_tokens / (rank ** alpha * harmonic_number)
+            deviation = actual_freq - expected_freq
+
+            zipfian_comparison['rank'].append(rank)
+            zipfian_comparison['actual_frequency'].append(actual_freq)
+            zipfian_comparison['expected_zipf_frequency'].append(expected_freq)
+            zipfian_comparison['deviation'].append(deviation)
+
+        return zipfian_comparison
 
 def main():
     logger_config = LoggerConfig()
@@ -320,48 +323,38 @@ def main():
 
     # Load and tokenize the corpus
     loader = CorpusLoader('brown')
-    logger.info(f"CORPUS ANALYSIS REPORT FOR {loader.corpus_source.upper()}")
-    logger.info('=' * 40)
-    tokenizer = Tokenizer(remove_stopwords=False, remove_punctuation=True)
+    logger.info(f"CORPUS ANALYSIS REPORT FOR '{loader.corpus_source.upper()}'")
+    tokenizer = Tokenizer(remove_punctuation=True)
+    # After tokenization
     tokens = tokenizer.tokenize(loader.load_corpus())
+    # Basic analysis of the corpus
+    basic_analyzer = BasicCorpusAnalyzer(tokens)
+    median_token, median_freq = basic_analyzer.find_median_token()
+    mode_token, mode_freq = basic_analyzer.mode_token()
 
-    # Analyze the corpus
-    analyzer = CorpusAnalyzer(tokens)
+    logger.info(f"Median Token: '{median_token}' (Frequency: {median_freq})")
+    logger.info(f"Most Frequent Token: '{mode_token}' (Frequency: {mode_freq})")
+    logger.info(f"Average Token Frequency: {basic_analyzer.mean_token_frequency():.2f} tokens")
+    logger.info(f"Type-Token Ratio: {basic_analyzer.type_token_ratio():.4f}")
 
-    median_token, freq, rank = analyzer.find_median_token()
-    logger.info(f"\nMedian Token\n'{median_token}' | Frequency: {freq} | Rank: {rank}")
-    mode_token, mode_freq, mode_rank = analyzer.mode_token()
-    logger.info(f"\nMost Frequent Token\n'{mode_token}' | Frequency: {mode_freq} | Rank: {mode_rank}")
-    logger.info(f"\nAverage Token Frequency: {analyzer.mean_token_frequency():.2f} tokens")
-    logger.info(f"\nType-Token Ratio: {analyzer.type_token_ratio():.4f}")
+    # Advanced analysis of the corpus
+    advanced_analyzer = AdvancedCorpusAnalyzer(tokens)
+    herdans_c_value, herdans_c_interpretation = advanced_analyzer.herdans_c()
+    yules_k_value, yules_k_interpretation = advanced_analyzer.yules_k()
 
-    # Lexical Diversity
-    herdans_c_value, herdans_c_interpretation = analyzer.herdans_c()
-    logger.info(f"\nHerdan's C: {herdans_c_value:.4f} ({herdans_c_interpretation})")
-    yules_k_value, yules_k_interpretation = analyzer.yules_k()
-    logger.info(f"\nYule's K: {yules_k_value:.2f} ({yules_k_interpretation})")
-
-    # Cumulative Frequency Analysis
-    logger.info("\nCUMULATIVE FREQUENCY ANALYSIS\n")
-    for percent, (word, freq) in analyzer.cumulative_frequency_analysis([50, 75, 90]).items():
-        logger.info(f"Top {percent}% Word: '{word}' | Frequency: {freq}")
+    logger.info(f"Herdan's C: {herdans_c_value:.4f} ({herdans_c_interpretation})")
+    logger.info(f"Yule's K: {yules_k_value:.2f} ({yules_k_interpretation})")
 
     # Zipf's Law Analysis
-    logger.info("\nZIPF'S LAW ANALYSIS (Sample)\n")
-    logger.info(f"{'Rank':<10} {'Frequency':<15} {'Product':<15}")
-    for rank, freq, product in analyzer.zipfs_law_analysis()[:10]:
-        logger.info(f"{rank:<10} {freq:<15} {product:<15}")
+    zipfian_analyzer = ZipfianAnalysis(tokens)
+    mean_deviation, median_deviation, std_deviation = zipfian_analyzer.zipfs_law_analysis()
 
-    # Hapax Legomena
-    logger.info("\nHAPAX LEGOMENA (Sample)\n")
-    for hapax in analyzer.hapax_legomena()[:10]:
-        logger.info(f"- {hapax}")
-    logger.info('=' * 40)
+    logger.info("ZIPF'S LAW ANALYSIS")
+    logger.info(f"Mean Deviation: {mean_deviation:.4f}")
+    logger.info(f"Median Deviation: {median_deviation:.4f}")
+    logger.info(f"Standard Deviation: {std_deviation:.4f}")
 
-    # Visualization
-    frequency_distribution = analyzer.token_frequency_distribution()
-    Display.display_token_frequency_distribution(frequency_distribution)
-    Display.display_dispersion_plot(tokens, ['the', 'man'])
+    logger.info('=' * 60)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
