@@ -3,7 +3,12 @@ import regex
 import unicodedata
 from bs4 import BeautifulSoup
 
-# Configure the logger
+class TextProcessorError(Exception):
+    """Custom exception class for TextProcessor errors."""
+    def __init__(self, message=None):
+        self.message = message
+        super().__init__(self.message)
+
 logging.basicConfig(level=logging.ERROR)
 
 class TextProcessor:
