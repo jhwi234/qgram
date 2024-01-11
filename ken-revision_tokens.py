@@ -1,3 +1,5 @@
+### this version of the script generates word lists that maintain the original number of the tokens in the training list rather than turning it into a list of unique tokens
+
 import random
 import logging
 import regex as reg
@@ -5,6 +7,7 @@ import csv
 from pathlib import Path
 import subprocess
 from enum import Enum
+from collections import Counter
 
 import nltk
 import kenlm
@@ -88,101 +91,119 @@ class Config:
     def create_directories(self):
         for directory in [self.data_dir, self.model_dir, self.log_dir, self.corpus_dir, self.output_dir, self.sets_dir, self.text_dir, self.csv_dir]:
             directory.mkdir(exist_ok=True)
+
 class CorpusManager:
-    # Regex pattern for extracting words, including hyphenated words, in various scripts.
-    # \b indicates word boundaries.
-    # \p{L}+ matches one or more Unicode letters, covering a wide range of characters beyond ASCII.
-    # (?:-\p{L}+)* allows for optional hyphenated parts, matching additional Unicode letters after a hyphen.
     CLEAN_PATTERN = reg.compile(r'\b\p{L}+(?:-\p{L}+)*\b')
+
+    corpora_tokens = []  # List to store all words across corpora
+
+    @staticmethod
+    def add_to_global_corpus(words):
+        """Add words to the global list of words across all corpora."""
+        CorpusManager.corpora_tokens.extend(words)
 
     @staticmethod
     def format_corpus_name(corpus_name) -> str:
         parts = corpus_name.replace('.txt', '').split('_')
         return parts[0] if len(parts) > 1 and parts[0] == parts[1] else corpus_name.replace('.txt', '')
 
-    unique_words_all_corpora = set()  # Static variable to store unique words from all corpora
-
-    @staticmethod
-    def add_to_global_corpus(unique_words):
-        CorpusManager.unique_words_all_corpora.update(unique_words)
-
     def __init__(self, corpus_name, config, debug=True):
         self.corpus_name = self.format_corpus_name(corpus_name)
         self.config = config
         self.debug = debug
         self.rng = random.Random(config.seed)
-        self.corpus = set()
-        self.training_set = set()
-        self.test_set = set()
-        self.all_words = set()
-        self.model = {}
+        self.corpus = []
         self.load_corpus()
-        self.prepare_datasets()
+        self.training_list = []
+        self.test_list = []
+        self.model = {}
+        self.prepare_datasets(split_type='A')  # Choose 'A' or 'B' for split type
         self.generate_and_load_models()
 
     def extract_unique_characters(self) -> set:
-        # Use set comprehension for efficiency
         return {char for word in self.corpus for char in word}
 
-    def clean_text(self, text: str) -> set[str]:
-        # Extract and clean words from the given text using the defined regex pattern
-        # Lowercase each word part and filter by minimum length requirement
-        return {part.lower() for word in self.CLEAN_PATTERN.findall(text) for part in word.split('-') if len(part) >= self.config.min_word_length}
+    def clean_text(self, text: str) -> list[str]:
+        return [part.lower() for word in self.CLEAN_PATTERN.findall(text) for part in word.split('-') if len(part) >= self.config.min_word_length]
 
-    def load_corpus(self) -> set[str]:
-        # Check if the corpus is a text file
+    def load_corpus(self):
         file_path = self.config.corpus_dir / f'{self.corpus_name}.txt'
         if file_path.is_file():
             with file_path.open('r', encoding='utf-8') as file:
-                # Read the file and clean the text, then store the unique words in self.corpus
-                self.corpus = {word for word in self.clean_text(file.read())}
+                self.corpus = self.clean_text(file.read())
         else:
-            # If the corpus is not a file, attempt to load it as an NLTK corpus
             try:
                 nltk_corpus_name = self.corpus_name.replace('.txt', '')
                 nltk.download(nltk_corpus_name, quiet=True)
-                # Retrieve words from the NLTK corpus, clean them, and store in self.corpus
-                self.corpus = {word for word in self.clean_text(' '.join(getattr(nltk.corpus, nltk_corpus_name).words()))}
+                self.corpus = self.clean_text(' '.join(getattr(nltk.corpus, nltk_corpus_name).words()))
             except AttributeError:
-                # This exception is raised if the NLTK corpus does not exist
                 raise ValueError(f"File '{file_path}' does not exist and NLTK corpus '{nltk_corpus_name}' not found.")
             except Exception as e:
-                # Catch any other unexpected exceptions and provide a more informative error message
                 raise RuntimeError(f"Failed to load corpus '{self.corpus_name}': {e}")
 
-        return self.corpus
+    def _shuffle_and_split_corpus(self) -> tuple[list[str], list[str]]:
+        shuffled_corpus = self.corpus[:]
+        self.rng.shuffle(shuffled_corpus)
+        training_size = int(len(shuffled_corpus) * self.config.split_config)
+        return shuffled_corpus[:training_size], shuffled_corpus[training_size:]
 
-    def _shuffle_and_split_corpus(self) -> tuple[set[str], set[str]]:
-        # Convert the corpus to a list, shuffle it, and then split into training and test sets.
-        total_size = len(self.corpus)
-        shuffled_corpus = list(self.corpus)
-        self.rng.shuffle(shuffled_corpus)  # Randomize the order of the corpus elements
-        training_size = int(total_size * self.config.split_config)  # Calculate the size of the training set
-        # Split the shuffled corpus into training and test sets and return
-        return set(shuffled_corpus[:training_size]), set(shuffled_corpus[training_size:])
+    def prepare_datasets(self, split_type='A'):
+        if split_type == 'A':
+            self._split_type_a()
+        else:
+            self._split_type_b()
 
-    def prepare_datasets(self) -> tuple[set[str], set[str]]:
-        # Prepare training and test datasets from the corpus
-        self.training_set, unprocessed_test_set = self._shuffle_and_split_corpus()
+        # Generate the formatted training list path
+        formatted_training_list_path = self.config.sets_dir / f'{self.corpus_name}_formatted_training_list.txt'
+        # Generate the formatted training corpus
+        self.generate_formatted_corpus(self.training_list, formatted_training_list_path)
+        # Pass the formatted training list path to generate models
+        self.generate_models_from_corpus(formatted_training_list_path)
 
-        # Save the formatted training set for KenLM
-        formatted_training_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_training_set.txt'
-        self.generate_formatted_corpus(self.training_set, formatted_training_set_path)
+    def _split_type_a(self):
+        # Word type based split ensuring no overlap between training and test sets
+        word_count = Counter(self.corpus)
+        unique_words = sorted(word_count.keys())
+        self.rng.shuffle(unique_words)
+        split_index = int(len(unique_words) * self.config.split_config)
 
-        # Process the test set by replacing a letter in each word with an underscore
-        formatted_test_set = []
-        for word in unprocessed_test_set:
-            modified_word, missing_letter, _ = self.replace_random_letter(word)
-            formatted_test_set.append((modified_word, missing_letter, word))
+        training_words = set(unique_words[:split_index])
+        test_words = set(unique_words[split_index:])
 
-        self.test_set = set(formatted_test_set)
-        self.all_words = self.training_set.union({original_word for _, _, original_word in self.test_set})
+        for word in self.corpus:
+            if word in training_words:
+                self.training_list.append(word)
+            elif word in test_words:
+                modified_word, missing_letter, original_word = self.replace_random_letter(word)
+                self.test_list.append((modified_word, missing_letter, original_word))
 
-        # Save additional sets in debug mode, including the regular training set
+        # Sort the training list
+        self.training_list.sort()
+
+        # Shuffle the test list before saving
+        self.rng.shuffle(self.test_list)
+
         if self.debug:
-            self.save_set_to_file(self.training_set, f'{self.corpus_name}_training_set.txt')
-            self.save_set_to_file(self.test_set, f'{self.corpus_name}_formatted_test_set.txt')
-            self.save_set_to_file(self.all_words, f'{self.corpus_name}_all_words.txt')
+            self.save_list_to_file(self.training_list, f'{self.corpus_name}_training_list_a.txt')
+            self.save_list_to_file(self.test_list, f'{self.corpus_name}_test_list_a.txt')
+
+    def _split_type_b(self):
+        training_corpus, test_corpus = self._shuffle_and_split_corpus()
+
+        self.training_list.extend(training_corpus)
+        # Sorting the training list
+        self.training_list.sort()
+
+        for word in test_corpus:
+            modified_word, missing_letter, original_word = self.replace_random_letter(word)
+            self.test_list.append((modified_word, missing_letter, original_word))
+
+        # Shuffle the test list before saving
+        self.rng.shuffle(self.test_list)
+
+        if self.debug:
+            self.save_list_to_file(self.training_list, f'{self.corpus_name}_training_list_b.txt')
+            self.save_list_to_file(self.test_list, f'{self.corpus_name}_test_list_b.txt')
 
     def generate_formatted_corpus(self, data_set, formatted_corpus_path) -> Path:
         # Prepare a corpus file formatted for KenLM training, with each word on a new line
@@ -216,9 +237,9 @@ class CorpusManager:
         # Generate and load models only if they haven't been loaded for the specified q-range
         for q in self.config.q_range:
             if q not in self.model:
-                formatted_training_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_training_set.txt'
-                self.generate_formatted_corpus(self.training_set, formatted_training_set_path)
-                self.generate_models_from_corpus(formatted_training_set_path)
+                formatted_training_list_path = self.config.sets_dir / f'{self.corpus_name}_formatted_training_list.txt'
+                self.generate_formatted_corpus(self.training_list, formatted_training_list_path)
+                self.generate_models_from_corpus(formatted_training_list_path)
 
     def replace_random_letter(self, word) -> tuple[str, str, str]:
         vowel_indices = [i for i, letter in enumerate(word) if letter in Letters.VOWELS.value]
@@ -240,11 +261,18 @@ class CorpusManager:
         modified_word = word[:letter_index] + '_' + word[letter_index + 1:]
 
         return modified_word, missing_letter, word
-    
-    def save_set_to_file(self, data_set, file_name):
+
+    def save_list_to_file(self, data_list, file_name):
         file_path = self.config.sets_dir / file_name
         with file_path.open('w', encoding='utf-8') as file:
-            file.writelines(f"{item}\n" for item in data_set)
+            for item in data_list:
+                if isinstance(item, tuple):
+                    # Formatting tuple as ('word', 'letter', 'original_word')
+                    formatted_item = f"('{item[0]}', '{item[1]}', '{item[2]}')"
+                    file.write(formatted_item + '\n')
+                else:
+                    # If it's not a tuple, just write the item followed by a new line
+                    file.write(item + '\n')
 
 class EvaluateModel:
     def __init__(self, corpus_manager):
@@ -256,9 +284,9 @@ class EvaluateModel:
 
         # Access datasets directly from the provided corpus manager
         self.corpus = corpus_manager.corpus
-        self.training_set = corpus_manager.training_set
-        self.test_set = corpus_manager.test_set
-        self.all_words = corpus_manager.all_words
+        self.training_list = corpus_manager.training_list
+        self.test_list = corpus_manager.test_list
+        self.all_words = corpus_manager.corpora_tokens
 
         # Extract unique characters
         unique_characters = corpus_manager.extract_unique_characters()
@@ -281,8 +309,8 @@ class EvaluateModel:
         logging.info(f'Seed: {self.config.seed}')
         logging.info(f'Q-gram Range: {self.config.q_range}')
         logging.info(f'Train-Test Split Configuration: {self.config.split_config}')
-        logging.info(f'Training Set Size: {len(corpus_manager.training_set)}')
-        logging.info(f'Testing Set Size: {len(corpus_manager.test_set)}')
+        logging.info(f'Training Set Size: {len(corpus_manager.training_list)}')
+        logging.info(f'Testing Set Size: {len(corpus_manager.test_list)}')
         logging.info(f'Vowel Replacement Ratio: {self.config.vowel_replacement_ratio}')
         logging.info(f'Consonant Replacement Ratio: {self.config.consonant_replacement_ratio}')
         logging.info(f'Unique Character Count: {self.unique_character_count}')
@@ -299,7 +327,7 @@ class EvaluateModel:
     def compute_accuracy(self, predictions) -> dict:
         # Initialize a dictionary to track accuracy for three ranks: TOP1, TOP2, and TOP3.
         accuracy_counts = {1: 0, 2: 0, 3: 0}  # Ensuring all ranks are initialized.
-        total_test_words = len(self.test_set)  # Total number of words in the test set.
+        total_test_words = len(self.test_list)  # Total number of words in the test set.
 
         for _, missing_letter, _, all_predictions, _ in predictions:
             # Identify the highest rank (1, 2, or 3) where the correct prediction (missing_letter) is made.
@@ -317,7 +345,7 @@ class EvaluateModel:
     def compute_validity(self, predictions) -> dict:
         # Initialize a dictionary to track validity for three ranks: TOP1, TOP2, and TOP3.
         validity_counts = {1: 0, 2: 0, 3: 0}
-        total_test_words = len(self.test_set)  # Total number of words in the test set.
+        total_test_words = len(self.test_list)  # Total number of words in the test set.
 
         for modified_word, _, _, all_predictions, _ in predictions:
             valid_word_found = False  # Flag to indicate if a valid word has been found.
@@ -395,7 +423,7 @@ class EvaluateModel:
     def evaluate_character_predictions(self, prediction_method) -> tuple[dict, list]:
         predictions = []
 
-        for modified_word, target_letter, original_word in self.test_set:
+        for modified_word, target_letter, original_word in self.test_list:
             # Update counts for recall
             self.actual_missing_letter_occurrences[target_letter] += 1
 
@@ -423,7 +451,7 @@ class EvaluateModel:
         recall_metrics = self.compute_recall()
         precision_metrics = self.compute_precision()
 
-        return {'accuracy': accuracy_metrics, 'validity': validity_metrics, 'recall': recall_metrics, 'precision': precision_metrics, 'total_words': len(self.test_set)}, predictions
+        return {'accuracy': accuracy_metrics, 'validity': validity_metrics, 'recall': recall_metrics, 'precision': precision_metrics, 'total_words': len(self.test_list)}, predictions
 
     def export_prediction_details_to_csv(self, predictions, prediction_method_name):
         # Adjust file name to include test-train split and q-gram range
@@ -470,7 +498,7 @@ class EvaluateModel:
             file.write(f'TOP3 VALIDITY: {validity[3]:.2%}\n\n')
 
             # Configuration details
-            file.write(f'Training Size: {len(self.training_set)}, Testing Size: {len(self.test_set)}\n')
+            file.write(f'Training Size: {len(self.training_list)}, Testing Size: {len(self.test_list)}\n')
             file.write(f'Vowel Ratio: {self.config.vowel_replacement_ratio}, Consonant Ratio: {self.config.consonant_replacement_ratio}\n\n')
 
             # Detailed prediction results
@@ -531,7 +559,7 @@ def main():
     # Create and evaluate the mega-corpus
     mega_corpus_name = 'mega_corpus'
     with open(config.corpus_dir / f'{mega_corpus_name}.txt', 'w', encoding='utf-8') as file:
-        file.write('\n'.join(CorpusManager.unique_words_all_corpora))
+        file.write('\n'.join(CorpusManager.corpora_tokens))
 
     run(mega_corpus_name, config)
 
