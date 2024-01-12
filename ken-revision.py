@@ -74,6 +74,7 @@ class Config:
 
     # Logging Configuration: Setup log file and console output formats
     def setup_logging(self):
+        self.log_dir.mkdir(parents=True, exist_ok=True)
         logfile = self.log_dir / 'logfile.log'
         file_handler = logging.FileHandler(logfile, mode='a')
         file_format = logging.Formatter('%(asctime)s - %(message)s')

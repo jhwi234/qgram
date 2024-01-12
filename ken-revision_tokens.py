@@ -77,6 +77,7 @@ class Config:
 
     # Logging Configuration: Setup log file and console output formats
     def setup_logging(self):
+        self.log_dir.mkdir(parents=True, exist_ok=True)
         logfile = self.log_dir / 'logfile.log'
         file_handler = logging.FileHandler(logfile, mode='a')
         file_format = logging.Formatter('%(asctime)s - %(message)s')
@@ -112,7 +113,7 @@ class CorpusManager:
         self.config = config
         self.debug = debug
         self.rng = random.Random(config.seed)
-        self.corpus = []
+        self.corpus = Counter()
         self.load_corpus()
         self.training_list = []
         self.test_list = []
@@ -130,75 +131,83 @@ class CorpusManager:
         file_path = self.config.corpus_dir / f'{self.corpus_name}.txt'
         if file_path.is_file():
             with file_path.open('r', encoding='utf-8') as file:
-                self.corpus = self.clean_text(file.read())
+                for line in file:
+                    self.corpus.update(self.clean_text(line))
         else:
             try:
                 nltk_corpus_name = self.corpus_name.replace('.txt', '')
                 nltk.download(nltk_corpus_name, quiet=True)
-                self.corpus = self.clean_text(' '.join(getattr(nltk.corpus, nltk_corpus_name).words()))
+                self.corpus.update(self.clean_text(' '.join(getattr(nltk.corpus, nltk_corpus_name).words())))
             except AttributeError:
                 raise ValueError(f"File '{file_path}' does not exist and NLTK corpus '{nltk_corpus_name}' not found.")
             except Exception as e:
                 raise RuntimeError(f"Failed to load corpus '{self.corpus_name}': {e}")
 
-    def _shuffle_and_split_corpus(self) -> tuple[list[str], list[str]]:
-        shuffled_corpus = self.corpus[:]
-        self.rng.shuffle(shuffled_corpus)
-        training_size = int(len(shuffled_corpus) * self.config.split_config)
-        return shuffled_corpus[:training_size], shuffled_corpus[training_size:]
-
     def prepare_datasets(self, split_type='A'):
+        # Choose the method to split the corpus based on the specified split type
         if split_type == 'A':
+            # Split Type A: Splits the corpus based on unique words ensuring no overlap between training and test sets
             self._split_type_a()
         else:
+            # Split Type B: Splits the corpus by randomly shuffling and then dividing the entire corpus, keeping word frequency
             self._split_type_b()
 
-        # Generate the formatted training list path
+        # Generate the formatted training list path and the corresponding models
         formatted_training_list_path = self.config.sets_dir / f'{self.corpus_name}_formatted_training_list.txt'
-        # Generate the formatted training corpus
         self.generate_formatted_corpus(self.training_list, formatted_training_list_path)
-        # Pass the formatted training list path to generate models
         self.generate_models_from_corpus(formatted_training_list_path)
 
     def _split_type_a(self):
-        # Word type based split ensuring no overlap between training and test sets
-        word_count = Counter(self.corpus)
-        unique_words = sorted(word_count.keys())
-        self.rng.shuffle(unique_words)
-        split_index = int(len(unique_words) * self.config.split_config)
+        # Create a list of (word, count) tuples from the corpus
+        word_counts = list(self.corpus.items())
+        self.rng.shuffle(word_counts)
 
-        training_words = set(unique_words[:split_index])
-        test_words = set(unique_words[split_index:])
+        # Calculate the total number of words in the corpus
+        total_words = sum(count for _, count in word_counts)
 
-        for word in self.corpus:
-            if word in training_words:
-                self.training_list.append(word)
-            elif word in test_words:
-                modified_word, missing_letter, original_word = self.replace_random_letter(word)
-                self.test_list.append((modified_word, missing_letter, original_word))
+        # Determine the split point based on the total word count and the split configuration
+        split_point = int(total_words * self.config.split_config)
 
-        # Sort the training list
-        self.training_list.sort()
+        # Use a set for the test list to ensure uniqueness
+        test_set = set()
 
-        # Shuffle the test list before saving
-        self.rng.shuffle(self.test_list)
+        # Iterate over the shuffled list of word counts, accumulating the counts
+        cumulative_count = 0
+        for word, count in word_counts:
+            cumulative_count += count
+            if cumulative_count <= split_point:
+                # If the cumulative count is below or at the split point, add to training set
+                self.training_list.extend([word] * count)
+            else:
+                # If the cumulative count exceeds the split point, add to test set
+                for _ in range(count):
+                    modified_word, missing_letter, _ = self.replace_random_letter(word)
+                    test_case = (modified_word, missing_letter, word)
+                    test_set.add(test_case)
+
+        # Convert the set back to a list for consistency with other parts of the code
+        self.test_list = list(test_set)
 
         if self.debug:
             self.save_list_to_file(self.training_list, f'{self.corpus_name}_training_list_a.txt')
             self.save_list_to_file(self.test_list, f'{self.corpus_name}_test_list_a.txt')
 
     def _split_type_b(self):
+        """
+        Split Type B: Splits the entire corpus by first shuffling it and then dividing it into training and test lists.
+        - This method maintains the original frequency of words in both the training and test lists.
+        - It randomly shuffles the entire corpus and then divides it based on the specified training-test ratio.
+        - Each word, along with its frequency, is preserved in the respective lists.
+        """
         training_corpus, test_corpus = self._shuffle_and_split_corpus()
 
         self.training_list.extend(training_corpus)
-        # Sorting the training list
         self.training_list.sort()
 
         for word in test_corpus:
             modified_word, missing_letter, original_word = self.replace_random_letter(word)
             self.test_list.append((modified_word, missing_letter, original_word))
 
-        # Shuffle the test list before saving
         self.rng.shuffle(self.test_list)
 
         if self.debug:
@@ -264,15 +273,24 @@ class CorpusManager:
 
     def save_list_to_file(self, data_list, file_name):
         file_path = self.config.sets_dir / file_name
-        with file_path.open('w', encoding='utf-8') as file:
-            for item in data_list:
-                if isinstance(item, tuple):
-                    # Formatting tuple as ('word', 'letter', 'original_word')
-                    formatted_item = f"('{item[0]}', '{item[1]}', '{item[2]}')"
-                    file.write(formatted_item + '\n')
-                else:
-                    # If it's not a tuple, just write the item followed by a new line
-                    file.write(item + '\n')
+
+        # Aggregate the data into a single string.
+        aggregated_data = []
+        for item in data_list:
+            if isinstance(item, tuple):
+                # Formatting tuple as ('word', 'letter', 'original_word')
+                formatted_item = f"('{item[0]}', '{item[1]}', '{item[2]}')"
+                aggregated_data.append(formatted_item)
+            else:
+                # If it's not a tuple, just write the item followed by a new line
+                aggregated_data.append(item)
+        
+        # Join all items into a single string with new lines.
+        aggregated_data_str = '\n'.join(aggregated_data)
+
+        # Write the aggregated string to the file in one go.
+        with file_path.open('w', encoding='utf-8', buffering=8192) as file:  # 8192 bytes buffer size
+            file.write(aggregated_data_str)
 
 class EvaluateModel:
     def __init__(self, corpus_manager):
@@ -552,16 +570,16 @@ def main():
     config.setup_logging()
     config.create_directories()
 
-    corpora = ['cmudict', 'brown', 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural']
+    corpora = ['cmudict', 'brown'] #, 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural']
     for corpus_name in corpora:
         run(corpus_name, config)
 
     # Create and evaluate the mega-corpus
-    mega_corpus_name = 'mega_corpus'
-    with open(config.corpus_dir / f'{mega_corpus_name}.txt', 'w', encoding='utf-8') as file:
-        file.write('\n'.join(CorpusManager.corpora_tokens))
+    # mega_corpus_name = 'mega_corpus'
+    # with open(config.corpus_dir / f'{mega_corpus_name}.txt', 'w', encoding='utf-8') as file:
+    #    file.write('\n'.join(CorpusManager.corpora_tokens))
 
-    run(mega_corpus_name, config)
+    # run(mega_corpus_name, config)
 
 if __name__ == '__main__':
     main()
