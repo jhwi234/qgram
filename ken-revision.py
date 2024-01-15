@@ -107,7 +107,7 @@ class CorpusManager:
     def add_to_global_corpus(unique_words):
         CorpusManager.unique_words_all_corpora.update(unique_words)
 
-    def __init__(self, corpus_name, config, debug=True):
+    def __init__(self, corpus_name, config, debug=False):
         self.corpus_name = self.format_corpus_name(corpus_name)
         self.config = config
         self.debug = debug
@@ -428,27 +428,40 @@ class EvaluateModel:
 
     def export_prediction_details_to_csv(self, predictions, prediction_method_name):
         # Adjust file name to include test-train split and q-gram range
-        csv_file_path = self.config.csv_dir / f'{self.corpus_name}_{prediction_method_name}_split{self.config.split_config}_qrange{self.config.q_range[0]}-{self.config.q_range[1]}_prediction.csv'
+        csv_file_path = self.config.csv_dir / (
+            f'{self.corpus_name}_{prediction_method_name}_split'
+            f'{self.config.split_config}_qrange{self.config.q_range[0]}-'
+            f'{self.config.q_range[1]}_prediction.csv'
+        )
 
         with csv_file_path.open('w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            # Reordered columns
-            writer.writerow(['Tested_Word', 'Original_Word', 'Missing_Letter_Position', 'Word_Length', 
-                            'Correct_Letter', 'Predicted_Letter', 'Prediction_Rank', 'Confidence', 
-                            'Correct_Letter Rank', 'Is_Valid', 'Is_Accurate'])
-            
-            for modified_word, missing_letter, original_word, top_three_predictions, correct_letter_rank in predictions:
-                missing_letter_position = modified_word.index('_') + 1
-                word_length = len(original_word)
-                for rank, (predicted_letter, confidence) in enumerate(top_three_predictions, start=1):
-                    reconstructed_word = modified_word.replace('_', predicted_letter)
-                    is_valid = 1 if reconstructed_word in self.all_words else 0
-                    is_accurate = 1 if predicted_letter == missing_letter else 0
+            # Adjusted columns to include top three predictions
+            writer.writerow([
+                'Tested_Word', 'Original_Word', 'Correct_Letter', 
+                'Top1_Predicted_Letter', 'Top1_Confidence', 'Top1_Is_Valid', 'Top1_Is_Accurate',
+                'Top2_Predicted_Letter', 'Top2_Confidence', 'Top2_Is_Valid', 'Top2_Is_Accurate',
+                'Top3_Predicted_Letter', 'Top3_Confidence', 'Top3_Is_Valid', 'Top3_Is_Accurate',
+                'Correct_Letter_Rank'
+            ])
 
-                    # Reordered row
-                    writer.writerow([modified_word, original_word, missing_letter_position, word_length,
-                                    missing_letter, predicted_letter, rank, confidence,
-                                    correct_letter_rank, is_valid, is_accurate])
+            for mod_word, miss_letter, orig_word, top_preds, cor_letter_rank in predictions:
+                row = [mod_word, orig_word, miss_letter]
+
+                # Process each of the top three predictions
+                for predicted_letter, confidence in top_preds:
+                    reconstructed_word = mod_word.replace('_', predicted_letter)
+                    is_valid = 1 if reconstructed_word in self.all_words else 0
+                    is_accurate = 1 if predicted_letter == miss_letter else 0
+
+                    # Append prediction details to the row
+                    row.extend([predicted_letter, confidence, is_valid, is_accurate])
+
+                # Append correct letter rank to the row
+                row.append(cor_letter_rank)
+
+                # Write the complete row to the CSV
+                writer.writerow(row)
 
     def save_summary_stats_txt(self, evaluation_metrics, predictions, prediction_method_name):
         # File path for saving prediction summary
@@ -471,19 +484,21 @@ class EvaluateModel:
             file.write(f'TOP3 VALIDITY: {validity[3]:.2%}\n\n')
 
             # Configuration details
-            file.write(f'Training Size: {len(self.training_set)}, Testing Size: {len(self.test_set)}\n')
-            file.write(f'Vowel Ratio: {self.config.vowel_replacement_ratio}, Consonant Ratio: {self.config.consonant_replacement_ratio}\n\n')
+            file.write(f'Train Size: {len(self.training_set)}, Test Size: {len(self.test_set)}\n')
+            file.write(f'Vowel Ratio: {self.config.vowel_replacement_ratio}, '
+                    f'Consonant Ratio: {self.config.consonant_replacement_ratio}\n\n')
 
             # Detailed prediction results
-            for modified_word, missing_letter, original_word, top_three_predictions, correct_letter_rank in predictions:
-                file.write(f'Tested Word: {modified_word}, Original Word: {original_word}, Correct Letter: {missing_letter}\n')
-                file.write(f'Rank of Correct Letter: {correct_letter_rank}\n')
+            for mod_word, miss_letter, orig_word, top_preds, cor_letter_rank in predictions:
+                file.write(f'Test Word: {mod_word}, Correct Letter: {miss_letter}\n')
+                file.write(f'Correct Letter Rank: {cor_letter_rank}\n')
 
-                for rank, (predicted_letter, confidence) in enumerate(top_three_predictions, start=1):
-                    reconstructed_word = modified_word.replace('_', predicted_letter)
+                for rank, (pred_letter, confidence) in enumerate(top_preds, start=1):
+                    reconstructed_word = mod_word.replace('_', pred_letter)
                     is_valid_word = reconstructed_word in self.all_words
 
-                    file.write(f"Rank {rank}: '{predicted_letter}' (Confidence: {confidence:.8f}), Valid: {is_valid_word}\n")
+                    file.write(f"Rank {rank}: '{pred_letter}' (Confidence: {confidence:.8f}), "
+                            f"Valid: {is_valid_word}\n")
                 
                 file.write('\n')
 
