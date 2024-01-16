@@ -71,7 +71,7 @@ class Config:
         self.split_config = 0.5
         self.vowel_replacement_ratio = 0.2
         self.consonant_replacement_ratio = 0.8
-        self.min_word_length = 4
+        self.min_word_length = 3
         self.prediction_method_name = 'context_sensitive'
         self.log_level = logging.INFO
 
@@ -108,9 +108,10 @@ class CorpusManager:
         parts = corpus_name.replace('.txt', '').split('_')
         return parts[0] if len(parts) > 1 and parts[0] == parts[1] else corpus_name.replace('.txt', '')
 
-    def __init__(self, corpus_name, config, debug=False):
+    def __init__(self, corpus_name, config, split_type='A', debug=False):
         self.corpus_name = self.format_corpus_name(corpus_name)
         self.config = config
+        self.split_type = split_type
         self.debug = debug
         self.rng = random.Random(config.seed)
         self.corpus = Counter()
@@ -118,8 +119,8 @@ class CorpusManager:
         self.training_list = []
         self.test_list = []
         self.model = {}
-        self.prepare_datasets(split_type='A')  # Choose 'A' or 'B' for split type
-        self.generate_and_load_models()
+        self.all_words = set()
+        self.prepare_datasets()
 
     def extract_unique_characters(self) -> set:
         return {char for word in self.corpus for char in word}
@@ -143,14 +144,24 @@ class CorpusManager:
             except Exception as e:
                 raise RuntimeError(f"Failed to load corpus '{self.corpus_name}': {e}")
 
-    def prepare_datasets(self, split_type='A'):
+    def prepare_datasets(self):
+        """
+        Prepares training and testing datasets based on the chosen split type (A or B).
+        Split Type A segregates unique word types, while Type B maintains original word frequencies.
+        Updates the all_words set for comprehensive evaluation checks.
+
+        Args:
+            split_type (str): 'A' for splitting based on unique words, 'B' for maintaining word frequency.
+        """
         # Choose the method to split the corpus based on the specified split type
-        if split_type == 'A':
-            # Split Type A: Splits the corpus based on unique words ensuring no overlap between training and test sets
+        if self.split_type == 'A':
             self._split_type_a()
         else:
-            # Split Type B: Splits the corpus by randomly shuffling and then dividing the entire corpus, keeping word frequency
             self._split_type_b()
+
+        # Update all_words set
+        self.all_words = set(self.training_list)
+        self.all_words.update([original_word for _, _, original_word in self.test_list])
 
         # Generate the formatted training list path and the corresponding models
         formatted_training_list_path = self.config.sets_dir / f'{self.corpus_name}_formatted_training_list.txt'
@@ -158,55 +169,70 @@ class CorpusManager:
         self.generate_models_from_corpus(formatted_training_list_path)
 
     def _split_type_a(self):
-        # Create a list of (word, count) tuples from the corpus
-        word_counts = list(self.corpus.items())
-        self.rng.shuffle(word_counts)
+        """
+        Split Type A: Iteratively shuffles and divides word types into training and test sets, ensuring no overlap of the word tokesn.
+        Aims to balance the cumulative word count in both sets, adhering closely to the configuration ratio.
+        Ensures no duplicate word-letter combinations in the test set.
+        """
+        # Shuffle unique word types for random distribution
+        unique_word_types = list(self.corpus.keys())
+        self.rng.shuffle(unique_word_types)
 
-        # Calculate the total number of words in the corpus
-        total_words = sum(count for _, count in word_counts)
+        # Calculate total number of words and target count for training set
+        total_words = sum(self.corpus.values())
+        target_training_words = int(total_words * self.config.split_config)
 
-        # Determine the split point based on the total word count and the split configuration
-        split_point = int(total_words * self.config.split_config)
+        # Initialize counters and set for tracking used combinations
+        training_words_count = 0
+        used_combinations = set()
 
-        test_set = set()  # Change test list to a set
-        cumulative_count = 0
+        for word in unique_word_types:
+            word_count = self.corpus[word]
 
-        for word, count in word_counts:
-            if cumulative_count + count <= split_point:
-                # Add all occurrences to the training list
-                self.training_list.extend([word] * count)
-                cumulative_count += count
+            # If adding this word type keeps cumulative count near target, add to training list
+            if training_words_count + word_count <= target_training_words:
+                self.training_list.extend([word] * word_count)
+                training_words_count += word_count
             else:
-                # Add only one occurrence to the test set, rest to the training list
-                modified_word, missing_letter, _ = self.replace_random_letter(word)
-                test_case = (modified_word, missing_letter, word)
-                test_set.add(test_case)
-                self.training_list.extend([word] * (count - 1))
+                # Otherwise, add to test list, ensuring no duplicate combinations
+                for _ in range(word_count):
+                    modified_word, missing_letter, _ = self.replace_random_letter(word, used_combinations)
+                    self.test_list.append((modified_word, missing_letter, word))
+                    used_combinations.add((word, missing_letter))
 
-        self.test_list = list(test_set)  # Convert set back to list
-
+        # Save lists to files if debug mode is active
         if self.debug:
             self.save_list_to_file(self.training_list, f'{self.corpus_name}_training_list_a.txt')
             self.save_list_to_file(self.test_list, f'{self.corpus_name}_test_list_a.txt')
 
     def _split_type_b(self):
         """
-        Split Type B: Splits the entire corpus by first shuffling it and then dividing it into training and test lists.
-        - This method maintains the original frequency of words in both the training and test lists.
-        - It randomly shuffles the entire corpus and then divides it based on the specified training-test ratio.
-        - Each word, along with its frequency, is preserved in the respective lists.
+        Split Type B: Randomly shuffles and divides the entire corpus into training and test lists.
+        Allows the same word tokens to appear in both training and testing data, maintaining word frequency balance.
+        Ensures no duplicate word-letter combinations in the test set.
         """
-        training_corpus, test_corpus = self._shuffle_and_split_corpus()
+        # Flatten the corpus into a list of word tokens
+        all_word_tokens = []
+        for word, count in self.corpus.items():
+            all_word_tokens.extend([word] * count)
+        self.rng.shuffle(all_word_tokens)
 
-        self.training_list.extend(training_corpus)
-        self.training_list.sort()
+        # Determine the split point for training and test sets
+        split_index = int(len(all_word_tokens) * self.config.split_config)
+        training_tokens = all_word_tokens[:split_index]
+        test_tokens = all_word_tokens[split_index:]
 
-        for word in test_corpus:
-            modified_word, missing_letter, original_word = self.replace_random_letter(word)
-            self.test_list.append((modified_word, missing_letter, original_word))
+        # Assign tokens to the training list
+        self.training_list.extend(training_tokens)
 
-        self.rng.shuffle(self.test_list)
+        # Initialize a set to track used word-letter combinations in test set
+        used_combinations = set()
+        for word in test_tokens:
+            modified_word, missing_letter, _ = self.replace_random_letter(word, used_combinations)
+            self.test_list.append((modified_word, missing_letter, word))
+            used_combinations.add((word, missing_letter))
 
+        # Save lists to files if debug mode is active
         if self.debug:
             self.save_list_to_file(self.training_list, f'{self.corpus_name}_training_list_b.txt')
             self.save_list_to_file(self.test_list, f'{self.corpus_name}_test_list_b.txt')
@@ -247,20 +273,21 @@ class CorpusManager:
                 self.generate_formatted_corpus(self.training_list, formatted_training_list_path)
                 self.generate_models_from_corpus(formatted_training_list_path)
 
-    def replace_random_letter(self, word) -> tuple[str, str, str]:
+    def replace_random_letter(self, word, used_combinations) -> tuple[str, str, str]:
         vowel_indices = [i for i, letter in enumerate(word) if letter in Letters.VOWELS.value]
         consonant_indices = [i for i, letter in enumerate(word) if letter in Letters.CONSONANTS.value]
 
         if not vowel_indices and not consonant_indices:
             raise ValueError(f"Unable to replace a letter in word: '{word}'.")
 
-        # Prioritize based on the configured ratios
-        if self.rng.random() < self.config.vowel_replacement_ratio and vowel_indices:
-            letter_indices = vowel_indices
-        elif consonant_indices:
-            letter_indices = consonant_indices
-        else:
-            letter_indices = vowel_indices
+        # Filter indices to only those not used before
+        valid_vowel_indices = [i for i in vowel_indices if (word, i) not in used_combinations]
+        valid_consonant_indices = [i for i in consonant_indices if (word, i) not in used_combinations]
+
+        # Choose from the valid indices
+        letter_indices = valid_vowel_indices if self.rng.random() < self.config.vowel_replacement_ratio and valid_vowel_indices else valid_consonant_indices
+        if not letter_indices:
+            letter_indices = valid_vowel_indices or vowel_indices  # Fallback if no valid consonant indices
 
         letter_index = self.rng.choice(letter_indices)
         missing_letter = word[letter_index]
@@ -301,7 +328,7 @@ class EvaluateModel:
         self.corpus = corpus_manager.corpus
         self.training_list = corpus_manager.training_list
         self.test_list = corpus_manager.test_list
-        self.all_words = corpus_manager.corpora_tokens
+        self.all_words = corpus_manager.all_words
 
         # Extract unique characters
         unique_characters = corpus_manager.extract_unique_characters()
@@ -544,25 +571,28 @@ class EvaluateModel:
                 
                 file.write('\n')
 
-def run(corpus_name, config):
-    # Correctly use the static method from CorpusManager
+def run(corpus_name, config, split_type):
+    # Format the corpus name for consistency
     formatted_corpus_name = CorpusManager.format_corpus_name(corpus_name)
-    logging.info(f'Processing {formatted_corpus_name} Corpus')
+    logging.info(f'Processing {formatted_corpus_name} Corpus using Split Type {split_type}')
     logging.info('-' * 40)
 
-    # Create an instance of CorpusManager
-    corpus_manager = CorpusManager(formatted_corpus_name, config)
-    CorpusManager.add_to_global_corpus(corpus_manager.corpus) 
+    # Initialize the corpus manager with specified corpus, configuration, and split type
+    corpus_manager = CorpusManager(formatted_corpus_name, config, split_type)
+    
+    # Add words from the current corpus to the global corpus list
+    CorpusManager.add_to_global_corpus(corpus_manager.corpus)
 
-    # Initialize EvaluateModel with the corpus manager
+    # Evaluate the model using the corpus manager
     eval_model = EvaluateModel(corpus_manager)
-
-    # Retrieve the prediction method from the Predictions object
+    
+    # Get the prediction method from the config and evaluate predictions
     prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
     evaluation_metrics, predictions = eval_model.evaluate_character_predictions(prediction_method)
+
     logging.info(f'Evaluated with: {prediction_method.__name__}')
 
-    # Log the accuracy and validity results
+    # Log the accuracy and validity results for the model evaluation
     accuracy = evaluation_metrics['accuracy']
     validity = evaluation_metrics['validity']
     logging.info(f'Model evaluation completed for: {corpus_name}')
@@ -570,7 +600,7 @@ def run(corpus_name, config):
     logging.info(f'TOP2 ACCURACY: {accuracy[2]:.2%} | TOP2 VALIDITY: {validity[2]:.2%}')
     logging.info(f'TOP3 ACCURACY: {accuracy[3]:.2%} | TOP3 VALIDITY: {validity[3]:.2%}')
 
-    # Save the predictions to CSV and text files
+    # Save the prediction details to CSV, summary statistics to text files, and recall-precision stats
     eval_model.export_prediction_details_to_csv(predictions, prediction_method.__name__)
     eval_model.save_summary_stats_txt(evaluation_metrics, predictions, prediction_method.__name__)
     eval_model.save_recall_precision_stats()
@@ -582,16 +612,17 @@ def main():
     config.setup_logging()
     config.create_directories()
 
-    corpora = ['cmudict', 'brown'] #, 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural']
+    # Process each corpus with both split types A and B
+    corpora = ['cmudict', 'brown', 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural']
     for corpus_name in corpora:
-        run(corpus_name, config)
+        for split_type in ['A', 'B']:
+            run(corpus_name, config, split_type)
 
     # Create and evaluate the mega-corpus
-    # mega_corpus_name = 'mega_corpus'
-    # with open(config.corpus_dir / f'{mega_corpus_name}.txt', 'w', encoding='utf-8') as file:
-    #    file.write('\n'.join(CorpusManager.corpora_tokens))
-
-    # run(mega_corpus_name, config)
+    mega_corpus_name = 'mega_corpus'
+    with open(config.corpus_dir / f'{mega_corpus_name}.txt', 'w', encoding='utf-8') as file:
+        file.write('\n'.join(CorpusManager.corpora_tokens))
+    run(mega_corpus_name, config, 'A')  # You can change to 'B' or loop for both types
 
 if __name__ == '__main__':
     main()
