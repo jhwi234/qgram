@@ -68,7 +68,7 @@ class Config:
         self.split_config = 0.5
         self.vowel_replacement_ratio = 0.2
         self.consonant_replacement_ratio = 0.8
-        self.min_word_length = 4
+        self.min_word_length = 3
         self.prediction_method_name = 'context_sensitive'
         self.log_level = logging.INFO
 
