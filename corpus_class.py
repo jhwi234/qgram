@@ -71,7 +71,7 @@ class CorpusManager:
         self.debug = debug
         self.rng = random.Random(config.seed)
         self.corpus = set()
-        self.training_set = set()
+        self.train_set = set()
         self.test_set = set()
         self.all_words = set()
         self.model = {}
@@ -116,17 +116,17 @@ class CorpusManager:
         total_size = len(self.corpus)
         shuffled_corpus = list(self.corpus)
         self.rng.shuffle(shuffled_corpus)  # Randomize the order of the corpus elements
-        training_size = int(total_size * self.config.split_config)  # Calculate the size of the training set
+        train_size = int(total_size * self.config.split_config)  # Calculate the size of the training set
         # Split the shuffled corpus into training and test sets and return
-        return set(shuffled_corpus[:training_size]), set(shuffled_corpus[training_size:])
+        return set(shuffled_corpus[:train_size]), set(shuffled_corpus[train_size:])
 
     def prepare_datasets(self) -> tuple[set[str], set[str]]:
         # Prepare training and test datasets from the corpus
-        self.training_set, unprocessed_test_set = self._shuffle_and_split_corpus()
+        self.train_set, unprocessed_test_set = self._shuffle_and_split_corpus()
 
         # Save the formatted training set for KenLM
-        formatted_training_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_training_set.txt'
-        self.generate_formatted_corpus(self.training_set, formatted_training_set_path)
+        formatted_train_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_train_set.txt'
+        self.generate_formatted_corpus(self.train_set, formatted_train_set_path)
 
         # Process the test set by replacing a letter in each word with an underscore
         formatted_test_set = []
@@ -135,11 +135,11 @@ class CorpusManager:
             formatted_test_set.append((modified_word, missing_letter, word))
 
         self.test_set = set(formatted_test_set)
-        self.all_words = self.training_set.union({original_word for _, _, original_word in self.test_set})
+        self.all_words = self.train_set.union({original_word for _, _, original_word in self.test_set})
 
         # Save additional sets in debug mode, including the regular training set
         if self.debug:
-            self.save_set_to_file(self.training_set, f'{self.corpus_name}_training_set.txt')
+            self.save_set_to_file(self.train_set, f'{self.corpus_name}_train_set.txt')
             self.save_set_to_file(self.test_set, f'{self.corpus_name}_formatted_test_set.txt')
             self.save_set_to_file(self.all_words, f'{self.corpus_name}_all_words.txt')
 
@@ -175,9 +175,9 @@ class CorpusManager:
         # Generate and load models only if they haven't been loaded for the specified q-range
         for q in self.config.q_range:
             if q not in self.model:
-                formatted_training_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_training_set.txt'
-                self.generate_formatted_corpus(self.training_set, formatted_training_set_path)
-                self.generate_models_from_corpus(formatted_training_set_path)
+                formatted_train_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_train_set.txt'
+                self.generate_formatted_corpus(self.train_set, formatted_train_set_path)
+                self.generate_models_from_corpus(formatted_train_set_path)
 
     def replace_random_letter(self, word) -> tuple[str, str, str]:
         vowel_indices = [i for i, letter in enumerate(word) if letter in Letters.VOWELS.value]

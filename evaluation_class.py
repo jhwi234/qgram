@@ -10,7 +10,7 @@ class EvaluateModel:
         self.config = corpus_manager.config
         self.model = corpus_manager.model  # Loaded language models
         self.corpus = corpus_manager.corpus
-        self.training_set = corpus_manager.training_set
+        self.train_set = corpus_manager.train_set
         self.test_set = corpus_manager.test_set
         self.all_words = corpus_manager.all_words
 
@@ -44,7 +44,7 @@ class EvaluateModel:
         logging.info(f'Seed: {self.config.seed}')
         logging.info(f'Q-gram Range: {self.config.q_range}')
         logging.info(f'Train-Test Split Configuration: {self.config.split_config}')
-        logging.info(f'Training Set Size: {len(self.training_set)}')
+        logging.info(f'Training Set Size: {len(self.train_set)}')
         logging.info(f'Testing Set Size: {len(self.test_set)}')
         logging.info(f'Vowel Replacement Ratio: {self.config.vowel_replacement_ratio}')
         logging.info(f'Consonant Replacement Ratio: {self.config.consonant_replacement_ratio}')
@@ -222,7 +222,7 @@ class EvaluateModel:
             file.write(f'TOP3 VALIDITY: {validity[3]:.2%}\n\n')
 
             # Configuration details
-            file.write(f'Train Size: {len(self.training_set)}, Test Size: {len(self.test_set)}\n')
+            file.write(f'Train Size: {len(self.train_set)}, Test Size: {len(self.test_set)}\n')
             file.write(f'Vowel Ratio: {self.config.vowel_replacement_ratio}, '
                     f'Consonant Ratio: {self.config.consonant_replacement_ratio}\n\n')
 
