@@ -146,6 +146,7 @@ ciphers-copy/
 *_models/
 data/models/
 data/outputs/
+other/
 
 # Ignore files
 *.klm

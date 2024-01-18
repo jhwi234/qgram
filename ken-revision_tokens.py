@@ -11,7 +11,7 @@ from collections import Counter
 
 import nltk
 import kenlm
-from prediction_methods import Predictions
+from predictions_class import Predictions
 
 # Define constants for vowels and consonants using Enum for better organizationclass Letters(Enum):
 class Letters(Enum):
