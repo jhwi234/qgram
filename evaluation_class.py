@@ -4,53 +4,52 @@ from predictions_class import Predictions
 
 class EvaluateModel:
     def __init__(self, corpus_manager):
+        # Initialization and dataset preparation using the provided corpus_manager
         self.corpus_manager = corpus_manager
         self.corpus_name = corpus_manager.corpus_name 
-
         self.config = corpus_manager.config
-        self.model = corpus_manager.model  # Use the loaded models
-
-        # Access datasets directly from the provided corpus manager
+        self.model = corpus_manager.model  # Loaded language models
         self.corpus = corpus_manager.corpus
         self.training_set = corpus_manager.training_set
         self.test_set = corpus_manager.test_set
         self.all_words = corpus_manager.all_words
 
-        # Extract unique characters
+        # Extract unique characters from the corpus
         unique_characters = corpus_manager.extract_unique_characters()
         self.unique_character_count = len(unique_characters)
 
-        # Initialize counts for recall calculation
+        # Initialize counts for calculating recall and precision
         self.actual_missing_letter_occurrences = {char: 0 for char in unique_characters}
         self.correct_top_predictions = {char: 0 for char in unique_characters}
-
-        # Initialize counts for precision calculation
         self.top_predicted_counts = {char: 0 for char in unique_characters}
-        self.top_correct_retrievals = {char: 0 for char in unique_characters}
 
-        # Initialize prediction class with models, q-gram range, and unique characters
+        # Initialize prediction class
         self.q_range = range(self.config.q_range[0], self.config.q_range[1] + 1)
         self.predictor = Predictions(self.model, self.q_range, unique_characters)
 
-        # Log initialization information using the config from corpus_manager
-        logging.info(f'Language Model for {self.corpus_name} initialized with:')
-        logging.info(f'Seed: {self.config.seed}')
-        logging.info(f'Q-gram Range: {self.config.q_range}')
-        logging.info(f'Train-Test Split Configuration: {self.config.split_config}')
-        logging.info(f'Training Set Size: {len(corpus_manager.training_set)}')
-        logging.info(f'Testing Set Size: {len(corpus_manager.test_set)}')
-        logging.info(f'Vowel Replacement Ratio: {self.config.vowel_replacement_ratio}')
-        logging.info(f'Consonant Replacement Ratio: {self.config.consonant_replacement_ratio}')
-        logging.info(f'Unique Character Count: {self.unique_character_count}')
-        logging.info(f'Minimum Word Length: {self.config.min_word_length}')
+        # Logging model initialization details
+        self.log_initialization_details()
 
-        # Retrieve the prediction method based on the name
+        # Retrieve the appropriate prediction method
         prediction_methods = {
             'context_sensitive': self.predictor.context_sensitive,
             'context_no_boundary': self.predictor.context_no_boundary,
             'base_prediction': self.predictor.base_prediction
         }
         self.prediction_method = prediction_methods.get(self.config.prediction_method_name, self.predictor.context_sensitive)
+
+    def log_initialization_details(self):
+        # Logging model and configuration details
+        logging.info(f'Language Model for {self.corpus_name} initialized with:')
+        logging.info(f'Seed: {self.config.seed}')
+        logging.info(f'Q-gram Range: {self.config.q_range}')
+        logging.info(f'Train-Test Split Configuration: {self.config.split_config}')
+        logging.info(f'Training Set Size: {len(self.training_set)}')
+        logging.info(f'Testing Set Size: {len(self.test_set)}')
+        logging.info(f'Vowel Replacement Ratio: {self.config.vowel_replacement_ratio}')
+        logging.info(f'Consonant Replacement Ratio: {self.config.consonant_replacement_ratio}')
+        logging.info(f'Unique Character Count: {self.unique_character_count}')
+        logging.info(f'Minimum Word Length: {self.config.min_word_length}')
 
     def compute_accuracy(self, predictions) -> dict:
         # Initialize a dictionary to track accuracy for three ranks: TOP1, TOP2, and TOP3.
@@ -93,40 +92,56 @@ class EvaluateModel:
         total_validity = {k: validity_counts[k] / total_test_words for k in validity_counts}
         return total_validity
 
-    def compute_recall(self) -> dict:
-        # Calculate recall for each character in the corpus
-        recall_metrics = {
-            # Iterate over each character that was missing and needed prediction
-            char: (
-                # Recall is calculated as the number of times the character was correctly predicted as the top choice (True Positives)
-                # divided by the total number of times the character was the missing letter (True Positives + False Negatives)
-                self.correct_top_predictions[char] / self.actual_missing_letter_occurrences[char]
-                if self.actual_missing_letter_occurrences[char] > 0  # Ensure denominator is not zero
-                else 0
-            )
-            for char in self.actual_missing_letter_occurrences
+    def compute_metric(self, correct_counts, total_counts) -> dict:
+        # Generalized method to calculate metrics like recall and precision.
+        # 'correct_counts' is a dictionary of how many times each character was correctly predicted.
+        # 'total_counts' is a dictionary of the total occurrences for recall or total predictions for precision.
+        # The metric is calculated as a ratio of correct counts to total counts for each character.
+        return {
+            char: (correct_counts[char] / total_counts[char] if total_counts[char] > 0 else 0)
+            for char in correct_counts
         }
-        return recall_metrics
 
-    def compute_precision(self) -> dict:
-        # Calculate precision for each character
-        precision_metrics = {
-            # For each character, count how often it was correctly predicted as the top choice
-            char: (
-                # Precision is calculated as the number of correct top predictions (True Positives)
-                # divided by the total number of top predictions (True Positives + False Positives)
-                self.correct_top_predictions[char] / self.top_predicted_counts[char]
-                if self.top_predicted_counts[char] > 0  # Ensure denominator is not zero
-                else 0
-            )
-            for char in self.top_predicted_counts
-        }
-        return precision_metrics
+    def evaluate_character_predictions(self, prediction_method) -> tuple[dict, list]:
+        predictions = []
 
-    def save_recall_precision_stats(self):
-        # Calculate and sort recall and precision metrics
-        recall_metrics = self.compute_recall()
-        precision_metrics = self.compute_precision()
+        # Iterate over each word in the test set to evaluate predictions.
+        for modified_word, target_letter, original_word in self.test_set:
+            # Increment the count of occurrences of the target letter for recall calculation.
+            self.actual_missing_letter_occurrences[target_letter] += 1
+
+            # Get predictions for the modified word using the provided prediction method.
+            all_predictions = prediction_method(modified_word)
+            if all_predictions:
+                # Increment count of predictions for precision calculation.
+                top_predicted_char = all_predictions[0][0]
+                self.top_predicted_counts[top_predicted_char] += 1
+
+                # If the top prediction matches the target letter, increment the correct prediction count.
+                if top_predicted_char == target_letter:
+                    self.correct_top_predictions[target_letter] += 1
+
+            # Determine the rank at which the correct letter is predicted, if at all.
+            correct_letter_rank = next((rank for rank, (retrieved_letter, _) in enumerate(all_predictions, start=1) 
+                                        if retrieved_letter == target_letter), None)
+            # Append the detailed prediction information for each test word.
+            predictions.append((modified_word, target_letter, original_word, all_predictions[:3], correct_letter_rank))
+
+        # Compute various evaluation metrics including accuracy, validity, recall, and precision.
+        accuracy_metrics = self.compute_accuracy(predictions)
+        validity_metrics = self.compute_validity(predictions)
+        recall_metrics = self.compute_metric(self.correct_top_predictions, self.actual_missing_letter_occurrences)
+        precision_metrics = self.compute_metric(self.correct_top_predictions, self.top_predicted_counts)
+
+        # Return a comprehensive dictionary of all computed metrics.
+        return {'accuracy': accuracy_metrics, 'validity': validity_metrics, 
+                'recall': recall_metrics, 'precision': precision_metrics, 
+                'total_words': len(self.test_set)}, predictions
+
+    def save_recall_precision_stats(self, evaluation_metrics):
+        # Retrieve recall and precision metrics from the evaluation_metrics dictionary
+        recall_metrics = evaluation_metrics['recall']
+        precision_metrics = evaluation_metrics['precision']
 
         # Sort metrics by Total Relevant (Actual Missing Letter Occurrences) in descending order
         sorted_metrics = sorted(
@@ -134,6 +149,7 @@ class EvaluateModel:
                 (char, 
                  self.actual_missing_letter_occurrences[char], 
                  self.correct_top_predictions[char], 
+                 self.top_predicted_counts[char],
                  recall_metrics[char], 
                  precision_metrics[char]
                 ) for char in recall_metrics
@@ -144,43 +160,10 @@ class EvaluateModel:
         # Save sorted metrics to a file
         metrics_file_path = self.config.csv_dir / f'{self.corpus_name}_recall_precision_metrics.csv'
         with metrics_file_path.open('w', encoding='utf-8') as file:
-            file.write('Character, Total_Missing_Letter_Occurrences, Total_Correctly_Retrieved, Recall, Precision\n')
-            for char, total_relevant, correctly_retrieved, recall, precision in sorted_metrics:
-                file.write(f'{char}, {total_relevant}, {correctly_retrieved}, {recall:.4f}, {precision:.4f}\n')
-
-    def evaluate_character_predictions(self, prediction_method) -> tuple[dict, list]:
-        predictions = []
-
-        for modified_word, target_letter, original_word in self.test_set:
-            # Update counts for recall
-            self.actual_missing_letter_occurrences[target_letter] += 1
-
-            all_predictions = prediction_method(modified_word)
-
-            # Update counts for precision
-            if all_predictions:
-                top_predicted_char = all_predictions[0][0]
-                self.top_predicted_counts[top_predicted_char] += 1
-                if top_predicted_char == target_letter:
-                    self.top_correct_retrievals[target_letter] += 1
-
-            # Update correct retrievals for recall calculation
-            if all_predictions and all_predictions[0][0] == target_letter:
-                self.correct_top_predictions[target_letter] += 1  # Corrected line
-
-            # Other calculations remain the same
-            correct_letter_rank = next((rank for rank, (retrieved_letter, _) in enumerate(all_predictions, start=1) 
-                                        if retrieved_letter == target_letter), None)
-            predictions.append((modified_word, target_letter, original_word, all_predictions[:3], correct_letter_rank))
-
-        # Calculate various metrics
-        accuracy_metrics = self.compute_accuracy(predictions)
-        validity_metrics = self.compute_validity(predictions)
-        recall_metrics = self.compute_recall()
-        precision_metrics = self.compute_precision()
-
-        return {'accuracy': accuracy_metrics, 'validity': validity_metrics, 'recall': recall_metrics, 'precision': precision_metrics, 'total_words': len(self.test_set)}, predictions
-
+            file.write('Character, Total_Missing_Letter_Occurrences, Total_Correctly_Retrieved, Total_Predictions, Recall, Precision\n')
+            for char, total_relevant, correctly_retrieved, total_predictions, recall, precision in sorted_metrics:
+                file.write(f'{char}, {total_relevant}, {correctly_retrieved}, {total_predictions}, {recall:.4f}, {precision:.4f}\n')
+                
     def export_prediction_details_to_csv(self, predictions, prediction_method_name):
         # Adjust file name to include test-train split and q-gram range
         csv_file_path = self.config.csv_dir / (
