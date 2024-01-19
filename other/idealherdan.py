@@ -19,7 +19,7 @@ def find_vocabulary_size(corpus_token_size, alpha=1):
         harmonic_number = _calculate_generalized_harmonic(mid, alpha)
         # Calculate the total frequency across all ranks up to 'mid'
         # using the Zipfian distribution formula. This checks if the
-        # sum of frequencies up to this point meets the corpus length.
+        # sum of frequencies up to this point meets the corpus total token size.
         total_freq = sum((corpus_token_size / harmonic_number) / (rank ** alpha) for rank in range(1, mid + 1))
         # Binary search logic to converge on the correct vocabulary size.
         if total_freq < corpus_token_size:
@@ -35,10 +35,12 @@ def simulate_zipfian_corpus(corpus_token_size, alpha=1):
     # Generate ranks from 1 to the vocabulary size.
     ranks = np.arange(1, vocabulary_size + 1)
     # Calculate the expected frequency of each word in the distribution.
+    # Vectorized computation for improved performance.
     frequencies = (corpus_token_size / harmonic_number) / np.power(ranks, alpha)
     # Create word tokens. Each word is unique and is labeled as 'wordi'.
-    words = [f'word{i}' for i in ranks]
+    words = np.array([f'word{i}' for i in ranks])
     # Repeat each word by its calculated frequency and round it to the nearest integer.
+    # Utilize numpy's repeat function for vectorized operation.
     corpus = np.repeat(words, np.round(frequencies).astype(int))
     # Shuffle the corpus to simulate a natural sequence of words.
     np.random.shuffle(corpus)

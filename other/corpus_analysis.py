@@ -339,6 +339,24 @@ class ZipfianAnalysis:
         actual_freqs = np.array([freq for _, freq in self.sorted_tokens])
         deviations = actual_freqs - expected_freqs
         return deviations
+    
+    def calculate_alpha(self):
+        """
+        Calculate the alpha parameter of the Zipfian distribution for the corpus.
+        """
+        ranks = np.arange(1, len(self.sorted_tokens) + 1)
+        frequencies = np.array([freq for _, freq in self.sorted_tokens])
+
+        # Applying log transformation to ranks and frequencies
+        log_ranks = np.log(ranks)
+        log_freqs = np.log(frequencies)
+
+        # Perform linear regression on log-log data
+        slope, intercept, r_value, p_value, std_err = linregress(log_ranks, log_freqs)
+
+        # The slope of the line in log-log plot gives an estimate of -alpha
+        alpha_estimate = -slope
+        return alpha_estimate
 
 def analyze_corpus(corpus_name):
     logger = logging.getLogger(__name__)
@@ -371,10 +389,13 @@ def analyze_corpus(corpus_name):
 
         # Perform the Zipfian analysis
         zipfian_analyzer = ZipfianAnalysis(tokens)
+        calculated_alpha = zipfian_analyzer.calculate_alpha()
+        logger.info(f"Calculated Alpha for {corpus_name} corpus: {calculated_alpha:.4f}")
+
         zipfian_analyzer.plot_comparison(alpha=1)
         mean_dev, std_dev = zipfian_analyzer.assess_zipfian_fit(alpha=1)
-        logger.info(f"Mean deviation from Ideal Zipfian: {mean_dev:.4f}")
-        logger.info(f"Standard deviation from Ideal Zipfian: {std_dev:.4f}")
+        logger.info(f"Mean deviation from Ideal Zipfian (alpha=1): {mean_dev:.4f}")
+        logger.info(f"Standard deviation from Ideal Zipfian (alpha=1): {std_dev:.4f}")
 
     except Exception as e:
         logger.error(f"An error occurred while analyzing {corpus_name}: {e}")
