@@ -97,47 +97,60 @@ class EditDistance:
         prefix = sum(c1 == c2 for c1, c2 in list(zip(s1, s2))[:max_prefix])
         return jaro_dist + prefix * p * (1 - jaro_dist)
 
+    def _initialize_dp_table(self, m, n):
+        """Initialize the dynamic programming table for LCS computation."""
+        return [[0] * (n + 1) for _ in range(m + 1)]
+
+    def _calculate_lcs_length(self, X, Y, dp):
+        """Calculate length of LCS using dynamic programming."""
+        m, n = len(X), len(Y)
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if X[i - 1] == Y[j - 1]:
+                    dp[i][j] = dp[i - 1][j - 1] + 1
+                else:
+                    dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+
+    def _find_all_lcs_sequences(self, X, Y, m, n, dp, memo):
+        """Find all LCS sequences."""
+        if m == 0 or n == 0:
+            return set([""])
+        if (m, n) in memo:
+            return memo[(m, n)]
+
+        sequences = set()
+        if X[m - 1] == Y[n - 1]:
+            lcs = self._find_all_lcs_sequences(X, Y, m - 1, n - 1, dp, memo)
+            sequences = {Z + X[m - 1] for Z in lcs}
+        else:
+            if dp[m - 1][n] >= dp[m][n - 1]:
+                sequences.update(self._find_all_lcs_sequences(X, Y, m - 1, n, dp, memo))
+            if dp[m][n - 1] >= dp[m - 1][n]:
+                sequences.update(self._find_all_lcs_sequences(X, Y, m, n - 1, dp, memo))
+
+        memo[(m, n)] = sequences
+        return sequences
+
     def longest_common_subsequence(self, s1, s2):
         """Calculates the length of the longest common subsequence between two strings."""
         if s1 == s2:
             return len(s1)  # Quick return for identical strings
-        prev_row = [0] * (len(s2) + 1)
-        for c1 in s1:
-            current_row = [0]
-            for j, c2 in enumerate(s2):
-                if c1 == c2:
-                    current_row.append(prev_row[j] + 1)
-                else:
-                    current_row.append(max(current_row[-1], prev_row[j + 1]))
-            prev_row = current_row
-        return prev_row[-1]
-    
+        dp = self._initialize_dp_table(len(s1), len(s2))
+        self._calculate_lcs_length(s1, s2, dp)
+        return dp[-1][-1]
+
     def get_lcs_details(self, s1, s2):
-        """Retrieves the LCS sequence and determines its contiguity."""
-        # Build the matrix for LCS calculation
-        matrix = [["" for _ in range(len(s2) + 1)] for _ in range(len(s1) + 1)]
-        for i in range(1, len(s1) + 1):
-            for j in range(1, len(s2) + 1):
-                if s1[i - 1] == s2[j - 1]:
-                    matrix[i][j] = matrix[i - 1][j - 1] + s1[i - 1]
-                else:
-                    matrix[i][j] = max(matrix[i - 1][j], matrix[i][j - 1], key=len)
-
-        # Extract the LCS sequence
-        lcs_seq = matrix[-1][-1]
-
-        # Determine contiguity
-        is_contiguous = self._check_contiguity(lcs_seq, s1, s2)
-
-        return lcs_seq, is_contiguous
-
-    def _check_contiguity(self, subseq, s1, s2):
-        """Determines if a subsequence is contiguous in either of the original strings."""
-        return subseq in s1 or subseq in s2
+        """Retrieves all LCS sequences and determines their contiguity."""
+        dp = self._initialize_dp_table(len(s1), len(s2))
+        self._calculate_lcs_length(s1, s2, dp)
+        memo = {}
+        lcs_sequences = self._find_all_lcs_sequences(s1, s2, len(s1), len(s2), dp, memo)
+        is_contiguous = any(seq in s1 or seq in s2 for seq in lcs_sequences)
+        return lcs_sequences, is_contiguous
 
 # Example usage
 if __name__ == "__main__":
-    s1, s2 = "john", "nhoj"
+    s1, s2 = "it was the best of times", "more money more times"
     ed = EditDistance()
     print("Levenshtein Distance:", ed.levenshtein_distance(s1, s2))
     print("Damerau-Levenshtein Distance:", ed.damerau_levenshtein_distance(s1, s2))
