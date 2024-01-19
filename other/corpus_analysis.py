@@ -351,7 +351,6 @@ def analyze_corpus(corpus_name):
         elif corpus_name == 'gutenberg':
             tokens = gutenberg.words()
         elif corpus_name == 'reuters':
-            # Example of handling a categorized corpus
             tokens = reuters.words()
         else:
             raise ValueError(f"Corpus {corpus_name} is not recognized.")
@@ -359,6 +358,16 @@ def analyze_corpus(corpus_name):
         # Tokenize the corpus
         tokenizer = Tokenizer(remove_punctuation=True)
         tokens = tokenizer.tokenize(' '.join(tokens))
+
+        # Instantiate AdvancedCorpusAnalyzer
+        advanced_analyzer = AdvancedCorpusAnalyzer(tokens)
+
+        # Perform advanced corpus analysis
+        yules_k, yules_interpretation = advanced_analyzer.yules_k()
+        logger.info(f"Yule's K Measure: {yules_k:.4f}, Interpretation: {yules_interpretation}")
+
+        herdans_c, herdans_interpretation = advanced_analyzer.herdans_c()
+        logger.info(f"Herdan's C Measure: {herdans_c:.4f}, Interpretation: {herdans_interpretation}")
 
         # Perform the Zipfian analysis
         zipfian_analyzer = ZipfianAnalysis(tokens)
