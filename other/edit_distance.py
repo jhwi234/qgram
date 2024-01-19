@@ -3,34 +3,45 @@ import numpy as np
 class EditDistance:
     def wagner_fischer(self, s1, s2):
         """Wagner-Fischer (Levenshtein) distance calculation."""
-        if s1 == s2: return 0  # Quick return for identical strings
+        if s1 == s2: return 0
         if len(s1) > len(s2): s1, s2 = s2, s1
 
         prev_row = np.arange(len(s1) + 1)
+        current_row = np.zeros(len(s1) + 1, dtype=int)
+
         for c2 in s2:
-            current_row = [prev_row[0] + 1]
+            current_row[0] = prev_row[0] + 1
             for i1, c1 in enumerate(s1):
                 insertions = prev_row[i1 + 1] + 1
                 deletions = current_row[i1] + 1
                 substitutions = prev_row[i1] + (c1 != c2)
-                current_row.append(min(insertions, deletions, substitutions))
-            prev_row = current_row
+                current_row[i1 + 1] = min(insertions, deletions, substitutions)
+            prev_row, current_row = current_row, prev_row
 
         return prev_row[-1]
 
     def damerau_levenshtein_distance(self, s1, s2):
         """Damerau-Levenshtein distance calculation."""
-        if s1 == s2: return 0  # Quick return for identical strings
-        d = np.zeros((2, len(s2) + 1), dtype=int)
-        d[0, :] = np.arange(len(s2) + 1)
-        for i in range(1, len(s1) + 1):
-            d[i % 2, 0] = i
-            for j in range(1, len(s2) + 1):
-                cost = 0 if s1[i - 1] == s2[j - 1] else 1
-                d[i % 2, j] = min(d[(i - 1) % 2, j] + 1, d[i % 2, j - 1] + 1, d[(i - 1) % 2, j - 1] + cost)
-                if i > 1 and j > 1 and s1[i - 1] == s2[j - 2] and s1[i - 2] == s2[j - 1]:
-                    d[i % 2, j] = min(d[i % 2, j], d[(i - 2) % 2, j - 2] + cost)
-        return d[len(s1) % 2, -1]
+        if s1 == s2: return 0
+        if len(s1) > len(s2): s1, s2 = s2, s1
+
+        prev_prev_row, prev_row = np.zeros(len(s2) + 1, dtype=int), np.arange(len(s2) + 1)
+        current_row = np.zeros(len(s2) + 1, dtype=int)
+
+        for i, c1 in enumerate(s1):
+            current_row[0] = i + 1
+            for j, c2 in enumerate(s2):
+                insertions = current_row[j] + 1
+                deletions = prev_row[j + 1] + 1
+                substitutions = prev_row[j] + (c1 != c2)
+                cost = min(insertions, deletions, substitutions)
+                if i > 0 and j > 0 and c1 == s2[j - 1] and s1[i - 1] == c2:
+                    transpositions = prev_prev_row[j - 1] + 1
+                    cost = min(cost, transpositions)
+                current_row[j + 1] = cost
+            prev_prev_row, prev_row, current_row = prev_row, current_row, prev_prev_row
+
+        return prev_row[-1]
 
     def hamming_distance(self, s1, s2):
         """Hamming distance calculation."""
@@ -107,10 +118,9 @@ class EditDistance:
         """Determines if a subsequence is contiguous in either of the original strings."""
         return subseq in s1 or subseq in s2
 
-
 # Example usage
 if __name__ == "__main__":
-    s1, s2 = "kitten", "sittin"
+    s1, s2 = "DwANE", "DuANE"
     ed = EditDistance()
     print("Levenshtein Distance (Wagner-Fischer):", ed.wagner_fischer(s1, s2))
     print("Damerau-Levenshtein Distance:", ed.damerau_levenshtein_distance(s1, s2))
