@@ -1,7 +1,7 @@
 import numpy as np
 
 class EditDistance:
-    def levenshtein_distance(self, s1, s2):
+    def levenshtein_distance(self, s1, s2) -> int:
         # Check for equality and handle the trivial case where both strings are identical.
         if s1 == s2: return 0
 
@@ -34,7 +34,7 @@ class EditDistance:
         # After completing the iterations, the last element of prev_row contains the Levenshtein distance.
         return prev_row[-1]
 
-    def damerau_levenshtein_distance(self, s1, s2):
+    def damerau_levenshtein_distance(self, s1, s2) -> int:
         """Damerau-Levenshtein distance calculation."""
         if s1 == s2: return 0
         if len(s1) > len(s2): s1, s2 = s2, s1
@@ -60,12 +60,12 @@ class EditDistance:
 
         return prev_row[-1]
 
-    def hamming_distance(self, s1, s2):
+    def hamming_distance(self, s1, s2) -> int:
         """Hamming distance calculation."""
         if len(s1) != len(s2): raise ValueError("Hamming distance requires equal length strings")
         return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
-    def jaro_distance(self, s1, s2):
+    def jaro_distance(self, s1, s2) -> float:
         """Jaro distance calculation."""
         if s1 == s2: return 1.0  # Quick return for identical strings
         if not s1 or not s2: return 0.0  # Handle empty strings
@@ -90,14 +90,14 @@ class EditDistance:
         transpositions = sum(s1[i] != s2[j] for i, j in zip(np.where(s1_matches)[0], np.where(s2_matches)[0]))
         return ((matches / len_s1) + (matches / len_s2) + ((matches - transpositions / 2) / matches)) / 3.0
 
-    def jaro_winkler_distance(self, s1, s2, p=0.1, max_prefix=4):
+    def jaro_winkler_distance(self, s1, s2, p=0.1, max_prefix=4) -> float:
         """Jaro-Winkler distance calculation."""
         jaro_dist = self.jaro_distance(s1, s2)
         if jaro_dist < 0.7: return jaro_dist  # Threshold check
         prefix = sum(c1 == c2 for c1, c2 in list(zip(s1, s2))[:max_prefix])
         return jaro_dist + prefix * p * (1 - jaro_dist)
 
-    def _initialize_dp_table(self, m, n):
+    def _initialize_dp_table(self, m, n) -> list:
         """Initialize the dynamic programming table for LCS computation."""
         return [[0] * (n + 1) for _ in range(m + 1)]
 
@@ -111,7 +111,7 @@ class EditDistance:
                 else:
                     dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
 
-    def _find_all_lcs_sequences(self, X, Y, m, n, dp, memo):
+    def _find_all_lcs_sequences(self, X, Y, m, n, dp, memo) -> set:
         """Find all LCS sequences."""
         if m == 0 or n == 0:
             return set([""])
@@ -131,7 +131,7 @@ class EditDistance:
         memo[(m, n)] = sequences
         return sequences
 
-    def longest_common_subsequence(self, s1, s2):
+    def longest_common_subsequence(self, s1, s2) -> int:
         """Calculates the length of the longest common subsequence between two strings."""
         if s1 == s2:
             return len(s1)  # Quick return for identical strings
@@ -139,7 +139,7 @@ class EditDistance:
         self._calculate_lcs_length(s1, s2, dp)
         return dp[-1][-1]
 
-    def get_lcs_details(self, s1, s2):
+    def get_lcs_details(self, s1, s2) -> tuple:
         """Retrieves all LCS sequences and determines their contiguity."""
         dp = self._initialize_dp_table(len(s1), len(s2))
         self._calculate_lcs_length(s1, s2, dp)
@@ -150,7 +150,7 @@ class EditDistance:
 
 # Example usage
 if __name__ == "__main__":
-    s1, s2 = "it was the best of times", "more money more times"
+    s1, s2 = "times", "times"
     ed = EditDistance()
     print("Levenshtein Distance:", ed.levenshtein_distance(s1, s2))
     print("Damerau-Levenshtein Distance:", ed.damerau_levenshtein_distance(s1, s2))
