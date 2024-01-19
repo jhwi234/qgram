@@ -62,7 +62,10 @@ class EditDistance:
 
     def hamming_distance(self, s1, s2) -> int:
         """Hamming distance calculation."""
-        if len(s1) != len(s2): raise ValueError("Hamming distance requires equal length strings")
+        if not isinstance(s1, str) or not isinstance(s2, str):
+            raise TypeError("Inputs must be strings")
+        if len(s1) != len(s2):
+            raise ValueError(f"Hamming distance requires equal length strings. Lengths provided: {len(s1)} and {len(s2)}")
         return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
     def jaro_distance(self, s1, s2) -> float:
