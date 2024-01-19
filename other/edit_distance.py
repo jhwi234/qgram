@@ -1,23 +1,37 @@
 import numpy as np
 
 class EditDistance:
-    def wagner_fischer(self, s1, s2):
-        """Wagner-Fischer (Levenshtein) distance calculation."""
+    def levenshtein_distance(self, s1, s2):
+        # Check for equality and handle the trivial case where both strings are identical.
         if s1 == s2: return 0
+
+        # Ensure s1 is the shorter string to optimize memory usage in the dynamic programming table.
         if len(s1) > len(s2): s1, s2 = s2, s1
 
+        # Initialize the previous row of the dynamic programming table. This represents the number of edits
+        # needed to transform an empty string into the first i characters of s1.
         prev_row = np.arange(len(s1) + 1)
-        current_row = np.zeros(len(s1) + 1, dtype=int)
 
+        # Iterate over each character in the second string.
         for c2 in s2:
-            current_row[0] = prev_row[0] + 1
-            for i1, c1 in enumerate(s1):
-                insertions = prev_row[i1 + 1] + 1
-                deletions = current_row[i1] + 1
-                substitutions = prev_row[i1] + (c1 != c2)
-                current_row[i1 + 1] = min(insertions, deletions, substitutions)
-            prev_row, current_row = current_row, prev_row
+            # Store the top-left value (from the previous iteration) and increment the first cell
+            # which represents transforming s1 into the first character of the current substring of s2.
+            old_value, prev_row[0] = prev_row[0], prev_row[0] + 1
 
+            # Iterate over each character in the first string.
+            for i1, c1 in enumerate(s1):
+                # Calculate the cost for substitution. It's 0 if characters are the same, else 1.
+                # Compare this with the costs for insertion and deletion, and pick the minimum.
+                # old_value represents the substitution cost (top-left cell).
+                # prev_row[i1] + 1 represents the deletion cost (top cell).
+                # prev_row[i1 + 1] + 1 represents the insertion cost (left cell).
+                new_value = min(old_value + (c1 != c2), prev_row[i1] + 1, prev_row[i1 + 1] + 1)
+                
+                # Update old_value for the next iteration and set the calculated minimum edit distance
+                # for the current cell.
+                old_value, prev_row[i1 + 1] = prev_row[i1 + 1], new_value
+
+        # After completing the iterations, the last element of prev_row contains the Levenshtein distance.
         return prev_row[-1]
 
     def damerau_levenshtein_distance(self, s1, s2):
@@ -26,20 +40,23 @@ class EditDistance:
         if len(s1) > len(s2): s1, s2 = s2, s1
 
         prev_prev_row, prev_row = np.zeros(len(s2) + 1, dtype=int), np.arange(len(s2) + 1)
-        current_row = np.zeros(len(s2) + 1, dtype=int)
 
         for i, c1 in enumerate(s1):
+            current_row = np.zeros(len(s2) + 1, dtype=int)
             current_row[0] = i + 1
             for j, c2 in enumerate(s2):
                 insertions = current_row[j] + 1
                 deletions = prev_row[j + 1] + 1
                 substitutions = prev_row[j] + (c1 != c2)
                 cost = min(insertions, deletions, substitutions)
+
                 if i > 0 and j > 0 and c1 == s2[j - 1] and s1[i - 1] == c2:
                     transpositions = prev_prev_row[j - 1] + 1
                     cost = min(cost, transpositions)
+
                 current_row[j + 1] = cost
-            prev_prev_row, prev_row, current_row = prev_row, current_row, prev_prev_row
+
+            prev_prev_row, prev_row = prev_row, current_row
 
         return prev_row[-1]
 
@@ -120,9 +137,9 @@ class EditDistance:
 
 # Example usage
 if __name__ == "__main__":
-    s1, s2 = "DwANE", "DuANE"
+    s1, s2 = "john", "nhoj"
     ed = EditDistance()
-    print("Levenshtein Distance (Wagner-Fischer):", ed.wagner_fischer(s1, s2))
+    print("Levenshtein Distance:", ed.levenshtein_distance(s1, s2))
     print("Damerau-Levenshtein Distance:", ed.damerau_levenshtein_distance(s1, s2))
     print("Hamming Distance:", ed.hamming_distance(s1, s2) if len(s1) == len(s2) else "N/A")
     print("Jaro Distance:", ed.jaro_distance(s1, s2))
