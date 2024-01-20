@@ -45,7 +45,7 @@ basic_analyzer = BasicCorpusAnalyzer(tokenized_brown)
 print("Median Token:", basic_analyzer.find_median_token())
 print("Mean Token Frequency:", basic_analyzer.mean_token_frequency())
 print("Query 25th most frequent token:", basic_analyzer.query_by_rank(25))
-print("Query frequency and rank of 'university':", basic_analyzer.query_by_word('university'))
+print("Query frequency and rank of 'university':", basic_analyzer.query_by_token('university'))
 # Step 4: Advanced Analysis
 advanced_analyzer = AdvancedCorpusAnalyzer(tokenized_brown)
 # Display words in a certain rank range
