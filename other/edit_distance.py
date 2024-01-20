@@ -1,7 +1,11 @@
 import numpy as np
 
 class EditDistance:
+    """
+    Calculate edit distances between two strings.
+    """
     def levenshtein_distance(self, s1, s2) -> int:
+        """Levenshtein distance calculation."""
         # Check for equality and handle the trivial case where both strings are identical.
         if s1 == s2: return 0
 
@@ -150,15 +154,3 @@ class EditDistance:
         lcs_sequences = self._find_all_lcs_sequences(s1, s2, len(s1), len(s2), dp, memo)
         is_contiguous = any(seq in s1 or seq in s2 for seq in lcs_sequences)
         return lcs_sequences, is_contiguous
-
-# Example usage
-if __name__ == "__main__":
-    s1, s2 = "times", "times"
-    ed = EditDistance()
-    print("Levenshtein Distance:", ed.levenshtein_distance(s1, s2))
-    print("Damerau-Levenshtein Distance:", ed.damerau_levenshtein_distance(s1, s2))
-    print("Hamming Distance:", ed.hamming_distance(s1, s2) if len(s1) == len(s2) else "N/A")
-    print("Jaro Distance:", ed.jaro_distance(s1, s2))
-    print("Jaro-Winkler Distance:", ed.jaro_winkler_distance(s1, s2))
-    print("LCS Length:", ed.longest_common_subsequence(s1, s2))
-    print("LCS Details:", ed.get_lcs_details(s1, s2))
