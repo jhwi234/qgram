@@ -185,12 +185,10 @@ class BasicCorpusAnalyzer:
         return [(token, freq, rank) for rank, (token, freq) in enumerate(self.sorted_tokens, start=1) if start_rank <= rank <= end_rank]
 
 class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
-    """
-    Advanced corpus analysis.
-    """
     def __init__(self, tokens):
         super().__init__(tokens)
         self.cum_freqs, self.token_ranks = self._calculate_cumulative_frequencies()
+        self.N = sum(self.frequency.values())  # Store total word count for Herdan's C metric
 
     def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100) -> list:
         """
@@ -222,78 +220,33 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
 
         return words_in_range
 
-    def yules_k(self) -> tuple:
-        """Calculate Yule's K and interpret the value."""
-        # M1: Sum of the frequencies of all words in the corpus.
-        # It represents the total number of word occurrences.
-        M1 = sum(self.frequency.values())
+    def yules_k(self) -> float:
+        """
+        Calculate Yule's K measure for lexical diversity.
+        """
+        # Convert frequency values to a NumPy array
+        freqs = np.array(list(self.frequency.values()))
 
-        # M2: Sum of the squares of the frequencies of all words.
-        # This emphasizes the contribution of high-frequency words.
-        M2 = sum(f ** 2 for f in self.frequency.values())
+        # Utilize NumPy's vectorized operations for sum calculations
+        M1 = np.sum(freqs)
+        M2 = np.sum(freqs ** 2)
 
-        # K: Yule's K measure, calculated based on M1 and M2.
-        # A lower K value indicates higher lexical diversity.
+        # Calculate K using M1 and M2
         K = 10**4 * (M2 - M1) / (M1 ** 2)
 
-        # Standard deviation of word frequencies is used to scale the interpretation thresholds.
-        # This accounts for the distribution of word usage in the corpus.
-        std_dev = statistics.stdev(self.frequency.values())
+        return K
 
-        # Scaled thresholds for interpretation.
-        # A high std_dev (indicating uneven word distribution) lowers the thresholds,
-        # acknowledging that higher Yule's K values might still indicate reasonable diversity.
-        scaled_low = 100 / std_dev
-        scaled_high = 200 / std_dev
-
-        # Interpretation based on scaled thresholds.
-        # The interpretation dynamically adjusts to the corpus's distribution of word usage.
-        if K < scaled_low:
-            interpretation = "high lexical diversity"
-        elif scaled_low <= K <= scaled_high:
-            interpretation = "moderate lexical diversity"
-        else:
-            interpretation = "low lexical diversity"
-
-        return K, interpretation
-
-    def herdans_c(self) -> tuple:
-        """Calculate Herdan's C and interpret the value."""
-        # N: Total number of words in the corpus.
+    def herdans_c(self) -> float:
+        """
+        Calculate Herdan's C measure for vocabulary richness.
+        """
         # V: Number of unique words (vocabulary size).
-        N = sum(self.frequency.values())  # Total number of words
-        V = len(self.frequency)  # Vocabulary size
+        V = len(self.frequency)
 
-        # C: Herdan's C value, a logarithmic measure of vocabulary richness.
-        # Higher C values indicate richer vocabulary.
-        C = math.log(V) / math.log(N)
+        # C: Herdan's C value, calculated using the stored total word count
+        C = math.log(V) / math.log(self.N)
 
-        # Dynamic scaling factor is calculated using median and mean word counts.
-        # This makes the scaling factor sensitive to the typical word distribution in the corpus.
-        median_word_count = statistics.median(self.frequency.values())
-        mean_word_count = statistics.mean(self.frequency.values())
-
-        # The dynamic factor is calculated as the logarithm of the sum of the median and mean word counts,
-        # normalized by log(2). This normalization makes the factor adjust appropriately across
-        # different corpus sizes and distributions.
-        dynamic_factor = math.log(median_word_count + mean_word_count) / math.log(2)
-
-        # Scaled thresholds for interpretation.
-        # The thresholds adjust based on the dynamic factor, allowing for flexible interpretation
-        # across different corpus sizes and types.
-        scaled_very_rich = 0.8 / dynamic_factor
-        scaled_rich = 0.6 / dynamic_factor
-
-        # Interpretation based on scaled thresholds.
-        # The interpretation dynamically adjusts to the size and distribution of the corpus.
-        if C > scaled_very_rich:
-            interpretation = "very rich vocabulary"
-        elif scaled_rich <= C <= scaled_very_rich:
-            interpretation = "rich vocabulary"
-        else:
-            interpretation = "limited vocabulary richness"
-
-        return C, interpretation
+        return C
 class ZipfianAnalysis:
     """
     Analyze a corpus to determine how well it fits the Zipfian distribution.
