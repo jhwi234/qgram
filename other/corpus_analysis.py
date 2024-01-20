@@ -181,7 +181,7 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
 
     def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100):
         """Get the words in a certain cumulative frequency range."""
-        if not 0 <= lower_percent <= 100 or not 0 <= upper_percent <= 100:
+        if not 0 <= lower_percent <= upper_percent <= 100:
             raise ValueError("Percentages must be between 0 and 100.")
         if lower_percent > upper_percent:
             raise ValueError("lower_percent must not be greater than upper_percent.")
@@ -189,16 +189,17 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         lower_threshold = self._total_token_count * (lower_percent / 100)
         upper_threshold = self._total_token_count * (upper_percent / 100)
 
-        return [details for token, details in self.token_details.items() 
-                if lower_threshold <= details['cumulative_frequency'] <= upper_threshold]
+        return [{'token': token, **details}
+                for token, details in self.token_details.items()
+                if lower_threshold <= details['cumulative_freq'] <= upper_threshold]
 
     def list_tokens_in_rank_range(self, start_rank, end_rank):
         """Get the words in a certain rank range."""
         if not (1 <= start_rank <= end_rank <= len(self.token_details)):
             raise ValueError("Rank range is out of valid bounds.")
 
-        return [{'token': token, **details} 
-                for token, details in self.token_details.items() 
+        return [{'token': token, **details}
+                for token, details in self.token_details.items()
                 if start_rank <= details['rank'] <= end_rank]
 
     def yules_k(self) -> float:
