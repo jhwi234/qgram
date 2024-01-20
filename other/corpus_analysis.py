@@ -2,7 +2,6 @@
 import os
 import string
 import math
-import statistics
 from collections import Counter
 from functools import lru_cache
 import regex as re
@@ -16,13 +15,38 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress
 class CorpusLoader:
     """
-    Load a corpus from NLTK or a local file/directory.
+    Load a corpus from NLTK or a local file/directory, optimized for performance.
     """
     def __init__(self, corpus_source, allow_download=True, custom_download_dir=None):
         self.corpus_source = corpus_source
         self.allow_download = allow_download
         self.custom_download_dir = custom_download_dir
-        self.download_attempted = False  # Flag to track download attempts
+        self.corpus_cache = None
+
+    def _download_corpus(self):
+        """Download the corpus from NLTK."""
+        if self.custom_download_dir:
+            nltk.data.path.append(self.custom_download_dir)
+        nltk.download(self.corpus_source, download_dir=self.custom_download_dir, quiet=True)
+
+    def _load_corpus(self):
+        """Load the corpus into memory."""
+        if os.path.isfile(self.corpus_source) or os.path.isdir(self.corpus_source):
+            corpus_reader = PlaintextCorpusReader(self.corpus_source, '.*')
+        else:
+            corpus_reader = getattr(nltk.corpus, self.corpus_source)
+        return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
+
+    def load_corpus(self):
+        """Get the corpus, either from cache or by loading it."""
+        if self.corpus_cache is not None:
+            return self.corpus_cache
+
+        if not self.is_corpus_available() and self.allow_download:
+            self._download_corpus()
+
+        self.corpus_cache = self._load_corpus()
+        return self.corpus_cache
 
     def is_corpus_available(self):
         """Check if the corpus is available locally or through NLTK."""
@@ -31,43 +55,20 @@ class CorpusLoader:
             return True
         except LookupError:
             return False
-
-    def download_corpus(self):
-        """Download the corpus from NLTK."""
-        if self.custom_download_dir:
-            nltk.data.path.append(self.custom_download_dir)
-        nltk.download(self.corpus_source, download_dir=self.custom_download_dir, quiet=True)
-        self.download_attempted = True
-
-    def load_corpus(self) -> list:
-        """Load the entire corpus into a list of tokens."""
-        if os.path.isfile(self.corpus_source) or os.path.isdir(self.corpus_source):
-            # Handle local file or directory
-            corpus_reader = PlaintextCorpusReader(self.corpus_source, '.*')
-            return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
-        elif self.is_corpus_available():
-            # Load from NLTK if available
-            corpus_reader = getattr(nltk.corpus, self.corpus_source)
-            return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
-        elif self.allow_download and not self.download_attempted:
-            # Attempt to download if not already attempted
-            self.download_corpus()
-            corpus_reader = getattr(nltk.corpus, self.corpus_source)
-            return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
-        else:
-            # Corpus not found and either download is disabled or already attempted
-            raise RuntimeError(f"Failed to access or download the NLTK corpus: {self.corpus_source}")
 class Tokenizer:
     """
     Tokenize text into individual words.
     """
-    def __init__(self, remove_stopwords=False, remove_punctuation=False, use_nltk_tokenizer=False, stopwords_language='english'):
+    def __init__(self, remove_stopwords=False, remove_punctuation=False, use_nltk_tokenizer=True, stopwords_language='english'):
         self.remove_stopwords = remove_stopwords
         self.remove_punctuation = remove_punctuation
         self.use_nltk_tokenizer = use_nltk_tokenizer
         self.stopwords_language = stopwords_language
         self.custom_regex = None
+        self._stop_words = set()
+        self._punctuation = set()
         self._ensure_nltk_resources()
+        self._load_stopwords_and_punctuation()
 
     def _ensure_nltk_resources(self):
         """Ensure that NLTK resources are available."""
@@ -77,51 +78,90 @@ class Tokenizer:
             except LookupError:
                 nltk.download('stopwords', quiet=True)
 
+    def _load_stopwords_and_punctuation(self):
+        """Load stopwords and punctuation sets for efficient access."""
+        if self.remove_stopwords:
+            self._stop_words = set(stopwords.words(self.stopwords_language))
+        if self.remove_punctuation:
+            self._punctuation = set(string.punctuation)
+
     def set_custom_regex(self, pattern):
-        """Set a custom regex pattern for tokenization."""
+        """Set a custom regex pattern for tokenization with caching."""
         try:
             self.custom_regex = re.compile(pattern)
         except re.error as e:
             raise ValueError(f"Invalid regex pattern: {e}")
 
     def _remove_stopwords_and_punctuation(self, tokens) -> list:
-        """Remove stopwords and punctuation from a list of tokens."""
-        if not self.remove_stopwords and not self.remove_punctuation:
-            return tokens
-
-        stop_words = set(stopwords.words(self.stopwords_language)) if self.remove_stopwords else set()
-        punctuation = set(string.punctuation) if self.remove_punctuation else set()
-
-        return [token for token in tokens if token not in punctuation and token not in stop_words]
+        """Remove stopwords and punctuation from a list of tokens using preloaded sets."""
+        return [token for token in tokens if token not in self._punctuation and token not in self._stop_words]
 
     def tokenize(self, text) -> list:
-        """Tokenize text into individual words."""
-        # If text is a list, join it into a single string
+        """Tokenize text into individual words based on the selected method."""
         if isinstance(text, list):
             text = ' '.join(text)
 
-        # Perform initial tokenization
+        # Perform tokenization based on the selected method
         if self.custom_regex:
             tokens = self.custom_regex.findall(text)
         elif self.use_nltk_tokenizer:
             tokens = word_tokenize(text)
         else:
+            # Basic whitespace tokenization
             tokens = text.split()
 
-        # Apply removal of stopwords and punctuation
         return self._remove_stopwords_and_punctuation(tokens)
+
 class BasicCorpusAnalyzer:
     """
     Analyze a corpus of text.
     """
     def __init__(self, tokens):
+        if not all(isinstance(token, str) for token in tokens):
+            raise ValueError("All tokens must be strings.")
+
         self.tokens = tokens
         self.frequency = Counter(tokens)
-        self.sorted_tokens = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
-        self.total_token_count = sum(self.frequency.values())
+        self._sorted_tokens = None
+        self._total_token_count = None
+        self._cum_freqs, self._token_ranks = self._calculate_cumulative_frequencies()
 
-    def _calculate_cumulative_frequencies(self) -> tuple:
-        """Calculate cumulative frequencies and token ranks."""
+    @property
+    def sorted_tokens(self):
+        if self._sorted_tokens is None:
+            self._sorted_tokens = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
+        return self._sorted_tokens
+
+    @property
+    def total_token_count(self):
+        if self._total_token_count is None:
+            self._total_token_count = sum(self.frequency.values())
+        return self._total_token_count
+
+    def find_median_token(self):
+        """Efficiently find the median token in the corpus."""
+        median_index = self.total_token_count / 2
+        cumulative = 0
+        for token, freq in self.sorted_tokens:
+            cumulative += freq
+            if cumulative >= median_index:
+                return token, freq
+
+    def mode_token(self):
+        """Find the mode token in the corpus."""
+        return self.sorted_tokens[0]
+
+    def mean_token_frequency(self):
+        """Calculate the mean token frequency."""
+        return self.total_token_count / len(self.frequency)
+
+    def type_token_ratio(self):
+        """Calculate the type-token ratio."""
+        return len(self.frequency) / self.total_token_count
+
+    @lru_cache(maxsize=None)
+    def _calculate_cumulative_frequencies(self):
+        """Calculate cumulative frequencies and token ranks, caching the results."""
         cumulative = 0
         cum_freqs = {}
         token_ranks = {}
@@ -131,31 +171,11 @@ class BasicCorpusAnalyzer:
             token_ranks[token] = rank
         return cum_freqs, token_ranks
 
-    def find_median_token(self) -> tuple:
-        """Find the median token in the corpus."""
-        median_index = self.total_token_count / 2
-        cumulative = 0
-        for token, freq in self.sorted_tokens:
-            cumulative += freq
-            if cumulative >= median_index:
-                return token, freq
+    def query_by_word_or_rank(self, query):
+        """Query the corpus by word or rank with improved error handling."""
+        self._calculate_cumulative_frequencies()
 
-    def mode_token(self) -> tuple:
-        """Find the mode token in the corpus."""
-        return self.sorted_tokens[0]
-
-    def mean_token_frequency(self) -> float:
-        """Calculate the mean token frequency."""
-        return self.total_token_count / len(self.frequency)
-
-    def type_token_ratio(self) -> float:
-        """Calculate the type-token ratio."""
-        return len(self.frequency) / self.total_token_count
-
-    def query_by_word_or_rank(self, query) -> tuple:
-        """Query the corpus by word or rank."""
         if isinstance(query, int):
-            # Check if rank is within the valid range
             if 1 <= query <= len(self.sorted_tokens):
                 token, freq = self.sorted_tokens[query - 1]
                 return token, freq, query
@@ -164,30 +184,25 @@ class BasicCorpusAnalyzer:
         elif isinstance(query, str):
             word = query.lower()
             freq = self.frequency.get(word, 0)
-            rank = self.token_ranks.get(word, None)
-            return word, freq, rank
+            rank = self._token_ranks.get(word, None)
+            if rank is not None:
+                return word, freq, rank
+            else:
+                raise ValueError(f"Word '{word}' not found in the corpus.")
         else:
             raise TypeError("Query must be a word (str) or a rank (int).")
 
-    def get_words_in_rank_range(self, start_rank, end_rank) -> list:
-        """
-        Get words, their frequencies, and ranks that fall within a specified rank range.
-        Validates input ranks to ensure they are within the 1 to total number of words range,
-        and that start_rank is not greater than end_rank.
-        """
-        # Validate the rank range
+    def get_words_in_rank_range(self, start_rank, end_rank):
+        """Get words, their frequencies, and ranks in a specified rank range."""
         if not (1 <= start_rank <= len(self.sorted_tokens)):
             raise ValueError(f"Start rank {start_rank} is out of range (1 to {len(self.sorted_tokens)}).")
         if not (start_rank <= end_rank <= len(self.sorted_tokens)):
             raise ValueError(f"End rank {end_rank} is out of the valid range ({start_rank} to {len(self.sorted_tokens)}).")
 
-        # Extract tokens within the specified rank range
         return [(token, freq, rank) for rank, (token, freq) in enumerate(self.sorted_tokens, start=1) if start_rank <= rank <= end_rank]
-
 class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
     def __init__(self, tokens):
         super().__init__(tokens)
-        self.cum_freqs, self.token_ranks = self._calculate_cumulative_frequencies()
         self.N = sum(self.frequency.values())  # Store total word count for Herdan's C metric
 
     def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100) -> list:
@@ -212,9 +227,9 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
 
         words_in_range = []
         for token, freq in self.sorted_tokens:
-            cumulative_freq = self.cum_freqs[token]
+            cumulative_freq = self._cum_freqs[token]
             if lower_threshold <= cumulative_freq <= upper_threshold:
-                words_in_range.append((token, freq, self.token_ranks[token], cumulative_freq))
+                words_in_range.append((token, freq, self._token_ranks[token], cumulative_freq))
             elif cumulative_freq > upper_threshold:
                 break
 
@@ -247,22 +262,16 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         C = math.log(V) / math.log(self.N)
 
         return C
-class ZipfianAnalysis:
-    """
-    Analyze a corpus to determine how well it fits the Zipfian distribution.
-    """
+class ZipfianAnalysis(BasicCorpusAnalyzer):
     def __init__(self, tokens):
-        self.tokens = tokens
-        self.frequency = Counter(tokens)
-        self.sorted_tokens = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
-        self.total_token_count = sum(self.frequency.values())
+        super().__init__(tokens)
 
+    @staticmethod
     @lru_cache(maxsize=None)
-    def _calculate_generalized_harmonic(self, n, alpha) -> float:
-        """Calculate the generalized harmonic number."""
+    def _calculate_generalized_harmonic(n, alpha) -> float:
         return sum(1 / (i ** alpha) for i in range(1, n + 1))
 
-    def plot_comparison(self, alpha=1):
+    def plot_zipfian_comparison(self, alpha=1):
         ranks = np.arange(1, len(self.sorted_tokens) + 1)
         frequencies = np.array([freq for _, freq in self.sorted_tokens])
         log_ranks = np.log(ranks)
@@ -270,51 +279,33 @@ class ZipfianAnalysis:
         harmonic_number = self._calculate_generalized_harmonic(len(ranks), alpha)
         ideal_zipfian = (self.total_token_count / harmonic_number) / np.power(ranks, alpha)
         log_ideal_zipfian = np.log(ideal_zipfian)
+
         plt.figure(figsize=(10, 6))
-        plt.scatter(log_ranks, log_freqs, color='blue', label='Actual Frequencies', s=10)
-        plt.plot(log_ranks, log_ideal_zipfian, 'g--', label='Ideal Zipfian', linewidth=2)
+        plt.scatter(log_ranks, log_freqs, color='blue', label='Actual Frequencies')
+        plt.plot(log_ranks, log_ideal_zipfian, 'g--', label='Ideal Zipfian')
         plt.xlabel('Log of Rank')
         plt.ylabel('Log of Frequency')
-        plt.title('Comparison of Actual Frequencies with Ideal Zipfian')
+        plt.title('Zipfian Comparison of Corpus')
         plt.legend()
         plt.show()
 
     def assess_zipfian_fit(self, alpha=1) -> tuple:
-        """
-        Assess how well the corpus fits the Zipfian distribution.
-        Returns the mean and standard deviation of the absolute deviations
-        between the actual and expected frequencies.
-        """
-        deviations = self._calculate_zipfian_deviations(alpha)
+        n = len(self.sorted_tokens)
+        ranks = np.arange(1, n + 1)
+        harmonic_number = ZipfianAnalysis._calculate_generalized_harmonic(n, alpha)
+        harmonic_factor = self.total_token_count / harmonic_number
+        expected_freqs = harmonic_factor / np.power(ranks, alpha)
+        actual_freqs = np.array([freq for _, freq in self.sorted_tokens])
+
+        deviations = actual_freqs - expected_freqs
         mean_deviation = np.mean(np.abs(deviations))
         std_deviation = np.std(deviations)
         return mean_deviation, std_deviation
 
-    def _calculate_zipfian_deviations(self, alpha=1) -> np.ndarray:
-        """Calculate the deviations between actual and expected frequencies."""
-        n = len(self.sorted_tokens)
-        ranks = np.arange(1, n + 1)
-        harmonic_number = self._calculate_generalized_harmonic(n, alpha)
-        harmonic_factor = self.total_token_count / harmonic_number
-        expected_freqs = harmonic_factor / np.power(ranks, alpha)
-        actual_freqs = np.array([freq for _, freq in self.sorted_tokens])
-        deviations = actual_freqs - expected_freqs
-        return deviations
-    
     def calculate_alpha(self) -> float:
-        """
-        Calculate the alpha parameter of the Zipfian distribution for the corpus.
-        """
         ranks = np.arange(1, len(self.sorted_tokens) + 1)
         frequencies = np.array([freq for _, freq in self.sorted_tokens])
-
-        # Applying log transformation to ranks and frequencies
         log_ranks = np.log(ranks)
         log_freqs = np.log(frequencies)
-
-        # Perform linear regression on log-log data
-        slope, intercept, r_value, p_value, std_err = linregress(log_ranks, log_freqs)
-
-        # The slope of the line in log-log plot gives an estimate of -alpha
-        alpha_estimate = -slope
-        return alpha_estimate
+        slope, _, _, _, _ = linregress(log_ranks, log_freqs)
+        return -slope
