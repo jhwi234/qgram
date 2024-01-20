@@ -119,133 +119,97 @@ class BasicCorpusAnalyzer:
     def __init__(self, tokens):
         if not all(isinstance(token, str) for token in tokens):
             raise ValueError("All tokens must be strings.")
-
-        self.tokens = tokens
         self.frequency = Counter(tokens)
-        self._sorted_tokens = None
-        self._total_token_count = None
+        self._total_token_count = sum(self.frequency.values())
         self._cum_freqs, self._token_ranks = self._calculate_cumulative_frequencies()
 
     @property
-    def sorted_tokens(self):
-        if self._sorted_tokens is None:
-            self._sorted_tokens = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
-        return self._sorted_tokens
-
-    @property
-    def total_token_count(self):
+    def total_token_count(self) -> int:
+        """Calculate the total number of tokens in the corpus."""
         if self._total_token_count is None:
             self._total_token_count = sum(self.frequency.values())
         return self._total_token_count
 
-    def find_median_token(self):
+    def find_median_token(self) -> tuple:
         """Efficiently find the median token in the corpus."""
-        median_index = self.total_token_count / 2
+        median_index = self._total_token_count / 2
         cumulative = 0
-        for token, freq in self.sorted_tokens:
+        for token, freq in self.frequency.most_common():
             cumulative += freq
             if cumulative >= median_index:
-                return token, freq
+                return {'token': token, 'frequency': freq}
 
-    def mode_token(self):
-        """Find the mode token in the corpus."""
-        return self.sorted_tokens[0]
-
-    def mean_token_frequency(self):
+    def mean_token_frequency(self) -> float:
         """Calculate the mean token frequency."""
         return self.total_token_count / len(self.frequency)
 
-    def type_token_ratio(self):
-        """Calculate the type-token ratio."""
-        return len(self.frequency) / self.total_token_count
-
-    @lru_cache(maxsize=None)
-    def _calculate_cumulative_frequencies(self):
+    def _calculate_cumulative_frequencies(self) -> tuple:
         """Calculate cumulative frequencies and token ranks, caching the results."""
         cumulative = 0
         cum_freqs = {}
         token_ranks = {}
-        for rank, (token, freq) in enumerate(self.sorted_tokens, start=1):
+        for rank, (token, freq) in enumerate(self.frequency.most_common(), start=1):
             cumulative += freq
             cum_freqs[token] = cumulative
             token_ranks[token] = rank
         return cum_freqs, token_ranks
 
-    def query_by_word_or_rank(self, query):
-        """Query the corpus by word or rank with improved error handling."""
-        self._calculate_cumulative_frequencies()
-
-        if isinstance(query, int):
-            if 1 <= query <= len(self.sorted_tokens):
-                token, freq = self.sorted_tokens[query - 1]
-                return token, freq, query
-            else:
-                raise ValueError(f"Rank {query} is out of range (1 to {len(self.sorted_tokens)}).")
-        elif isinstance(query, str):
-            word = query.lower()
-            freq = self.frequency.get(word, 0)
-            rank = self._token_ranks.get(word, None)
-            if rank is not None:
-                return word, freq, rank
-            else:
-                raise ValueError(f"Word '{word}' not found in the corpus.")
+    def query_by_word(self, word) -> dict:
+        """Query the frequency and rank of a word in the corpus."""
+        word = word.lower()
+        freq = self.frequency.get(word, 0)
+        rank = self._token_ranks.get(word, None)
+        if rank is not None:
+            return {'word': word, 'frequency': freq, 'rank': rank}
         else:
-            raise TypeError("Query must be a word (str) or a rank (int).")
+            raise ValueError(f"Word '{word}' not found in the corpus.")
 
-    def get_words_in_rank_range(self, start_rank, end_rank):
-        """Get words, their frequencies, and ranks in a specified rank range."""
-        if not (1 <= start_rank <= len(self.sorted_tokens)):
-            raise ValueError(f"Start rank {start_rank} is out of range (1 to {len(self.sorted_tokens)}).")
-        if not (start_rank <= end_rank <= len(self.sorted_tokens)):
-            raise ValueError(f"End rank {end_rank} is out of the valid range ({start_rank} to {len(self.sorted_tokens)}).")
+    def query_by_rank(self, rank) -> dict:
+        """Query the word and frequency of a rank in the corpus."""
+        if 1 <= rank <= len(self.frequency):
+            token, freq = self.frequency.most_common()[rank - 1]
+            return {'token': token, 'frequency': freq, 'rank': rank}
+        else:
+            raise ValueError(f"Rank {rank} is out of range.")
 
-        return [(token, freq, rank) for rank, (token, freq) in enumerate(self.sorted_tokens, start=1) if start_rank <= rank <= end_rank]
 class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
     def __init__(self, tokens):
         super().__init__(tokens)
-        self.N = sum(self.frequency.values())  # Store total word count for Herdan's C metric
 
-    def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100) -> list:
-        """
-        Get words, their frequencies, and ranks that fall within a specified frequency range.
-        Validates input percentages to ensure they are within the 0-100 range and lower_percent is not greater than upper_percent.
-        """
-        # Validate input percentages
-        if not 0 <= lower_percent <= 100:
-            raise ValueError("lower_percent must be between 0 and 100.")
-        if not 0 <= upper_percent <= 100:
-            raise ValueError("upper_percent must be between 0 and 100.")
+    def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100):
+        """Get the words in a certain cumulative frequency range."""
+        if not 0 <= lower_percent <= 100 or not 0 <= upper_percent <= 100:
+            raise ValueError("Percentages must be between 0 and 100.")
         if lower_percent > upper_percent:
             raise ValueError("lower_percent must not be greater than upper_percent.")
 
-        if not self.tokens:
-            return []
-
-        total = sum(self.frequency.values())
+        total = self.total_token_count
         lower_threshold = total * (lower_percent / 100)
         upper_threshold = total * (upper_percent / 100)
 
-        words_in_range = []
-        for token, freq in self.sorted_tokens:
-            cumulative_freq = self._cum_freqs[token]
-            if lower_threshold <= cumulative_freq <= upper_threshold:
-                words_in_range.append((token, freq, self._token_ranks[token], cumulative_freq))
-            elif cumulative_freq > upper_threshold:
-                break
+        return [{'token': token, 'frequency': freq, 'rank': rank, 'cumulative_frequency': self._cum_freqs[token]}
+                for rank, (token, freq) in enumerate(self.frequency.most_common(), start=1)
+                if self._cum_freqs[token] >= lower_threshold and self._cum_freqs[token] <= upper_threshold]
 
-        return words_in_range
+    def list_tokens_in_rank_range(self, start_rank, end_rank):
+        """Get the words in a certain rank range."""
+        if not (1 <= start_rank <= len(self.frequency)):
+            raise ValueError(f"Start rank {start_rank} is out of range.")
+        if not (start_rank <= end_rank <= len(self.frequency)):
+            raise ValueError(f"End rank {end_rank} is out of the valid range.")
 
+        return [{'token': token, 'frequency': freq, 'rank': rank}
+                for rank, (token, freq) in enumerate(self.frequency.most_common()[start_rank - 1:end_rank], start=start_rank)]
+    
     def yules_k(self) -> float:
         """
         Calculate Yule's K measure for lexical diversity.
         """
         # Convert frequency values to a NumPy array
         freqs = np.array(list(self.frequency.values()))
-
         # Utilize NumPy's vectorized operations for sum calculations
         M1 = np.sum(freqs)
         M2 = np.sum(freqs ** 2)
-
         # Calculate K using M1 and M2
         K = 10**4 * (M2 - M1) / (M1 ** 2)
 
@@ -257,9 +221,10 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         """
         # V: Number of unique words (vocabulary size).
         V = len(self.frequency)
-
+        # N: Total number of words in the corpus.
+        N = self.total_token_count
         # C: Herdan's C value, calculated using the stored total word count
-        C = math.log(V) / math.log(self.N)
+        C = math.log(V) / math.log(N)
 
         return C
 class ZipfianAnalysis(BasicCorpusAnalyzer):
@@ -269,11 +234,14 @@ class ZipfianAnalysis(BasicCorpusAnalyzer):
     @staticmethod
     @lru_cache(maxsize=None)
     def _calculate_generalized_harmonic(n, alpha) -> float:
+        """Calculate the generalized harmonic number."""
         return sum(1 / (i ** alpha) for i in range(1, n + 1))
 
     def plot_zipfian_comparison(self, alpha=1):
-        ranks = np.arange(1, len(self.sorted_tokens) + 1)
-        frequencies = np.array([freq for _, freq in self.sorted_tokens])
+        """Plot the corpus frequency distribution against the ideal Zipfian distribution curve."""
+        most_common = self.frequency.most_common()
+        ranks = np.arange(1, len(most_common) + 1)
+        frequencies = np.array([freq for _, freq in most_common])
         log_ranks = np.log(ranks)
         log_freqs = np.log(frequencies)
         harmonic_number = self._calculate_generalized_harmonic(len(ranks), alpha)
@@ -290,12 +258,14 @@ class ZipfianAnalysis(BasicCorpusAnalyzer):
         plt.show()
 
     def assess_zipfian_fit(self, alpha=1) -> tuple:
-        n = len(self.sorted_tokens)
+        """Assess the fit of the corpus to a Zipfian distribution."""
+        most_common = self.frequency.most_common()
+        n = len(most_common)
         ranks = np.arange(1, n + 1)
         harmonic_number = ZipfianAnalysis._calculate_generalized_harmonic(n, alpha)
         harmonic_factor = self.total_token_count / harmonic_number
         expected_freqs = harmonic_factor / np.power(ranks, alpha)
-        actual_freqs = np.array([freq for _, freq in self.sorted_tokens])
+        actual_freqs = np.array([freq for _, freq in most_common])
 
         deviations = actual_freqs - expected_freqs
         mean_deviation = np.mean(np.abs(deviations))
@@ -303,8 +273,10 @@ class ZipfianAnalysis(BasicCorpusAnalyzer):
         return mean_deviation, std_deviation
 
     def calculate_alpha(self) -> float:
-        ranks = np.arange(1, len(self.sorted_tokens) + 1)
-        frequencies = np.array([freq for _, freq in self.sorted_tokens])
+        """Calculate the alpha value for the corpus."""
+        most_common = self.frequency.most_common()
+        ranks = np.arange(1, len(most_common) + 1)
+        frequencies = np.array([freq for _, freq in most_common])
         log_ranks = np.log(ranks)
         log_freqs = np.log(frequencies)
         slope, _, _, _, _ = linregress(log_ranks, log_freqs)

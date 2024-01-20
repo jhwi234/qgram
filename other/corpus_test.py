@@ -32,11 +32,6 @@ def lexical_similarity_analysis(tokens1, tokens2):
     final_score = (overlap_coefficient + cos_similarity + zipfian_similarity) / 3
     return final_score
 
-import nltk
-
-# Ensure the Brown corpus is downloaded
-nltk.download('brown')
-
 # Step 1: Load the Brown Corpus
 corpus_loader = CorpusLoader('brown')
 brown_tokens = corpus_loader.load_corpus()
@@ -48,13 +43,15 @@ tokenized_brown = tokenizer.tokenize(brown_tokens)
 # Step 3: Basic Analysis
 basic_analyzer = BasicCorpusAnalyzer(tokenized_brown)
 print("Median Token:", basic_analyzer.find_median_token())
-print("Mode Token:", basic_analyzer.mode_token())
 print("Mean Token Frequency:", basic_analyzer.mean_token_frequency())
-print("Type-Token Ratio:", basic_analyzer.type_token_ratio())
-
+print("Query 25th most frequent token:", basic_analyzer.query_by_rank(25))
+print("Query frequency and rank of 'university':", basic_analyzer.query_by_word('university'))
 # Step 4: Advanced Analysis
 advanced_analyzer = AdvancedCorpusAnalyzer(tokenized_brown)
-print("Cumulative Frequency Analysis:", advanced_analyzer.cumulative_frequency_analysis(0, 10))
+# Display words in a certain rank range
+print("Words in rank range 100 to 110:", advanced_analyzer.list_tokens_in_rank_range(100, 110))
+
+print("\nCumulative Frequency Analysis (Top 20%):", advanced_analyzer.cumulative_frequency_analysis(0, 20))
 print("Yule's K Measure:", advanced_analyzer.yules_k())
 print("Herdan's C Measure:", advanced_analyzer.herdans_c())
 
@@ -62,7 +59,7 @@ print("Herdan's C Measure:", advanced_analyzer.herdans_c())
 zipfian_analyzer = ZipfianAnalysis(tokenized_brown)
 zipfian_analyzer.plot_zipfian_comparison()
 alpha = zipfian_analyzer.calculate_alpha()
-print("Estimated Alpha for Zipfian Distribution:", alpha)
+print("\nEstimated Alpha for Zipfian Distribution:", alpha)
 mean_deviation, std_deviation = zipfian_analyzer.assess_zipfian_fit(alpha)
 print("Mean Deviation in Zipfian Fit:", mean_deviation)
 print("Standard Deviation in Zipfian Fit:", std_deviation)
