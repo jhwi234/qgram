@@ -1,15 +1,5 @@
-import nltk
-from corpus_analysis import BasicCorpusAnalyzer, ZipfianAnalysis, Tokenizer, CorpusLoader
+from corpus_analysis import BasicCorpusAnalyzer, AdvancedCorpusAnalyzer, ZipfianAnalysis, Tokenizer, CorpusLoader
 import numpy as np
-
-def download_nltk_corpora(corpus_names):
-    """Download necessary NLTK corpora if not already available."""
-    for corpus_name in corpus_names:
-        try:
-            nltk.data.find(f"corpora/{corpus_name}")
-        except LookupError:
-            print(f"Downloading NLTK corpus: {corpus_name}")
-            nltk.download(corpus_name)
 
 def cosine_similarity_manual(vec1, vec2):
     # Compute cosine similarity manually using numpy
@@ -22,68 +12,57 @@ def lexical_similarity_analysis(tokens1, tokens2):
     if not tokens1 or not tokens2:
         return 0  # Return zero similarity for empty token lists
 
-    # Initialize analyzers
     analyzer1 = BasicCorpusAnalyzer(tokens1)
     analyzer2 = BasicCorpusAnalyzer(tokens2)
 
-    # Overlap Coefficient
     common_vocab = set(analyzer1.frequency.keys()).intersection(analyzer2.frequency.keys())
     overlap_coefficient = len(common_vocab) / min(len(analyzer1.frequency), len(analyzer2.frequency))
 
-    # Cosine Similarity
     all_vocab = set(analyzer1.frequency.keys()).union(analyzer2.frequency.keys())
     freq_vector1 = np.array([analyzer1.frequency.get(word, 0) for word in all_vocab])
     freq_vector2 = np.array([analyzer2.frequency.get(word, 0) for word in all_vocab])
     cos_similarity = cosine_similarity_manual(freq_vector1, freq_vector2)
 
-    # Zipfian Comparison
     zipfian1 = ZipfianAnalysis(tokens1)
     zipfian2 = ZipfianAnalysis(tokens2)
     alpha1 = zipfian1.calculate_alpha()
     alpha2 = zipfian2.calculate_alpha()
     zipfian_similarity = 1 - abs(alpha1 - alpha2) / max(alpha1, alpha2)
 
-    # Final Similarity Score (weighted average)
     final_score = (overlap_coefficient + cos_similarity + zipfian_similarity) / 3
     return final_score
 
-def get_corpus_text(corpus_name):
-    """Load and return the text of a given NLTK corpus."""
-    try:
-        corpus = getattr(nltk.corpus, corpus_name)
-        return ' '.join(corpus.words()) if hasattr(corpus, 'words') else ''
-    except LookupError as e:
-        print(f"Error loading corpus {corpus_name}: {e}")
-        return ''
+import nltk
 
-def get_corpus_names():
-    """Return a list of commonly used NLTK corpus names."""
-    return [
-        'brown',        # Brown Corpus
-        'gutenberg',    # Project Gutenberg Selections
-        'reuters',      # Reuters Corpus
-        'inaugural',    # Inaugural Address Corpus
-        'nps_chat',     # NPS Chat Corpus
-        'webtext',      # Web and Chat Text
-        'udhr'         # Universal Declaration of Human Rights
-    ]
+# Ensure the Brown corpus is downloaded
+nltk.download('brown')
 
-# Ensure NLTK corpora are downloaded
-corpus_names = get_corpus_names()
-download_nltk_corpora(corpus_names)
+# Step 1: Load the Brown Corpus
+corpus_loader = CorpusLoader('brown')
+brown_tokens = corpus_loader.load_corpus()
 
-# Tokenize and Load texts from all available NLTK corpora
+# Step 2: Tokenize the Corpus
 tokenizer = Tokenizer(remove_punctuation=True)
-tokenized_corpora = {name: tokenizer.tokenize(get_corpus_text(name)) for name in corpus_names if get_corpus_text(name)}
+tokenized_brown = tokenizer.tokenize(brown_tokens)
 
-# Compute the lexical similarity scores between all pairs of corpora
-similarity_scores = {}
-for i, corpus1 in enumerate(corpus_names):
-    for corpus2 in corpus_names[i+1:]:
-        if corpus1 in tokenized_corpora and corpus2 in tokenized_corpora:
-            score = lexical_similarity_analysis(tokenized_corpora[corpus1], tokenized_corpora[corpus2])
-            similarity_scores[(corpus1, corpus2)] = score
+# Step 3: Basic Analysis
+basic_analyzer = BasicCorpusAnalyzer(tokenized_brown)
+print("Median Token:", basic_analyzer.find_median_token())
+print("Mode Token:", basic_analyzer.mode_token())
+print("Mean Token Frequency:", basic_analyzer.mean_token_frequency())
+print("Type-Token Ratio:", basic_analyzer.type_token_ratio())
 
-# Print similarity scores
-for pair, score in similarity_scores.items():
-    print(f"Lexical Similarity Score between {pair[0]} and {pair[1]}: {score}")
+# Step 4: Advanced Analysis
+advanced_analyzer = AdvancedCorpusAnalyzer(tokenized_brown)
+print("Cumulative Frequency Analysis:", advanced_analyzer.cumulative_frequency_analysis(0, 10))
+print("Yule's K Measure:", advanced_analyzer.yules_k())
+print("Herdan's C Measure:", advanced_analyzer.herdans_c())
+
+# Step 5: Zipfian Analysis
+zipfian_analyzer = ZipfianAnalysis(tokenized_brown)
+zipfian_analyzer.plot_zipfian_comparison()
+alpha = zipfian_analyzer.calculate_alpha()
+print("Estimated Alpha for Zipfian Distribution:", alpha)
+mean_deviation, std_deviation = zipfian_analyzer.assess_zipfian_fit(alpha)
+print("Mean Deviation in Zipfian Fit:", mean_deviation)
+print("Standard Deviation in Zipfian Fit:", std_deviation)
