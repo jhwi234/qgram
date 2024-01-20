@@ -114,65 +114,68 @@ class Tokenizer:
 
 class BasicCorpusAnalyzer:
     """
-    Analyze a corpus of text.
+    Analyze a corpus of text with optimized data structures.
     """
     def __init__(self, tokens):
         if not all(isinstance(token, str) for token in tokens):
             raise ValueError("All tokens must be strings.")
         self.frequency = Counter(tokens)
         self._total_token_count = sum(self.frequency.values())
-        self._cum_freqs, self._token_ranks = self._calculate_cumulative_frequencies()
+        self.token_details = self._initialize_token_details()
+
+    def _initialize_token_details(self):
+        """
+        Initialize the comprehensive dictionary with token details.
+        """
+        token_details = {}
+        cumulative = 0
+        for rank, (token, freq) in enumerate(self.frequency.most_common(), start=1):
+            cumulative += freq
+            token_details[token] = {
+                'frequency': freq,
+                'rank': rank,
+                'cumulative_freq': cumulative
+            }
+        return token_details
 
     @property
     def total_token_count(self) -> int:
-        """Calculate the total number of tokens in the corpus."""
-        if self._total_token_count is None:
-            self._total_token_count = sum(self.frequency.values())
+        """Return the total number of tokens in the corpus."""
         return self._total_token_count
 
-    def find_median_token(self) -> tuple:
-        """Efficiently find the median token in the corpus."""
+    def find_median_token(self) -> dict:
+        """Find the median token in the corpus."""
         median_index = self._total_token_count / 2
         cumulative = 0
-        for token, freq in self.frequency.most_common():
-            cumulative += freq
+        for token, details in self.token_details.items():
+            cumulative += details['frequency']
             if cumulative >= median_index:
-                return {'token': token, 'frequency': freq}
+                return {'token': token, 'frequency': details['frequency']}
 
     def mean_token_frequency(self) -> float:
         """Calculate the mean token frequency."""
-        return self.total_token_count / len(self.frequency)
+        return self.total_token_count / len(self.token_details)
 
-    def _calculate_cumulative_frequencies(self) -> tuple:
-        """Calculate cumulative frequencies and token ranks, caching the results."""
-        cumulative = 0
-        cum_freqs = {}
-        token_ranks = {}
-        for rank, (token, freq) in enumerate(self.frequency.most_common(), start=1):
-            cumulative += freq
-            cum_freqs[token] = cumulative
-            token_ranks[token] = rank
-        return cum_freqs, token_ranks
-
-    def query_by_word(self, word) -> dict:
+    def query_by_token(self, token) -> dict:
         """Query the frequency and rank of a word in the corpus."""
-        word = word.lower()
-        freq = self.frequency.get(word, 0)
-        rank = self._token_ranks.get(word, None)
-        if rank is not None:
-            return {'word': word, 'frequency': freq, 'rank': rank}
+        token = token.lower()
+        details = self.token_details.get(token)
+        if details is not None:
+            return {'token': token, **details}
         else:
-            raise ValueError(f"Word '{word}' not found in the corpus.")
+            raise ValueError(f"Token '{token}' not found in the corpus.")
 
     def query_by_rank(self, rank) -> dict:
         """Query the word and frequency of a rank in the corpus."""
-        if 1 <= rank <= len(self.frequency):
-            token, freq = self.frequency.most_common()[rank - 1]
-            return {'token': token, 'frequency': freq, 'rank': rank}
-        else:
-            raise ValueError(f"Rank {rank} is out of range.")
+        for token, details in self.token_details.items():
+            if details['rank'] == rank:
+                return {'token': token, 'frequency': details['frequency'], 'rank': rank}
+        raise ValueError(f"Rank {rank} is out of range.")
 
 class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
+    """
+    Advanced analysis on a corpus of text, extending BasicCorpusAnalyzer.
+    """
     def __init__(self, tokens):
         super().__init__(tokens)
 
@@ -183,50 +186,37 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         if lower_percent > upper_percent:
             raise ValueError("lower_percent must not be greater than upper_percent.")
 
-        total = self.total_token_count
-        lower_threshold = total * (lower_percent / 100)
-        upper_threshold = total * (upper_percent / 100)
+        lower_threshold = self._total_token_count * (lower_percent / 100)
+        upper_threshold = self._total_token_count * (upper_percent / 100)
 
-        return [{'token': token, 'frequency': freq, 'rank': rank, 'cumulative_frequency': self._cum_freqs[token]}
-                for rank, (token, freq) in enumerate(self.frequency.most_common(), start=1)
-                if self._cum_freqs[token] >= lower_threshold and self._cum_freqs[token] <= upper_threshold]
+        return [details for token, details in self.token_details.items() 
+                if lower_threshold <= details['cumulative_frequency'] <= upper_threshold]
 
     def list_tokens_in_rank_range(self, start_rank, end_rank):
         """Get the words in a certain rank range."""
-        if not (1 <= start_rank <= len(self.frequency)):
-            raise ValueError(f"Start rank {start_rank} is out of range.")
-        if not (start_rank <= end_rank <= len(self.frequency)):
-            raise ValueError(f"End rank {end_rank} is out of the valid range.")
+        if not (1 <= start_rank <= end_rank <= len(self.token_details)):
+            raise ValueError("Rank range is out of valid bounds.")
 
-        return [{'token': token, 'frequency': freq, 'rank': rank}
-                for rank, (token, freq) in enumerate(self.frequency.most_common()[start_rank - 1:end_rank], start=start_rank)]
-    
+        return [{'token': token, **details} 
+                for token, details in self.token_details.items() 
+                if start_rank <= details['rank'] <= end_rank]
+
     def yules_k(self) -> float:
         """
         Calculate Yule's K measure for lexical diversity.
         """
-        # Convert frequency values to a NumPy array
-        freqs = np.array(list(self.frequency.values()))
-        # Utilize NumPy's vectorized operations for sum calculations
+        freqs = np.array([details['frequency'] for details in self.token_details.values()])
         M1 = np.sum(freqs)
         M2 = np.sum(freqs ** 2)
-        # Calculate K using M1 and M2
-        K = 10**4 * (M2 - M1) / (M1 ** 2)
-
-        return K
+        return 10**4 * (M2 - M1) / (M1 ** 2)
 
     def herdans_c(self) -> float:
         """
         Calculate Herdan's C measure for vocabulary richness.
         """
-        # V: Number of unique words (vocabulary size).
-        V = len(self.frequency)
-        # N: Total number of words in the corpus.
-        N = self.total_token_count
-        # C: Herdan's C value, calculated using the stored total word count
-        C = math.log(V) / math.log(N)
-
-        return C
+        V = len(self.token_details)
+        N = self._total_token_count
+        return math.log(V) / math.log(N)
 class ZipfianAnalysis(BasicCorpusAnalyzer):
     def __init__(self, tokens):
         super().__init__(tokens)
