@@ -69,16 +69,6 @@ Since the right-hand side also equals \( H(V, \alpha) \), we get:
 
 The challenge lies in solving this equation for \( V \) given \( N \) and \( \alpha \), which is not straightforward due to the nature of the generalized harmonic number.
 
-
-
-
-
-
-
-
-
-
-
 ### Yule's K Measure:
 
 Yule's K is a measure of lexical diversity, specifically focusing on word frequency distribution. It's calculated using the frequencies and squared frequencies of words in a corpus. The formula for Yule's K is as follows:
@@ -113,3 +103,47 @@ In practice, to find the parameters \( K \) and \( \beta \), a log-log plot is o
 
 - **Yule's K** is typically used to measure the concentration of repetition and lexical diversity within a single text or corpus.
 - **Heaps' Law** is applied to predict how vocabulary size will grow as more text is added to a corpus. It's often used in computational linguistics for tasks like estimating database size for indexing or predicting the complexity of language models.
+
+The Zipf-Mandelbrot law is a refined version of Zipf's law, designed to better accommodate the distribution of ranked data, particularly in linguistic contexts. It's a discrete probability distribution that provides a more flexible model for describing the frequency of words in text corpora, ecological data, and other ranked phenomena.
+
+### Equation and Mathematical Formulation:
+
+The Zipf-Mandelbrot law is defined by the following probability mass function (PMF):
+
+\[ f(k; N, q, s) = \frac{1}{(k + q)^s \cdot H_{N,q,s}} \]
+
+where:
+- \( k \) is the rank of an element.
+- \( N \) is the total number of elements.
+- \( q \) and \( s \) are parameters that modify the distribution.
+- \( H_{N,q,s} \) is a normalizing constant, given by the generalized harmonic number:
+
+  \[ H_{N,q,s} = \sum_{i=1}^{N} \frac{1}{(i + q)^s} \]
+
+As \( N \) approaches infinity, \( H_{N,q,s} \) can be approximated by the Hurwitz zeta function \( \zeta(s, q) \).
+
+### Key Mathematical Properties:
+
+1. **Generalization**: The Zipf-Mandelbrot law generalizes Zipf's law by introducing an additional parameter \( q \), which shifts the rank. This parameter allows for more flexibility in modeling real-world data where the simplest Zipfian model may not fit well.
+
+2. **Reduction to Zipf's Law**: When \( q = 0 \) and \( N \) is finite, the Zipf-Mandelbrot law simplifies to Zipf's law. For infinite \( N \) and \( q = 0 \), it aligns with the Zeta distribution.
+
+3. **Harmonic Number**: The normalizing constant \( H_{N,q,s} \) is a crucial component that ensures the PMF sums to 1 across all ranks. It can be computationally intensive to calculate for large \( N \), and approximations are often used in practical applications.
+
+4. **Parameter Sensitivity**: The behavior of the distribution is sensitive to changes in \( s \) and \( q \). The parameter \( s \) primarily controls the steepness of the distribution, while \( q \) adjusts the distribution's shift along the rank axis.
+
+### Understanding the Parameters:
+
+- **The parameter \( s \)**: This parameter influences the slope of the frequency-rank relationship. A larger \( s \) generally results in a steeper decay of frequency with rank, indicating a more pronounced disparity between the frequencies of high-ranked and low-ranked items.
+  
+- **The parameter \( q \)**: The shift parameter \( q \) modifies how the ranking starts. A higher \( q \) value effectively shifts the frequency curve to the right, changing the distribution's emphasis on higher-ranked items.
+
+### Applications:
+
+- **Linguistics**: In text corpora, the law models the frequency of word occurrences. Different values of \( s \) and \( q \) can reflect variations in language usage, genre, or author style.
+- **Ecology**: Used to model the relative abundance of species, reflecting the ecological diversity and distribution of species in a habitat.
+- **Music**: The distribution of musical notes and their relative frequencies in compositions may conform to the Zipf-Mandelbrot law.
+
+### Computational Considerations:
+
+In practical applications, especially in computational linguistics and data science, it's crucial to efficiently compute the normalizing constant \( H_{N,q,s} \) and to accurately estimate the parameters \( s \) and \( q \) from empirical data. Curve fitting techniques, often involving logarithmic transformations and linear regression, are commonly employed to estimate these parameters. The challenge lies in balancing computational feasibility with the precision of the model, especially when dealing with large datasets.

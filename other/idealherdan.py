@@ -67,15 +67,3 @@ corpus_token_size = 1000000  # Specify the total number of word tokens in the co
 zipfian_corpus, vocab_size = simulate_zipfian_corpus(corpus_token_size)
 herdans_c_value = calculate_herdans_c(zipfian_corpus)
 print(f"Vocabulary Size: {vocab_size}, Herdan's C: {herdans_c_value}")
-
-def estimate_vocabulary_size(N):
-    total = 0
-    i = 1
-    while total < N:
-        total += 1 / i
-        i += 1
-    return i - 1  # Subtract 1 because i is incremented one extra time at the end
-
-N = 1000000
-V = estimate_vocabulary_size(N)
-print(f"Estimated Vocabulary Size (V) for N = {N}: {V}")
