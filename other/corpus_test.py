@@ -32,44 +32,44 @@ def lexical_similarity_analysis(tokens1, tokens2):
     final_score = (overlap_coefficient + cos_similarity + zipfian_similarity) / 3
     return final_score
 
-# Step 1: Load the Brown Corpus
-corpus_loader = CorpusLoader('brown')
-brown_tokens = corpus_loader.load_corpus()
+def analyze_corpus(corpus_name):
+    print(f"\nAnalyzing {corpus_name} Corpus")
 
-# Step 2: Tokenize the Corpus
-tokenizer = Tokenizer(remove_punctuation=True)
-tokenized_brown = tokenizer.tokenize(brown_tokens)
+    # Load the Corpus
+    corpus_loader = CorpusLoader(corpus_name)
+    corpus_tokens = corpus_loader.load_corpus()
 
-# Step 3: Basic Analysis
-basic_analyzer = BasicCorpusAnalyzer(tokenized_brown)
-print("Median Token:", basic_analyzer.find_median_token())
-print("Mean Token Frequency:", basic_analyzer.mean_token_frequency())
-print("Query 25th most frequent token:", basic_analyzer.query_by_rank(25))
-print("Query frequency and rank of 'university':", basic_analyzer.query_by_token('university'))
+    # Tokenize the Corpus
+    tokenizer = Tokenizer(remove_punctuation=True, use_nltk_tokenizer=True)
+    tokenized_corpus = tokenizer.tokenize(corpus_tokens)
 
-# Step 4: Advanced Analysis
-advanced_analyzer = AdvancedCorpusAnalyzer(tokenized_brown)
+    # Basic Analysis
+    basic_analyzer = BasicCorpusAnalyzer(tokenized_corpus)
+    print("Total Token Count:", basic_analyzer.total_token_count)
+    print("Total Word Types (Distinct Tokens):", len(basic_analyzer.frequency))
 
-# Display words in a certain rank range
-tokens_in_range = advanced_analyzer.list_tokens_in_rank_range(100, 110)
-print("\nWords in rank range 100 to 110:")
-for token in tokens_in_range:
-    print(f"Token: {token['token']}, Frequency: {token['frequency']}, Rank: {token['rank']}")
+    # Calculate and Print the Number of Hapax Legomena
+    hapax_legomena_count = sum(1 for _, details in basic_analyzer.token_details.items() if details['frequency'] == 1)
+    print(f"Total Hapax Legomena (Unique Tokens): {hapax_legomena_count}")
 
-# Cumulative Frequency Analysis
-top_20_percent = advanced_analyzer.cumulative_frequency_analysis(0, 20)
-print("\nCumulative Frequency Analysis (Top 20%):")
-for token in top_20_percent:
-    print(f"Token: {token['token']}, Cumulative Frequency: {token['cumulative_freq']}")
+    # Advanced Analysis
+    advanced_analyzer = AdvancedCorpusAnalyzer(tokenized_corpus)
+    print("Yule's K Measure:", advanced_analyzer.yules_k())
+    print("Herdan's C Measure:", advanced_analyzer.herdans_c())
+    print("Alpha Measure:", advanced_analyzer.calculate_alpha())
+    k_beta_measures = advanced_analyzer.calculate_heaps_law_constants()
+    print("K and Beta Measures:", k_beta_measures)
 
-print("\nYule's K Measure:", advanced_analyzer.yules_k())
-print("Herdan's C Measure:", advanced_analyzer.herdans_c())
+    # Calculate and compare estimated vocabulary size
+    K, Beta = k_beta_measures
+    N = basic_analyzer.total_token_count
+    estimated_V = K * N**Beta
+    actual_V = len(basic_analyzer.frequency)
+    print("Estimated Vocabulary Size (V):", estimated_V)
+    print("Actual Vocabulary Size:", actual_V)
 
-# Step 5: Zipfian Analysis
-zipfian_analyzer = ZipfianAnalysis(tokenized_brown)
-zipfian_analyzer.plot_zipfian_comparison()
-alpha = zipfian_analyzer.calculate_alpha()
-print("\nEstimated Alpha for Zipfian Distribution:", alpha)
-mean_deviation, std_deviation = zipfian_analyzer.assess_zipfian_fit(alpha)
-print("Mean Deviation in Zipfian Fit:", mean_deviation)
-print("Standard Deviation in Zipfian Fit:", std_deviation)
+# Analyze multiple corpora
+corpora = ['brown', 'gutenberg', 'reuters', 'webtext', 'inaugural']
+for corpus in corpora:
+    analyze_corpus(corpus)
+

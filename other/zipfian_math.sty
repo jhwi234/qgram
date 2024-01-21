@@ -1,0 +1,115 @@
+To understand the math behind going from a corpus token size and an assumed alpha (typically alpha = 1 for an ideal Zipfian distribution) to calculating the vocabulary size (unique words/word types), we need to delve into the principles of Zipf's Law and its mathematical representation.
+
+### Zipf's Law:
+
+Zipf's Law is an empirical law that states that the frequency of any word in a corpus is inversely proportional to its rank in the frequency table. Mathematically, it can be represented as:
+
+\[ f(r) = \frac{C}{r^\alpha} \]
+
+where:
+- \( f(r) \) is the frequency of the word at rank \( r \).
+- \( C \) is a constant approximately equal to the frequency of the most common word.
+- \( \alpha \) is an exponent usually close to 1 (in an ideal Zipfian distribution, \( \alpha = 1 \)).
+
+### Generalized Harmonic Number:
+
+The generalized harmonic number is used to normalize the frequencies so that their sum equals the total number of words in the corpus. It is defined as:
+
+\[ H(N, \alpha) = \sum_{i=1}^{N} \frac{1}{i^\alpha} \]
+
+where \( N \) is the number of terms in the series (i.e., the vocabulary size).
+
+### Calculating Vocabulary Size:
+
+Given a corpus with a total token size \( T \) and assuming an ideal Zipfian distribution (where \( \alpha = 1 \)), the goal is to find the vocabulary size \( N \) such that the sum of the frequencies of all words equals \( T \). The frequency of a word at rank \( r \) in an ideal Zipfian distribution (with \( \alpha = 1 \)) can be expressed as:
+
+\[ f(r) = \frac{T}{H(N, 1)} \cdot \frac{1}{r} \]
+
+The total number of tokens can be obtained by summing the frequencies of all words:
+
+\[ T = \sum_{r=1}^{N} f(r) = \frac{T}{H(N, 1)} \sum_{r=1}^{N} \frac{1}{r} \]
+
+Since \( \sum_{r=1}^{N} \frac{1}{r} \) is \( H(N, 1) \), it simplifies to:
+
+\[ T = \frac{T}{H(N, 1)} \cdot H(N, 1) \]
+
+Therefore, to find the vocabulary size \( N \), we need to find the largest \( N \) such that \( H(N, 1) \) (the harmonic number) when multiplied by the frequency of the most common word (approximately \( \frac{T}{H(N, 1)} \)) sums up to the total number of tokens \( T \). 
+
+This calculation often requires iterative methods like binary search, as there's no direct algebraic way to solve for \( N \) from \( H(N, 1) \) and \( T \). The binary search iteratively guesses values of \( N \), recalculates \( H(N, 1) \), and checks if the total frequency matches \( T \). The correct vocabulary size \( N \) is the one that makes this equation true.
+
+Calculating the vocabulary size (the number of unique words or word types) from a given corpus token size, assuming an ideal Zipfian distribution with a specific alpha (e.g., alpha = 1), involves understanding the properties of the Zipfian distribution and some mathematical reasoning.
+
+### Zipf's Law:
+
+Zipf's Law states that the frequency of a word in natural language is inversely proportional to its rank in the frequency table. Mathematically, the frequency \( f \) of the \( n \)-th most common word is proportional to \( \frac{1}{n^\alpha} \), where \( \alpha \) is typically close to 1 in natural languages.
+
+### Generalized Harmonic Number:
+
+The generalized harmonic number is used to sum the frequencies of words in a Zipfian distribution. For a vocabulary of size \( V \) and an alpha \( \alpha \), the generalized harmonic number \( H(V, \alpha) \) is given by:
+
+\[ H(V, \alpha) = \sum_{i=1}^{V} \frac{1}{i^\alpha} \]
+
+This sum helps in normalizing the frequencies so that they add up to the total size of the corpus.
+
+### Finding the Vocabulary Size:
+
+The goal is to find the number of unique words \( V \) such that the sum of their frequencies equals the total number of words (corpus token size) in the corpus. 
+
+Given a corpus with \( N \) total words (corpus token size) and assuming an ideal Zipfian distribution, the expected frequency of the \( i \)-th word is:
+
+\[ f_i = \frac{N}{H(V, \alpha)} \cdot \frac{1}{i^\alpha} \]
+
+The total number of words can then be expressed as:
+
+\[ N = \sum_{i=1}^{V} f_i = \frac{N}{H(V, \alpha)} \cdot \sum_{i=1}^{V} \frac{1}{i^\alpha} \]
+
+Since the right-hand side also equals \( H(V, \alpha) \), we get:
+
+\[ N = \frac{N}{H(V, \alpha)} \cdot H(V, \alpha) \]
+
+The challenge lies in solving this equation for \( V \) given \( N \) and \( \alpha \), which is not straightforward due to the nature of the generalized harmonic number.
+
+
+
+
+
+
+
+
+
+
+
+### Yule's K Measure:
+
+Yule's K is a measure of lexical diversity, specifically focusing on word frequency distribution. It's calculated using the frequencies and squared frequencies of words in a corpus. The formula for Yule's K is as follows:
+
+\[
+K = 10^4 \left( \frac{\sum_{i=1}^{V} f_i^2 - N}{N^2} \right)
+\]
+
+Where:
+- \( f_i \) is the frequency of the \( i^{th} \) word.
+- \( V \) is the number of unique words (vocabulary size).
+- \( N \) is the total number of words in the corpus.
+- The summation \( \sum_{i=1}^{V} f_i^2 \) calculates the sum of the squared frequencies of each word.
+
+### Heaps' Law (K and Beta):
+
+Heaps' Law predicts the growth of vocabulary size as a function of the size of the corpus. The relationship is often described by the following formula:
+
+\[
+V(R) = K \cdot R^\beta
+\]
+
+Where:
+- \( V(R) \) is the vocabulary size (number of unique words) when the corpus size is \( R \) words.
+- \( K \) is a constant representing the rate of vocabulary growth at the start of the corpus.
+- \( \beta \) is a parameter that indicates the rate at which new words appear as the corpus size increases.
+- \( R \) is the size of the corpus (total number of words).
+
+In practice, to find the parameters \( K \) and \( \beta \), a log-log plot is often used where the logarithm of the vocabulary size is plotted against the logarithm of the corpus size. The slope of the line in this plot gives \( \beta \), and the intercept gives \( \log(K) \).
+
+### Interpretation and Application:
+
+- **Yule's K** is typically used to measure the concentration of repetition and lexical diversity within a single text or corpus.
+- **Heaps' Law** is applied to predict how vocabulary size will grow as more text is added to a corpus. It's often used in computational linguistics for tasks like estimating database size for indexing or predicting the complexity of language models.
