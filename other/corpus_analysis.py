@@ -13,6 +13,7 @@ from nltk.tokenize import word_tokenize
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
+from scipy.optimize import curve_fit
 class CorpusLoader:
     """
     Load a corpus from NLTK or a local file/directory, optimized for performance.
@@ -247,7 +248,7 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         if len(normalized_tokens) < 2:
             raise ValueError("Not enough data to calculate Heaps' law constants.")
 
-        # Dynamic determination of sampling points based on 1% of corpus size
+        # Dynamic determination of sampling points based on 5% of corpus size
         corpus_size = len(normalized_tokens)
         sampling_rate = 0.05
         sample_points = max(int(corpus_size * sampling_rate), 1000)
@@ -279,14 +280,23 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         return K, beta
 
     def calculate_alpha(self) -> float:
-        """Calculate the alpha value for the corpus."""
-        most_common = self.frequency.most_common()
-        ranks = np.arange(1, len(most_common) + 1)
-        frequencies = np.array([freq for _, freq in most_common])
+        """
+        Calculate the alpha value for Zipf's law for the corpus using log-transformed ranks and frequencies.
+        """
+        # Extract frequencies and ranks from token details
+        frequencies = np.array([details['frequency'] for details in self.token_details.values()])
+        ranks = np.array([details['rank'] for details in self.token_details.values()])
+
+        # Log-transform ranks and frequencies
         log_ranks = np.log(ranks)
         log_freqs = np.log(frequencies)
+
+        # Perform linear regression
         slope, _, _, _, _ = linregress(log_ranks, log_freqs)
+
+        # Return the negative of the slope as alpha
         return -slope
+
 class ZipfianAnalysis(BasicCorpusAnalyzer):
     def __init__(self, tokens):
         super().__init__(tokens)
