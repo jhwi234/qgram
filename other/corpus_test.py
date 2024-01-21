@@ -46,13 +46,23 @@ print("Median Token:", basic_analyzer.find_median_token())
 print("Mean Token Frequency:", basic_analyzer.mean_token_frequency())
 print("Query 25th most frequent token:", basic_analyzer.query_by_rank(25))
 print("Query frequency and rank of 'university':", basic_analyzer.query_by_token('university'))
+
 # Step 4: Advanced Analysis
 advanced_analyzer = AdvancedCorpusAnalyzer(tokenized_brown)
-# Display words in a certain rank range
-print("Words in rank range 100 to 110:", advanced_analyzer.list_tokens_in_rank_range(100, 110))
 
-print("\nCumulative Frequency Analysis (Top 20%):", advanced_analyzer.cumulative_frequency_analysis(0, 20))
-print("Yule's K Measure:", advanced_analyzer.yules_k())
+# Display words in a certain rank range
+tokens_in_range = advanced_analyzer.list_tokens_in_rank_range(100, 110)
+print("\nWords in rank range 100 to 110:")
+for token in tokens_in_range:
+    print(f"Token: {token['token']}, Frequency: {token['frequency']}, Rank: {token['rank']}")
+
+# Cumulative Frequency Analysis
+top_20_percent = advanced_analyzer.cumulative_frequency_analysis(0, 20)
+print("\nCumulative Frequency Analysis (Top 20%):")
+for token in top_20_percent:
+    print(f"Token: {token['token']}, Cumulative Frequency: {token['cumulative_freq']}")
+
+print("\nYule's K Measure:", advanced_analyzer.yules_k())
 print("Herdan's C Measure:", advanced_analyzer.herdans_c())
 
 # Step 5: Zipfian Analysis

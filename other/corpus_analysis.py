@@ -181,10 +181,12 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
 
     def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100):
         """Get the words in a certain cumulative frequency range."""
-        if not 0 <= lower_percent <= upper_percent <= 100:
+        if not 0 <= lower_percent <= 100 or not 0 <= upper_percent <= 100:
             raise ValueError("Percentages must be between 0 and 100.")
+
+        # Swap the values if lower_percent is greater than upper_percent
         if lower_percent > upper_percent:
-            raise ValueError("lower_percent must not be greater than upper_percent.")
+            lower_percent, upper_percent = upper_percent, lower_percent
 
         lower_threshold = self._total_token_count * (lower_percent / 100)
         upper_threshold = self._total_token_count * (upper_percent / 100)
