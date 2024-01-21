@@ -9,23 +9,25 @@ def _calculate_generalized_harmonic(n, alpha):
     return np.sum(1 / np.power(np.arange(1, n + 1), alpha))
 
 def find_vocabulary_size(corpus_token_size, alpha=1):
-    # Use binary search to efficiently find the vocabulary (word types) size that fits
-    # the Zipfian distribution for a given corpus length. This is because
-    # the Zipfian distribution's total frequency for a given vocabulary size
-    # is not linear and requires iterative searching.
-    low, high = 1, corpus_token_size
+    """
+    Find the vocabulary size for a given corpus token size and alpha,
+    assuming a Zipfian distribution.
+    """
+    low, high = 1, corpus_token_size  # Initial range for vocabulary size
+
     while low < high:
         mid = (low + high) // 2
         harmonic_number = _calculate_generalized_harmonic(mid, alpha)
-        # Calculate the total frequency across all ranks up to 'mid'
-        # using the Zipfian distribution formula. This checks if the
-        # sum of frequencies up to this point meets the corpus total token size.
-        total_freq = sum((corpus_token_size / harmonic_number) / (rank ** alpha) for rank in range(1, mid + 1))
-        # Binary search logic to converge on the correct vocabulary size.
-        if total_freq < corpus_token_size:
+
+        # Estimate total frequency for the mid vocabulary size
+        estimated_total_freq = sum((corpus_token_size / harmonic_number) / (rank ** alpha) for rank in range(1, mid + 1))
+
+        # Binary search logic to find the correct vocabulary size
+        if estimated_total_freq < corpus_token_size:
             low = mid + 1
         else:
             high = mid
+
     return low
 
 def simulate_zipfian_corpus(corpus_token_size, alpha=1):
@@ -65,3 +67,15 @@ corpus_token_size = 1000000  # Specify the total number of word tokens in the co
 zipfian_corpus, vocab_size = simulate_zipfian_corpus(corpus_token_size)
 herdans_c_value = calculate_herdans_c(zipfian_corpus)
 print(f"Vocabulary Size: {vocab_size}, Herdan's C: {herdans_c_value}")
+
+def estimate_vocabulary_size(N):
+    total = 0
+    i = 1
+    while total < N:
+        total += 1 / i
+        i += 1
+    return i - 1  # Subtract 1 because i is incremented one extra time at the end
+
+N = 1000000
+V = estimate_vocabulary_size(N)
+print(f"Estimated Vocabulary Size (V) for N = {N}: {V}")

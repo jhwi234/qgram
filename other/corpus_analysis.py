@@ -93,9 +93,11 @@ class Tokenizer:
             raise ValueError(f"Invalid regex pattern: {e}")
 
     def _remove_stopwords_and_punctuation(self, tokens) -> list:
-        """Remove stopwords and punctuation from a list of tokens using preloaded sets."""
-        return [token for token in tokens if token not in self._punctuation and token not in self._stop_words]
-
+        """Remove stopwords, punctuation, and unwanted characters from a list of tokens."""
+        return [token for token in tokens if token not in self._punctuation 
+                and token not in self._stop_words 
+                and not token.startswith('``')]
+    
     def tokenize(self, text) -> list:
         """Tokenize text into individual words based on the selected method."""
         if isinstance(text, list):
@@ -111,7 +113,6 @@ class Tokenizer:
             tokens = text.split()
 
         return self._remove_stopwords_and_punctuation(tokens)
-
 class BasicCorpusAnalyzer:
     """
     Analyze a corpus of text with optimized data structures.
@@ -119,6 +120,7 @@ class BasicCorpusAnalyzer:
     def __init__(self, tokens):
         if not all(isinstance(token, str) for token in tokens):
             raise ValueError("All tokens must be strings.")
+        self.tokens = tokens
         self.frequency = Counter(tokens)
         self._total_token_count = sum(self.frequency.values())
         self.token_details = self._initialize_token_details()
@@ -171,14 +173,7 @@ class BasicCorpusAnalyzer:
             if details['rank'] == rank:
                 return {'token': token, 'frequency': details['frequency'], 'rank': rank}
         raise ValueError(f"Rank {rank} is out of range.")
-
-class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
-    """
-    Advanced analysis on a corpus of text, extending BasicCorpusAnalyzer.
-    """
-    def __init__(self, tokens):
-        super().__init__(tokens)
-
+    
     def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100):
         """Get the words in a certain cumulative frequency range."""
         if not 0 <= lower_percent <= 100 or not 0 <= upper_percent <= 100:
@@ -203,23 +198,95 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         return [{'token': token, **details}
                 for token, details in self.token_details.items()
                 if start_rank <= details['rank'] <= end_rank]
+class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
+    """
+    Advanced analysis on a corpus of text, extending BasicCorpusAnalyzer.
+    This class includes advanced linguistic metrics such as Yule's K measure,
+    Herdan's C measure, and calculations related to Heaps' Law.
+    """
+
+    def __init__(self, tokens):
+        super().__init__(tokens)
 
     def yules_k(self) -> float:
         """
         Calculate Yule's K measure for lexical diversity.
+        Yule's K is a statistical measure that reflects the lexical diversity
+        of a text. A higher value indicates greater diversity.
         """
         freqs = np.array([details['frequency'] for details in self.token_details.values()])
+        # M1: The sum of the squares of the word frequencies
         M1 = np.sum(freqs)
+        # M2: The sum of the fourth powers of the word frequencies
         M2 = np.sum(freqs ** 2)
         return 10**4 * (M2 - M1) / (M1 ** 2)
+
+    def yules_k(self) -> float:
+        """
+        Calculate Yule's K measure for lexical diversity using NumPy.
+        """
+        freqs = np.array([details['frequency'] for details in self.token_details.values()])
+        N = np.sum(freqs)
+        sum_fi_fi_minus_1 = np.sum(freqs * (freqs - 1))
+        K = 10**4 * (sum_fi_fi_minus_1 / (N * (N - 1))) if N > 1 else 0
+
+        return K
 
     def herdans_c(self) -> float:
         """
         Calculate Herdan's C measure for vocabulary richness.
+        Herdan's C is a measure of vocabulary richness in a text, representing
+        the ratio of unique words to the total number of words.
         """
         V = len(self.token_details)
         N = self._total_token_count
         return math.log(V) / math.log(N)
+
+    def calculate_heaps_law_constants(self):
+        normalized_tokens = [token.lower() for token in self.tokens]
+        if len(normalized_tokens) < 2:
+            raise ValueError("Not enough data to calculate Heaps' law constants.")
+
+        # Dynamic determination of sampling points based on 1% of corpus size
+        corpus_size = len(normalized_tokens)
+        sampling_rate = 0.05
+        sample_points = max(int(corpus_size * sampling_rate), 1000)
+
+        # Use logarithmic scale for sampling
+        sample_sizes = np.unique(np.logspace(0, np.log10(corpus_size), sample_points).astype(int))
+        unique_word_counts = []
+        unique_words = set()
+        last_size = 0
+
+        for size in sample_sizes:
+            new_tokens = normalized_tokens[last_size:size]
+            unique_words.update(new_tokens)
+            unique_word_counts.append(len(unique_words))
+            last_size = size
+
+        # Perform log transformation
+        log_sample_sizes = np.log(sample_sizes)
+        log_unique_word_counts = np.log(unique_word_counts)
+
+        # Weighted Linear Regression using np.polyfit
+        weights = np.sqrt(sample_sizes)  # Giving more weight to larger samples
+        slope, intercept = np.polyfit(log_sample_sizes, log_unique_word_counts, 1, w=weights)
+
+        # Calculate K and beta
+        beta = slope
+        K = np.exp(intercept)
+
+        return K, beta
+
+    def calculate_alpha(self) -> float:
+        """Calculate the alpha value for the corpus."""
+        most_common = self.frequency.most_common()
+        ranks = np.arange(1, len(most_common) + 1)
+        frequencies = np.array([freq for _, freq in most_common])
+        log_ranks = np.log(ranks)
+        log_freqs = np.log(frequencies)
+        slope, _, _, _, _ = linregress(log_ranks, log_freqs)
+        return -slope
 class ZipfianAnalysis(BasicCorpusAnalyzer):
     def __init__(self, tokens):
         super().__init__(tokens)
