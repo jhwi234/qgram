@@ -13,7 +13,7 @@ from nltk.tokenize import word_tokenize
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
-from scipy.optimize import curve_fit
+
 class CorpusLoader:
     """
     Load a corpus from NLTK or a local file/directory, optimized for performance.
@@ -36,7 +36,7 @@ class CorpusLoader:
             corpus_reader = PlaintextCorpusReader(self.corpus_source, '.*')
         else:
             corpus_reader = getattr(nltk.corpus, self.corpus_source)
-        return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
+        return [token for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
 
     def load_corpus(self):
         """Get the corpus, either from cache or by loading it."""
@@ -66,10 +66,9 @@ class Tokenizer:
         self.use_nltk_tokenizer = use_nltk_tokenizer
         self.stopwords_language = stopwords_language
         self.custom_regex = None
-        self._stop_words = set()
-        self._punctuation = set()
+        self._unwanted_tokens = set()  # Combined set for stopwords and punctuation
         self._ensure_nltk_resources()
-        self._load_stopwords_and_punctuation()
+        self._load_unwanted_tokens()
 
     def _ensure_nltk_resources(self):
         """Ensure that NLTK resources are available."""
@@ -79,12 +78,12 @@ class Tokenizer:
             except LookupError:
                 nltk.download('stopwords', quiet=True)
 
-    def _load_stopwords_and_punctuation(self):
+    def _load_unwanted_tokens(self):
         """Load stopwords and punctuation sets for efficient access."""
         if self.remove_stopwords:
-            self._stop_words = set(stopwords.words(self.stopwords_language))
+            self._unwanted_tokens.update(stopwords.words(self.stopwords_language))
         if self.remove_punctuation:
-            self._punctuation = set(string.punctuation)
+            self._unwanted_tokens.update(string.punctuation)
 
     def set_custom_regex(self, pattern):
         """Set a custom regex pattern for tokenization with caching."""
@@ -93,11 +92,9 @@ class Tokenizer:
         except re.error as e:
             raise ValueError(f"Invalid regex pattern: {e}")
 
-    def _remove_stopwords_and_punctuation(self, tokens) -> list:
-        """Remove stopwords, punctuation, and unwanted characters from a list of tokens."""
-        return [token for token in tokens if token not in self._punctuation 
-                and token not in self._stop_words 
-                and not token.startswith('``')]
+    def _remove_unwanted_tokens(self, tokens) -> list:
+        """Remove unwanted tokens (stopwords, punctuation) from a list of tokens."""
+        return [token for token in tokens if token not in self._unwanted_tokens and not token.startswith('``')]
     
     def tokenize(self, text) -> list:
         """Tokenize text into individual words based on the selected method."""
@@ -113,18 +110,27 @@ class Tokenizer:
             # Basic whitespace tokenization
             tokens = text.split()
 
-        return self._remove_stopwords_and_punctuation(tokens)
+        return self._remove_unwanted_tokens(tokens)
 class BasicCorpusAnalyzer:
     """
     Analyze a corpus of text with optimized data structures.
     """
-    def __init__(self, tokens):
+    def __init__(self, tokens, shuffle_tokens=False):
         if not all(isinstance(token, str) for token in tokens):
             raise ValueError("All tokens must be strings.")
+        
         self.tokens = tokens
-        self.frequency = Counter(tokens)
+        if shuffle_tokens:
+            self._shuffle_tokens()
+            print("Tokens have been shuffled.")
+
+        self.frequency = Counter(self.tokens)
         self._total_token_count = sum(self.frequency.values())
         self.token_details = self._initialize_token_details()
+
+    def _shuffle_tokens(self):
+        """Shuffle the tokens in the corpus using NumPy for efficiency."""
+        np.random.shuffle(self.tokens)
 
     def _initialize_token_details(self):
         """
@@ -211,19 +217,6 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
 
     def yules_k(self) -> float:
         """
-        Calculate Yule's K measure for lexical diversity.
-        Yule's K is a statistical measure that reflects the lexical diversity
-        of a text. A higher value indicates greater diversity.
-        """
-        freqs = np.array([details['frequency'] for details in self.token_details.values()])
-        # M1: The sum of the squares of the word frequencies
-        M1 = np.sum(freqs)
-        # M2: The sum of the fourth powers of the word frequencies
-        M2 = np.sum(freqs ** 2)
-        return 10**4 * (M2 - M1) / (M1 ** 2)
-
-    def yules_k(self) -> float:
-        """
         Calculate Yule's K measure for lexical diversity using NumPy.
         """
         freqs = np.array([details['frequency'] for details in self.token_details.values()])
@@ -243,17 +236,18 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         N = self._total_token_count
         return math.log(V) / math.log(N)
 
-    def calculate_heaps_law_constants(self):
+    def calculate_heaps_law_sampling(self):
+        """
+        Calculate Heap's Law constants using a sampling approach with weighted linear regression.
+        """
         normalized_tokens = [token.lower() for token in self.tokens]
         if len(normalized_tokens) < 2:
             raise ValueError("Not enough data to calculate Heaps' law constants.")
 
-        # Dynamic determination of sampling points based on 5% of corpus size
         corpus_size = len(normalized_tokens)
         sampling_rate = 0.05
         sample_points = max(int(corpus_size * sampling_rate), 1000)
 
-        # Use logarithmic scale for sampling
         sample_sizes = np.unique(np.logspace(0, np.log10(corpus_size), sample_points).astype(int))
         unique_word_counts = []
         unique_words = set()
@@ -265,19 +259,60 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
             unique_word_counts.append(len(unique_words))
             last_size = size
 
-        # Perform log transformation
+        # Pre-computing logarithms
         log_sample_sizes = np.log(sample_sizes)
         log_unique_word_counts = np.log(unique_word_counts)
 
-        # Weighted Linear Regression using np.polyfit
-        weights = np.sqrt(sample_sizes)  # Giving more weight to larger samples
-        slope, intercept = np.polyfit(log_sample_sizes, log_unique_word_counts, 1, w=weights)
-
-        # Calculate K and beta
-        beta = slope
-        K = np.exp(intercept)
+        weights = np.sqrt(sample_sizes)
+        beta, logK = np.polyfit(log_sample_sizes, log_unique_word_counts, 1, w=weights)
+        K = np.exp(logK)
 
         return K, beta
+
+    def calculate_heaps_law(self):
+        """
+        Calculate Heap's Law parameters using a standard approach.
+        """
+        if len(self.tokens) < 2:
+            raise ValueError("Not enough tokens to calculate Heaps' law.")
+
+        total_words = np.arange(1, len(self.tokens) + 1)
+        unique_words = np.zeros(len(self.tokens))
+        word_set = set()
+
+        for i, token in enumerate(self.tokens):
+            word_set.add(token)
+            unique_words[i] = len(word_set)
+
+        log_total_words = np.log(total_words)
+        log_unique_words = np.log(unique_words)
+        beta, logK = np.polyfit(log_total_words, log_unique_words, 1)
+        K = np.exp(logK)
+
+        return K, beta
+
+    def plot_heaps_law(self, K_standard, beta_standard, K_sampling, beta_sampling, corpus_name):
+        """
+        Plot the results of Heap's Law calculations (both standard and sampling methods) for a given corpus.
+        """
+        total_words = np.arange(1, len(self.tokens) + 1)
+        unique_words = []
+        word_set = set()
+
+        for token in self.tokens:
+            word_set.add(token)
+            unique_words.append(len(word_set))
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(total_words, unique_words, label='Empirical Data', color='blue')
+        plt.plot(total_words, K_standard * total_words ** beta_standard, '--', label=f'Standard Fit: K={K_standard:.2f}, beta={beta_standard:.2f}', color='green')
+        plt.plot(total_words, K_sampling * total_words ** beta_sampling, '--', label=f'Sampling Fit: K={K_sampling:.2f}, beta={beta_sampling:.2f}', color='red')
+        plt.xlabel('Total Words')
+        plt.ylabel('Unique Words')
+        plt.title(f"Heap's Law Analysis for {corpus_name} Corpus")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
     def calculate_alpha(self) -> float:
         """
@@ -342,7 +377,7 @@ class ZipfianAnalysis(BasicCorpusAnalyzer):
         std_deviation = np.std(deviations)
         return mean_deviation, std_deviation
 
-    def calculate_alpha(self) -> float:
+    def calculate_alpha_1(self) -> float:
         """Calculate the alpha value for the corpus."""
         most_common = self.frequency.most_common()
         ranks = np.arange(1, len(most_common) + 1)
@@ -350,6 +385,30 @@ class ZipfianAnalysis(BasicCorpusAnalyzer):
         log_ranks = np.log(ranks)
         log_freqs = np.log(frequencies)
         slope, _, _, _, _ = linregress(log_ranks, log_freqs)
+        return -slope
+    
+    def calculate_alpha_2(self) -> float:
+        """
+        Calculate the alpha value for Zipf's law for the corpus using a more direct method for linear regression.
+        """
+        frequencies = np.array([details['frequency'] for details in self.token_details.values()])
+        ranks = np.array([details['rank'] for details in self.token_details.values()])
+
+        # Log-transform ranks and frequencies
+        log_ranks = np.log(ranks)
+        log_freqs = np.log(frequencies)
+
+        # Compute the components for the slope formula
+        n = len(log_ranks)
+        sum_x = np.sum(log_ranks)
+        sum_y = np.sum(log_freqs)
+        sum_xy = np.sum(log_ranks * log_freqs)
+        sum_x_squared = np.sum(log_ranks ** 2)
+
+        # Compute the slope
+        slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x_squared - sum_x ** 2)
+
+        # Return the negative of the slope as alpha
         return -slope
 
 """
