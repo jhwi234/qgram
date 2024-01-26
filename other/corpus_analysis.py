@@ -11,8 +11,9 @@ import nltk
 from nltk.corpus import PlaintextCorpusReader, stopwords
 from nltk.tokenize import word_tokenize
 import numpy as np
+from scipy.optimize import minimize
 import matplotlib.pyplot as plt
-from scipy.stats import linregress
+from scipy.optimize import curve_fit
 
 class CorpusLoader:
     """
@@ -243,8 +244,7 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         """
         Calculate Heap's Law constants using a sampling approach with weighted linear regression.
         """
-        normalized_tokens = [token for token in self.tokens]
-        if len(normalized_tokens) < 2:
+        if len(self.tokens) < 2:
             raise ValueError("Not enough data to calculate Heaps' law constants.")
 
         corpus_size = len(self.tokens)
@@ -254,13 +254,13 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         sample_sizes = np.unique(np.logspace(0, np.log10(corpus_size), sample_points).astype(int))
         unique_word_counts = []
         unique_words = set()
-        last_size = 0
+        token_index = 0
 
         for size in sample_sizes:
-            new_tokens = normalized_tokens[last_size:size]
-            unique_words.update(new_tokens)
+            while token_index < size and token_index < corpus_size:
+                unique_words.add(self.tokens[token_index])
+                token_index += 1
             unique_word_counts.append(len(unique_words))
-            last_size = size
 
         # Pre-computing logarithms
         log_sample_sizes = np.log(sample_sizes)
@@ -317,23 +317,126 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         plt.grid(True)
         plt.show()
 
-    def calculate_alpha(self) -> float:
-        """
-        Calculate the alpha value for Zipf's law for the corpus using log-transformed ranks and frequencies.
-        """
+    def calculate_alpha(self, percentile_threshold=90) -> float:
+        # Define the Zipf law function
+        def zipf_func(rank, alpha, C):
+            return C / rank**alpha
+        
         # Extract frequencies and ranks from token details
         frequencies = np.array([details['frequency'] for details in self.token_details.values()])
         ranks = np.array([details['rank'] for details in self.token_details.values()])
+        
+        # Determine threshold based on the specified percentile
+        threshold = np.percentile(frequencies, percentile_threshold)
+        high_freq_indices = frequencies >= threshold  # Include values equal to threshold
 
-        # Log-transform ranks and frequencies
-        log_ranks = np.log(ranks)
-        log_freqs = np.log(frequencies)
+        # Use non-linear optimization to fit the Zipf function
+        popt, _ = curve_fit(zipf_func, ranks[high_freq_indices], frequencies[high_freq_indices], p0=[1.0, np.max(frequencies)], maxfev=10000)
 
-        # Perform linear regression
-        slope, _, _, _, _ = linregress(log_ranks, log_freqs)
+        # popt contains the fitted parameters alpha and C
+        return popt[0]
 
-        # Return the negative of the slope as alpha
-        return -slope
+    def plot_zipfs_law_fit(self, corpus_name):
+        # Use the calculate_alpha method to obtain alpha
+        alpha = self.calculate_alpha()
+
+        ranks = np.arange(1, len(self.frequency) + 1)
+        frequencies = np.array([freq for _, freq in self.frequency.most_common()])
+        
+        # Normalize the actual frequencies
+        normalized_frequencies = frequencies / np.max(frequencies)
+        
+        # Predict frequencies using the fitted alpha
+        predicted_freqs = (1 / ranks**alpha)
+        normalized_predicted_freqs = predicted_freqs / np.max(predicted_freqs)
+
+        plt.figure(figsize=(10, 6))
+        plt.scatter(ranks, normalized_frequencies, color='blue', label='Actual Frequencies', marker='o', linestyle='', s=5)
+        plt.plot(ranks, normalized_predicted_freqs, label='Predicted Frequencies (Zipf\'s Law)', color='red', linestyle='-')
+        plt.xlabel('Rank')
+        plt.ylabel('Normalized Frequency')
+        plt.title(f'Zipf\'s Law Fit for {corpus_name} Corpus')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    def fit_zipf_mandelbrot(self, initial_params=None, method='Nelder-Mead', verbose=False):
+        """
+        Fit the Zipf-Mandelbrot distribution to the corpus and find parameters q and s.
+        """
+        frequencies = np.array([details['frequency'] for details in self.token_details.values()])
+        ranks = np.array([details['rank'] for details in self.token_details.values()])
+
+        # Normalizing data
+        max_freq = frequencies.max()
+        normalized_freqs = frequencies / max_freq
+
+        def zipf_mandelbrot(k, q, s):
+            return (1 / ((k + q) ** s))
+
+        def objective_function(params):
+            q, s = params
+            predicted = np.array([zipf_mandelbrot(rank, q, s) for rank in ranks])
+            normalized_predicted = predicted / predicted.max()  # Normalize predictions
+            return np.sum((normalized_freqs - normalized_predicted) ** 2)
+
+        # Adaptive initial parameters if not provided
+        if initial_params is None:
+            initial_params = [2.7, 1.0]  # Empirical initial values
+
+        # Adjusting bounds based on empirical data
+        bounds = [(0, 10), (0.5, 3)]
+
+        # Optimization to minimize the objective function
+        result = minimize(objective_function, initial_params, method=method, bounds=bounds, options={'disp': verbose})
+
+        if result.success:
+            q, s = result.x
+            if verbose:
+                print(f"Optimization successful. Fitted parameters: q = {q}, s = {s}")
+            return q, s
+        else:
+            if verbose:
+                print("Optimization did not converge.")
+            raise ValueError("Optimization did not converge")
+
+    def plot_zipf_mandelbrot_fit(self, q, s, corpus_name):
+        """
+        Plot the actual vs predicted rank-frequency distribution using the Zipf-Mandelbrot model.
+        
+        :param q: Fitted parameter q of the Zipf-Mandelbrot distribution.
+        :param s: Fitted parameter s of the Zipf-Mandelbrot distribution.
+        :param corpus_name: Name of the corpus for labeling the plot.
+        """
+        ranks = np.array([details['rank'] for details in self.token_details.values()])
+        frequencies = np.array([details['frequency'] for details in self.token_details.values()])
+
+        # Zipf-Mandelbrot function
+        def zipf_mandelbrot(k, q, s):
+            return (1 / ((k + q) ** s))
+
+        # Predict frequencies using the fitted parameters
+        predicted_freqs = np.array([zipf_mandelbrot(rank, q, s) for rank in ranks])
+
+        # Normalize both actual and predicted frequencies for comparison
+        max_freq = np.max(frequencies)
+        normalized_freqs = frequencies / max_freq
+        normalized_predicted_freqs = predicted_freqs / np.max(predicted_freqs)
+
+        # Plotting
+        plt.figure(figsize=(10, 6))
+        plt.plot(ranks, normalized_freqs, label='Actual Frequencies', marker='o', linestyle='', markersize=5)
+        plt.plot(ranks, normalized_predicted_freqs, label='Predicted Frequencies', linestyle='-', color='red')
+        plt.xlabel('Rank')
+        plt.ylabel('Normalized Frequency')
+        plt.title(f'Zipf-Mandelbrot Fit for {corpus_name} Corpus')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
 class ZipfianAnalysis(BasicCorpusAnalyzer):
     def __init__(self, tokens):
@@ -380,50 +483,4 @@ class ZipfianAnalysis(BasicCorpusAnalyzer):
         std_deviation = np.std(deviations)
         return mean_deviation, std_deviation
 
-    def calculate_alpha_1(self) -> float:
-        """Calculate the alpha value for the corpus."""
-        most_common = self.frequency.most_common()
-        ranks = np.arange(1, len(most_common) + 1)
-        frequencies = np.array([freq for _, freq in most_common])
-        log_ranks = np.log(ranks)
-        log_freqs = np.log(frequencies)
-        slope, _, _, _, _ = linregress(log_ranks, log_freqs)
-        return -slope
-    
-    def calculate_alpha_2(self) -> float:
-        """
-        Calculate the alpha value for Zipf's law for the corpus using a more direct method for linear regression.
-        """
-        frequencies = np.array([details['frequency'] for details in self.token_details.values()])
-        ranks = np.array([details['rank'] for details in self.token_details.values()])
 
-        # Log-transform ranks and frequencies
-        log_ranks = np.log(ranks)
-        log_freqs = np.log(frequencies)
-
-        # Compute the components for the slope formula
-        n = len(log_ranks)
-        sum_x = np.sum(log_ranks)
-        sum_y = np.sum(log_freqs)
-        sum_xy = np.sum(log_ranks * log_freqs)
-        sum_x_squared = np.sum(log_ranks ** 2)
-
-        # Compute the slope
-        slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x_squared - sum_x ** 2)
-
-        # Return the negative of the slope as alpha
-        return -slope
-
-"""
-whether the ideal zipf median token matches the actual median token how well does that fit.
-the implication is that the length of the tail is off as much as the median token is off because you're adding as much on the top as on the the bottom.
-
-at which point increasing the number of types does 
-
-seeing how well the number of words int eh trinaing set for q-grams has an effect on the accuracy of the model.
-
-Run the tests on the corpora but modifying the number of tokens by which types you take out (only hapaxes or only word other than hapexes)
-
-
-Find out which 100 word types contribute the most to the prediction accrucy, then what thare the token rankings of those types in the corpus because those will determine how "quickly" you get those words in the corpus.
-"""
