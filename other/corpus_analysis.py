@@ -96,10 +96,13 @@ class Tokenizer:
         """Remove unwanted tokens (stopwords, punctuation) from a list of tokens."""
         return [token for token in tokens if token not in self._unwanted_tokens and not token.startswith('``')]
     
-    def tokenize(self, text) -> list:
+    def tokenize(self, text, lowercase=False) -> list:
         """Tokenize text into individual words based on the selected method."""
         if isinstance(text, list):
             text = ' '.join(text)
+
+        if lowercase:
+            text = text.lower()
 
         # Perform tokenization based on the selected method
         if self.custom_regex:
@@ -240,11 +243,11 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         """
         Calculate Heap's Law constants using a sampling approach with weighted linear regression.
         """
-        normalized_tokens = [token.lower() for token in self.tokens]
+        normalized_tokens = [token for token in self.tokens]
         if len(normalized_tokens) < 2:
             raise ValueError("Not enough data to calculate Heaps' law constants.")
 
-        corpus_size = len(normalized_tokens)
+        corpus_size = len(self.tokens)
         sampling_rate = 0.05
         sample_points = max(int(corpus_size * sampling_rate), 1000)
 
