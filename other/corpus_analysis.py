@@ -351,3 +351,17 @@ class ZipfianAnalysis(BasicCorpusAnalyzer):
         log_freqs = np.log(frequencies)
         slope, _, _, _, _ = linregress(log_ranks, log_freqs)
         return -slope
+
+"""
+whether the ideal zipf median token matches the actual median token how well does that fit.
+the implication is that the length of the tail is off as much as the median token is off because you're adding as much on the top as on the the bottom.
+
+at which point increasing the number of types does 
+
+seeing how well the number of words int eh trinaing set for q-grams has an effect on the accuracy of the model.
+
+Run the tests on the corpora but modifying the number of tokens by which types you take out (only hapaxes or only word other than hapexes)
+
+
+Find out which 100 word types contribute the most to the prediction accrucy, then what thare the token rankings of those types in the corpus because those will determine how "quickly" you get those words in the corpus.
+"""
