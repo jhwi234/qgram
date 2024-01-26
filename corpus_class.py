@@ -65,7 +65,7 @@ class CorpusManager:
     def add_to_global_corpus(unique_words):
         CorpusManager.unique_words_all_corpora.update(unique_words)
 
-    def __init__(self, corpus_name, config, debug=False):
+    def __init__(self, corpus_name, config, debug=True):
         self.corpus_name = self.format_corpus_name(corpus_name)
         self.config = config
         self.debug = debug
