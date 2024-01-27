@@ -265,6 +265,17 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         N = self._total_token_count
         return math.log(V) / math.log(N)
 
+    def estimate_vocabulary_size(self, total_tokens):
+        """
+        Estimate the vocabulary size for a given number of tokens using Heaps' Law.
+
+        :param total_tokens: Total number of tokens in the corpus.
+        :return: Estimated vocabulary size.
+        """
+        K, beta = self.calculate_heaps_law()
+        estimated_vocab_size = K * (total_tokens ** beta)
+        return estimated_vocab_size
+
     def calculate_heaps_law(self, use_sampling=True):
         """
         Calculate Heap's Law constants, with an option to use sampling or standard approach.
@@ -473,9 +484,10 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         plt.savefig(os.path.join(plots_dir, f'heaps_law_{corpus_name}.png'))
         plt.close()
 
-class ZipfianAnalysis(BasicCorpusAnalyzer):
+class ZipfianAnalysis(AdvancedCorpusAnalyzer):
     def __init__(self, tokens):
         super().__init__(tokens)
+        self.alpha = self.calculate_alpha()
 
     @staticmethod
     @lru_cache(maxsize=None)
@@ -483,39 +495,25 @@ class ZipfianAnalysis(BasicCorpusAnalyzer):
         """Calculate the generalized harmonic number."""
         return sum(1 / (i ** alpha) for i in range(1, n + 1))
 
-    def plot_zipfian_comparison(self, alpha=1):
-        """Plot the corpus frequency distribution against the ideal Zipfian distribution curve."""
-        most_common = self.frequency.most_common()
-        ranks = np.arange(1, len(most_common) + 1)
-        frequencies = np.array([freq for _, freq in most_common])
-        log_ranks = np.log(ranks)
-        log_freqs = np.log(frequencies)
-        harmonic_number = self._calculate_generalized_harmonic(len(ranks), alpha)
-        ideal_zipfian = (self.total_token_count / harmonic_number) / np.power(ranks, alpha)
-        log_ideal_zipfian = np.log(ideal_zipfian)
-
-        plt.figure(figsize=(10, 6))
-        plt.scatter(log_ranks, log_freqs, color='blue', label='Actual Frequencies')
-        plt.plot(log_ranks, log_ideal_zipfian, 'g--', label='Ideal Zipfian')
-        plt.xlabel('Log of Rank')
-        plt.ylabel('Log of Frequency')
-        plt.title('Zipfian Comparison of Corpus')
-        plt.legend()
-        plt.show()
-
-    def assess_zipfian_fit(self, alpha=1) -> tuple:
+    def assess_zipfian_fit(self, alpha):
         """Assess the fit of the corpus to a Zipfian distribution."""
-        most_common = self.frequency.most_common()
-        n = len(most_common)
-        ranks = np.arange(1, n + 1)
-        harmonic_number = ZipfianAnalysis._calculate_generalized_harmonic(n, alpha)
-        harmonic_factor = self.total_token_count / harmonic_number
-        expected_freqs = harmonic_factor / np.power(ranks, alpha)
-        actual_freqs = np.array([freq for _, freq in most_common])
+        # Normalizing frequencies and preparing data
+        total_count = sum(self.frequency.values())
+        sorted_freqs = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
+        normalized_freqs = {word: freq / total_count for word, freq in sorted_freqs}
 
-        deviations = actual_freqs - expected_freqs
-        mean_deviation = np.mean(np.abs(deviations))
+        # Handling ties in ranks
+        current_rank, current_freq = 0, None
+        deviations = []
+        for index, (word, freq) in enumerate(sorted_freqs, start=1):
+            if freq != current_freq:
+                current_rank = index
+                current_freq = freq
+
+            expected_freq = (1 / current_rank ** self.alpha)
+            deviations.append(abs(normalized_freqs[word] - expected_freq))
+
+        mean_deviation = np.mean(deviations)
         std_deviation = np.std(deviations)
+
         return mean_deviation, std_deviation
-
-
