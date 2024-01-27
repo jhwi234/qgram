@@ -147,3 +147,36 @@ As \( N \) approaches infinity, \( H_{N,q,s} \) can be approximated by the Hurwi
 ### Computational Considerations:
 
 In practical applications, especially in computational linguistics and data science, it's crucial to efficiently compute the normalizing constant \( H_{N,q,s} \) and to accurately estimate the parameters \( s \) and \( q \) from empirical data. Curve fitting techniques, often involving logarithmic transformations and linear regression, are commonly employed to estimate these parameters. The challenge lies in balancing computational feasibility with the precision of the model, especially when dealing with large datasets.
+
+The paper by Chakrabarty et al. details a comprehensive methodology for estimating the parameters of the Zipf—Mandelbrot law in the context of text analysis. Here is an expanded explanation of their approach:
+
+### Model Assumptions:
+1. **Infinite Dictionary**: The model assumes an infinitely large dictionary. Words in a text are considered to be selected independently from this dictionary.
+2. **Probability Distribution**: The probability \( p_i \) of the occurrence of a word based on its rank \( i \) is governed by the Zipf—Mandelbrot distribution, formulated as:
+   \[ p_i = \frac{c}{(i + q)^{\alpha}} \]
+   where \( c \) is a normalization constant ensuring the sum of probabilities equals 1, \( \alpha = \frac{1}{\theta} \) is a parameter influencing the frequency of word occurrences, and \( q > -1 \) is the Mandelbrot shift parameter, introduced to enhance empirical data fitting.
+
+### Estimating Parameters - θ and q:
+1. **Estimator for θ (θb):**
+   - The estimator \( \theta_b \) is defined by the integral:
+     \[ \theta_b = \int_0^1 \log^+ R[nt] dA(t) \]
+   - Here, \( R[k] \) represents the number of distinct words among the first \( k \) words of the text.
+   - The notation \( \log^+ x \) implies the positive part of the logarithm, meaning \( \log^+ x = \max(\log x, 0) \).
+   - Function \( A(\cdot) \) is chosen such that \( \int_0^1 \log t dA(t) = 1 \) and \( A(0) = A(+0) = A(1) = 0 \).
+   - A specific example for \( A(t) \) provided in the paper simplifies \( \theta_b \) to \( \log_2(R[n]/R[n/2]) \), where \( R[n] \) is the number of distinct words in the entire text.
+
+2. **Finding q (qb):**
+   - The estimation of \( q \) involves adjusting \( q_b \) to match the estimated number of distinct words \( r(n) \) with the actual observed count \( R[n] \).
+   - The estimator \( r(k) \) for distinct word counts is computed based on the estimated values of \( p_i \) and \( q_b \).
+   - \( q_b \) is iteratively adjusted until \( r(n) \) aligns with \( R[n] \).
+
+### Process of the Numbers of Different Words (R1, ..., Rn):
+- The sequence \( R1, ..., Rn \) is pivotal in the methodology. It represents the count of unique words identified upon reading through the first \( n \) words of a text.
+- This sequential count is crucial for the estimation of \( \theta \) and \( q \), as well as for the construction of the statistical test to verify the model’s appropriateness.
+
+### Statistical Test Development:
+- The authors develop a statistical test to determine if a text conforms to the Zipf—Mandelbrot law.
+- This involves constructing the 'empirical text bridge', a stochastic process derived from the sequence \( R[k] \) and the parameter estimates.
+- The behavior of this empirical bridge, particularly its convergence to a Gaussian process, is examined to evaluate how well a text fits the Zipf—Mandelbrot law.
+
+In summary, the paper provides a detailed, statistically rigorous approach to estimating the parameters of the Zipf—Mandelbrot law and testing its applicability to natural language texts. This methodology not only quantifies word frequency distributions but also assesses the extent to which these distributions follow theoretical expectations.

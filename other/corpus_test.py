@@ -1,36 +1,4 @@
-from corpus_analysis import BasicCorpusAnalyzer, AdvancedCorpusAnalyzer, ZipfianAnalysis, Tokenizer, CorpusLoader
-import numpy as np
-
-def cosine_similarity_manual(vec1, vec2):
-    # Compute cosine similarity manually using numpy
-    dot_product = np.dot(vec1, vec2)
-    norm_vec1 = np.linalg.norm(vec1)
-    norm_vec2 = np.linalg.norm(vec2)
-    return dot_product / (norm_vec1 * norm_vec2) if norm_vec1 != 0 and norm_vec2 != 0 else 0
-
-def lexical_similarity_analysis(tokens1, tokens2):
-    if not tokens1 or not tokens2:
-        return 0  # Return zero similarity for empty token lists
-
-    analyzer1 = BasicCorpusAnalyzer(tokens1)
-    analyzer2 = BasicCorpusAnalyzer(tokens2)
-
-    common_vocab = set(analyzer1.frequency.keys()).intersection(analyzer2.frequency.keys())
-    overlap_coefficient = len(common_vocab) / min(len(analyzer1.frequency), len(analyzer2.frequency))
-
-    all_vocab = set(analyzer1.frequency.keys()).union(analyzer2.frequency.keys())
-    freq_vector1 = np.array([analyzer1.frequency.get(word, 0) for word in all_vocab])
-    freq_vector2 = np.array([analyzer2.frequency.get(word, 0) for word in all_vocab])
-    cos_similarity = cosine_similarity_manual(freq_vector1, freq_vector2)
-
-    zipfian1 = ZipfianAnalysis(tokens1)
-    zipfian2 = ZipfianAnalysis(tokens2)
-    alpha1 = zipfian1.calculate_alpha()
-    alpha2 = zipfian2.calculate_alpha()
-    zipfian_similarity = 1 - abs(alpha1 - alpha2) / max(alpha1, alpha2)
-
-    final_score = (overlap_coefficient + cos_similarity + zipfian_similarity) / 3
-    return final_score
+from corpus_analysis import BasicCorpusAnalyzer, AdvancedCorpusAnalyzer, Tokenizer, CorpusLoader
 
 def analyze_corpus(corpus_name):
     print(f"\nAnalyzing {corpus_name} Corpus")
@@ -52,7 +20,7 @@ def analyze_corpus(corpus_name):
     print("Herdan's C:", advanced_analyzer.herdans_c())
     print("Zipf Alpha:", advanced_analyzer.calculate_alpha())
 
-    # Calculate K and Beta Measures for Heaps' Law and Zipf-Mandelbrot Parameters
+    # Calculate K and Beta Measures for Heaps' Law
     k_beta_measures = advanced_analyzer.calculate_heaps_law_constants()
     print("Heap's K and Beta:", k_beta_measures)
 
@@ -63,6 +31,10 @@ def analyze_corpus(corpus_name):
     actual_V = len(basic_analyzer.frequency)
     print("Estimated Vocabulary Size (V) using Heaps' Law:", estimated_V)
     print("Actual Vocabulary Size:", actual_V)
+
+    # Calculate Zipf-Mandelbrot q and s
+    s, q = advanced_analyzer.estimate_zipf_mandelbrot_params()
+    print(f"Zipf-Mandelbrot s: {s} and q: {q}")
 
 # Analyze multiple corpora
 corpora = ['brown', 'gutenberg', 'reuters', 'webtext', 'inaugural']
