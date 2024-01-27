@@ -13,8 +13,32 @@ from nltk.tokenize import word_tokenize
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+from matplotlib import style
 from scipy.optimize import curve_fit
-from scipy.optimize import minimize, Bounds
+from scipy.optimize import minimize
+
+# Centralized style settings for all plots
+plot_params = {
+    'figsize': (10, 6),
+    'marker': 'o',
+    'linestyle': '',
+    'markersize': 5,
+}
+
+# Directory for plots
+plots_dir = 'plots'
+os.makedirs(plots_dir, exist_ok=True)
+
+def save_plot(plt, plot_name, corpus_name, title, xlabel='Rank', ylabel='Frequency'):
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.title(title)
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(os.path.join(plots_dir, f'{plot_name}_{corpus_name}.png'))
+    plt.close()
 
 class CorpusLoader:
     """
@@ -241,127 +265,89 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         N = self._total_token_count
         return math.log(V) / math.log(N)
 
-    def calculate_heaps_law_sampling(self):
+    def calculate_heaps_law(self, use_sampling=True):
         """
-        Calculate Heap's Law constants using a sampling approach with weighted linear regression.
+        Calculate Heap's Law constants, with an option to use sampling or standard approach.
+        
+        :param use_sampling: If True, use the sampling approach; otherwise, use the standard approach.
         """
         if len(self.tokens) < 2:
             raise ValueError("Not enough data to calculate Heaps' law constants.")
 
-        corpus_size = len(self.tokens)
-        sampling_rate = 0.05
-        sample_points = max(int(corpus_size * sampling_rate), 1000)
-
-        sample_sizes = np.unique(np.logspace(0, np.log10(corpus_size), sample_points).astype(int))
+        # Common setup for both approaches
+        word_set = set()
         unique_word_counts = []
-        unique_words = set()
         token_index = 0
 
-        for size in sample_sizes:
-            while token_index < size and token_index < corpus_size:
-                unique_words.add(self.tokens[token_index])
-                token_index += 1
-            unique_word_counts.append(len(unique_words))
+        if use_sampling:
+            # Sampling approach
+            corpus_size = len(self.tokens)
+            sampling_rate = 0.05
+            sample_points = max(int(corpus_size * sampling_rate), 1000)
+            sample_sizes = np.unique(np.logspace(0, np.log10(corpus_size), sample_points).astype(int))
+            
+            for size in sample_sizes:
+                while token_index < size and token_index < corpus_size:
+                    word_set.add(self.tokens[token_index])
+                    token_index += 1
+                unique_word_counts.append(len(word_set))
 
-        # Pre-computing logarithms
-        log_sample_sizes = np.log(sample_sizes)
-        log_unique_word_counts = np.log(unique_word_counts)
+            # Fit in log-log space
+            log_sample_sizes = np.log(sample_sizes)
+            weights = np.sqrt(sample_sizes)
+            beta, logK = np.polyfit(log_sample_sizes, np.log(unique_word_counts), 1, w=weights)
 
-        weights = np.sqrt(sample_sizes)
-        beta, logK = np.polyfit(log_sample_sizes, log_unique_word_counts, 1, w=weights)
+        else:
+            # Standard approach
+            total_words = np.arange(1, len(self.tokens) + 1)
+
+            for token in self.tokens:
+                word_set.add(token)
+                unique_word_counts.append(len(word_set))
+
+            # Fit in log-log space
+            beta, logK = np.polyfit(np.log(total_words), np.log(unique_word_counts), 1)
+
         K = np.exp(logK)
+        return K, beta
+
+    def estimate_k_and_beta(self):
+        """
+        Estimates the parameters k and beta for Heap's Law using linear regression in log-log space.
+        """
+        N = self.total_token_count
+        V = len(self.frequency)
+
+        # Log-log transformation
+        log_N = np.log10(N)
+        log_V = np.log10(V)
+
+        # Fitting a line (logV = beta * logN + logK) in log-log space
+        beta, logK = np.polyfit(log_N, log_V, 1)
+
+        # Transform back K from log space
+        K = 10 ** logK
 
         return K, beta
 
-    def calculate_heaps_law(self):
+    def calculate_alpha(self):
         """
-        Calculate Heap's Law parameters using a standard approach.
+        Calculate the alpha parameter of Zipf's Law for the corpus.
         """
-        if len(self.tokens) < 2:
-            raise ValueError("Not enough tokens to calculate Heaps' law.")
-
-        total_words = np.arange(1, len(self.tokens) + 1)
-        unique_words = np.zeros(len(self.tokens))
-        word_set = set()
-
-        for i, token in enumerate(self.tokens):
-            word_set.add(token)
-            unique_words[i] = len(word_set)
-
-        log_total_words = np.log(total_words)
-        log_unique_words = np.log(unique_words)
-        beta, logK = np.polyfit(log_total_words, log_unique_words, 1)
-        K = np.exp(logK)
-
-        return K, beta
-
-    def plot_heaps_law(self, K_standard, beta_standard, K_sampling, beta_sampling, corpus_name):
-        """
-        Plot the results of Heap's Law calculations (both standard and sampling methods) for a given corpus.
-        """
-        total_words = np.arange(1, len(self.tokens) + 1)
-        unique_words = []
-        word_set = set()
-
-        for token in self.tokens:
-            word_set.add(token)
-            unique_words.append(len(word_set))
-
-        plt.figure(figsize=(10, 6))
-        plt.plot(total_words, unique_words, label='Empirical Data', color='blue')
-        plt.plot(total_words, K_standard * total_words ** beta_standard, '--', label=f'Standard Fit: K={K_standard:.2f}, beta={beta_standard:.2f}', color='green')
-        plt.plot(total_words, K_sampling * total_words ** beta_sampling, '--', label=f'Sampling Fit: K={K_sampling:.2f}, beta={beta_sampling:.2f}', color='red')
-        plt.xlabel('Total Words')
-        plt.ylabel('Unique Words')
-        plt.title(f"Heap's Law Analysis for {corpus_name} Corpus")
-        plt.legend()
-        plt.grid(True)
-        plt.show()
-
-    def calculate_alpha(self, percentile_threshold=90) -> float:
-        # Define the Zipf law function
-        def zipf_func(rank, alpha, C):
-            return C / rank**alpha
-        
-        # Extract frequencies and ranks from token details
-        frequencies = np.array([details['frequency'] for details in self.token_details.values()])
-        ranks = np.array([details['rank'] for details in self.token_details.values()])
-        
-        # Determine threshold based on the specified percentile
-        threshold = np.percentile(frequencies, percentile_threshold)
-        high_freq_indices = frequencies >= threshold  # Include values equal to threshold
-
-        # Use non-linear optimization to fit the Zipf function
-        popt, _ = curve_fit(zipf_func, ranks[high_freq_indices], frequencies[high_freq_indices], p0=[1.0, np.max(frequencies)], maxfev=10000)
-
-        # popt contains the fitted parameters alpha and C
-        return popt[0]
-
-    def plot_zipfs_law_fit(self, corpus_name):
-        # Use the calculate_alpha method to obtain alpha
-        alpha = self.calculate_alpha()
-
+        # Extract ranks (1-based) and frequencies
         ranks = np.arange(1, len(self.frequency) + 1)
         frequencies = np.array([freq for _, freq in self.frequency.most_common()])
-        
-        # Normalize the actual frequencies
-        normalized_frequencies = frequencies / np.max(frequencies)
-        
-        # Predict frequencies using the fitted alpha
-        predicted_freqs = (1 / ranks**alpha)
-        normalized_predicted_freqs = predicted_freqs / np.max(predicted_freqs)
 
-        plt.figure(figsize=(10, 6))
-        plt.scatter(ranks, normalized_frequencies, color='blue', label='Actual Frequencies', marker='o', linestyle='', s=5)
-        plt.plot(ranks, normalized_predicted_freqs, label='Predicted Frequencies (Zipf\'s Law)', color='red', linestyle='-')
-        plt.xlabel('Rank')
-        plt.ylabel('Normalized Frequency')
-        plt.title(f'Zipf\'s Law Fit for {corpus_name} Corpus')
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.legend()
-        plt.grid(True)
-        plt.show()
+        # Define the Zipf function for fitting
+        def zipf_func(rank, alpha, c):
+            return c / np.power(rank, alpha)
+
+        # Fit the Zipf function using non-linear least squares
+        popt, _ = curve_fit(zipf_func, ranks, frequencies, p0=[-1.0, np.max(frequencies)])
+        
+        # popt contains the fitted parameters alpha and c
+        alpha = popt[0]
+        return alpha
 
     def fit_zipf_mandelbrot(self, initial_params=None, method='Nelder-Mead', verbose=False):
         """
@@ -437,7 +423,55 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         plt.yscale('log')
         plt.legend()
         plt.grid(True)
-        plt.show()
+        plt.savefig(os.path.join(plots_dir, f'zipf_mandelbrot_fit_{corpus_name}.png'))
+        plt.close()
+
+    def plot_zipfs_law_fit(self, corpus_name):
+        # Use the calculate_alpha method to obtain alpha
+        alpha = self.calculate_alpha()
+
+        ranks = np.arange(1, len(self.frequency) + 1)
+        frequencies = np.array([freq for _, freq in self.frequency.most_common()])
+        
+        # Normalize the actual frequencies
+        normalized_frequencies = frequencies / np.max(frequencies)
+        
+        # Predict frequencies using the fitted alpha
+        predicted_freqs = (1 / ranks**alpha)
+        normalized_predicted_freqs = predicted_freqs / np.max(predicted_freqs)
+
+        plt.figure(figsize=(10, 6))
+        plt.scatter(ranks, normalized_frequencies, color='blue', label='Actual Frequencies', marker='o', linestyle='', s=5)
+        plt.plot(ranks, normalized_predicted_freqs, label='Predicted Frequencies (Zipf\'s Law)', color='red', linestyle='-')
+        plt.xlabel('Rank')
+        plt.ylabel('Normalized Frequency')
+        plt.title(f'Zipf\'s Law Fit for {corpus_name} Corpus')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(os.path.join(plots_dir, f'zipfs_law_fit_{corpus_name}.png'))
+        plt.close()
+
+    def plot_heaps_law(self, K_sampling, beta_sampling, corpus_name):
+        total_words = np.arange(1, len(self.tokens) + 1)
+        unique_words = []
+        word_set = set()
+
+        for token in self.tokens:
+            word_set.add(token)
+            unique_words.append(len(word_set))
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(total_words, unique_words, label='Empirical Data', color='blue')
+        plt.plot(total_words, K_sampling * total_words ** beta_sampling, '--', label=f'Heap\'s Law Fit: K={K_sampling:.2f}, beta={beta_sampling:.2f}', color='red')
+        plt.xlabel('Total Words')
+        plt.ylabel('Unique Words')
+        plt.title(f"Heap's Law Analysis for {corpus_name} Corpus")
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(os.path.join(plots_dir, f'heaps_law_{corpus_name}.png'))
+        plt.close()
 
 class ZipfianAnalysis(BasicCorpusAnalyzer):
     def __init__(self, tokens):
