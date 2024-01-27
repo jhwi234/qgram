@@ -14,6 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 from scipy.optimize import curve_fit
+from scipy.optimize import minimize, Bounds
 class CorpusLoader:
     """
     Load a corpus from NLTK or a local file/directory, optimized for performance.
@@ -296,6 +297,39 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
 
         # Return the negative of the slope as alpha
         return -slope
+    
+    def estimate_zipf_mandelbrot_params(self):
+        # Compute R[n] and R[n/2]
+        R_n = len(self.token_details)
+        R_n_2 = len(self.tokens) // 2
+
+        # Estimate Theta (θb)
+        theta_b = math.log2(R_n / R_n_2) if R_n_2 > 0 else 0
+
+        # Define r(k) calculation method
+        def r_k(qb, theta_b, k, R_n):
+            alpha_b = 1 / theta_b
+            c = (sum(1 / ((i + qb) ** alpha_b) for i in range(1, R_n + 1))) ** -1
+            return sum(c / ((i + qb) ** alpha_b) for i in range(1, k + 1))
+
+        # Objective function for optimization
+        def objective_function(qb):
+            r_n_estimated = r_k(qb[0], theta_b, R_n, R_n)
+            return (r_n_estimated - R_n) ** 2
+
+        # Initial guess and bounds for q
+        initial_guess = [0.0]
+        bounds = [(-1.0, 20.0)]
+
+        # Optimization using SciPy's minimize function
+        result = minimize(objective_function, initial_guess, bounds=bounds, method='L-BFGS-B')
+
+        if result.success:
+            qb = result.x[0]
+        else:
+            raise ValueError("Optimization failed")
+
+        return theta_b, qb
 
 class ZipfianAnalysis(BasicCorpusAnalyzer):
     def __init__(self, tokens):
