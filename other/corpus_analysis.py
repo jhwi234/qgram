@@ -11,10 +11,11 @@ import nltk
 from nltk.corpus import PlaintextCorpusReader, stopwords
 from nltk.tokenize import word_tokenize
 import numpy as np
+from scipy.optimize import minimize
 import matplotlib.pyplot as plt
-from scipy.stats import linregress
 from scipy.optimize import curve_fit
 from scipy.optimize import minimize, Bounds
+
 class CorpusLoader:
     """
     Load a corpus from NLTK or a local file/directory, optimized for performance.
@@ -37,7 +38,7 @@ class CorpusLoader:
             corpus_reader = PlaintextCorpusReader(self.corpus_source, '.*')
         else:
             corpus_reader = getattr(nltk.corpus, self.corpus_source)
-        return [token.lower() for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
+        return [token for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
 
     def load_corpus(self):
         """Get the corpus, either from cache or by loading it."""
@@ -67,10 +68,9 @@ class Tokenizer:
         self.use_nltk_tokenizer = use_nltk_tokenizer
         self.stopwords_language = stopwords_language
         self.custom_regex = None
-        self._stop_words = set()
-        self._punctuation = set()
+        self._unwanted_tokens = set()  # Combined set for stopwords and punctuation
         self._ensure_nltk_resources()
-        self._load_stopwords_and_punctuation()
+        self._load_unwanted_tokens()
 
     def _ensure_nltk_resources(self):
         """Ensure that NLTK resources are available."""
@@ -80,12 +80,12 @@ class Tokenizer:
             except LookupError:
                 nltk.download('stopwords', quiet=True)
 
-    def _load_stopwords_and_punctuation(self):
+    def _load_unwanted_tokens(self):
         """Load stopwords and punctuation sets for efficient access."""
         if self.remove_stopwords:
-            self._stop_words = set(stopwords.words(self.stopwords_language))
+            self._unwanted_tokens.update(stopwords.words(self.stopwords_language))
         if self.remove_punctuation:
-            self._punctuation = set(string.punctuation)
+            self._unwanted_tokens.update(string.punctuation)
 
     def set_custom_regex(self, pattern):
         """Set a custom regex pattern for tokenization with caching."""
@@ -94,16 +94,17 @@ class Tokenizer:
         except re.error as e:
             raise ValueError(f"Invalid regex pattern: {e}")
 
-    def _remove_stopwords_and_punctuation(self, tokens) -> list:
-        """Remove stopwords, punctuation, and unwanted characters from a list of tokens."""
-        return [token for token in tokens if token not in self._punctuation 
-                and token not in self._stop_words 
-                and not token.startswith('``')]
+    def _remove_unwanted_tokens(self, tokens) -> list:
+        """Remove unwanted tokens (stopwords, punctuation) from a list of tokens."""
+        return [token for token in tokens if token not in self._unwanted_tokens and not token.startswith('``')]
     
-    def tokenize(self, text) -> list:
+    def tokenize(self, text, lowercase=False) -> list:
         """Tokenize text into individual words based on the selected method."""
         if isinstance(text, list):
             text = ' '.join(text)
+
+        if lowercase:
+            text = text.lower()
 
         # Perform tokenization based on the selected method
         if self.custom_regex:
@@ -114,18 +115,27 @@ class Tokenizer:
             # Basic whitespace tokenization
             tokens = text.split()
 
-        return self._remove_stopwords_and_punctuation(tokens)
+        return self._remove_unwanted_tokens(tokens)
 class BasicCorpusAnalyzer:
     """
     Analyze a corpus of text with optimized data structures.
     """
-    def __init__(self, tokens):
+    def __init__(self, tokens, shuffle_tokens=False):
         if not all(isinstance(token, str) for token in tokens):
             raise ValueError("All tokens must be strings.")
+        
         self.tokens = tokens
-        self.frequency = Counter(tokens)
+        if shuffle_tokens:
+            self._shuffle_tokens()
+            print("Tokens have been shuffled.")
+
+        self.frequency = Counter(self.tokens)
         self._total_token_count = sum(self.frequency.values())
         self.token_details = self._initialize_token_details()
+
+    def _shuffle_tokens(self):
+        """Shuffle the tokens in the corpus using NumPy for efficiency."""
+        np.random.shuffle(self.tokens)
 
     def _initialize_token_details(self):
         """
@@ -212,19 +222,6 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
 
     def yules_k(self) -> float:
         """
-        Calculate Yule's K measure for lexical diversity.
-        Yule's K is a statistical measure that reflects the lexical diversity
-        of a text. A higher value indicates greater diversity.
-        """
-        freqs = np.array([details['frequency'] for details in self.token_details.values()])
-        # M1: The sum of the squares of the word frequencies
-        M1 = np.sum(freqs)
-        # M2: The sum of the fourth powers of the word frequencies
-        M2 = np.sum(freqs ** 2)
-        return 10**4 * (M2 - M1) / (M1 ** 2)
-
-    def yules_k(self) -> float:
-        """
         Calculate Yule's K measure for lexical diversity using NumPy.
         """
         freqs = np.array([details['frequency'] for details in self.token_details.values()])
@@ -244,92 +241,203 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         N = self._total_token_count
         return math.log(V) / math.log(N)
 
-    def calculate_heaps_law_constants(self):
-        normalized_tokens = [token.lower() for token in self.tokens]
-        if len(normalized_tokens) < 2:
+    def calculate_heaps_law_sampling(self):
+        """
+        Calculate Heap's Law constants using a sampling approach with weighted linear regression.
+        """
+        if len(self.tokens) < 2:
             raise ValueError("Not enough data to calculate Heaps' law constants.")
 
-        # Dynamic determination of sampling points based on 5% of corpus size
-        corpus_size = len(normalized_tokens)
+        corpus_size = len(self.tokens)
         sampling_rate = 0.05
         sample_points = max(int(corpus_size * sampling_rate), 1000)
 
-        # Use logarithmic scale for sampling
         sample_sizes = np.unique(np.logspace(0, np.log10(corpus_size), sample_points).astype(int))
         unique_word_counts = []
         unique_words = set()
-        last_size = 0
+        token_index = 0
 
         for size in sample_sizes:
-            new_tokens = normalized_tokens[last_size:size]
-            unique_words.update(new_tokens)
+            while token_index < size and token_index < corpus_size:
+                unique_words.add(self.tokens[token_index])
+                token_index += 1
             unique_word_counts.append(len(unique_words))
-            last_size = size
 
-        # Perform log transformation
+        # Pre-computing logarithms
         log_sample_sizes = np.log(sample_sizes)
         log_unique_word_counts = np.log(unique_word_counts)
 
-        # Weighted Linear Regression using np.polyfit
-        weights = np.sqrt(sample_sizes)  # Giving more weight to larger samples
-        slope, intercept = np.polyfit(log_sample_sizes, log_unique_word_counts, 1, w=weights)
-
-        # Calculate K and beta
-        beta = slope
-        K = np.exp(intercept)
+        weights = np.sqrt(sample_sizes)
+        beta, logK = np.polyfit(log_sample_sizes, log_unique_word_counts, 1, w=weights)
+        K = np.exp(logK)
 
         return K, beta
 
-    def calculate_alpha(self) -> float:
+    def calculate_heaps_law(self):
         """
-        Calculate the alpha value for Zipf's law for the corpus using log-transformed ranks and frequencies.
+        Calculate Heap's Law parameters using a standard approach.
         """
+        if len(self.tokens) < 2:
+            raise ValueError("Not enough tokens to calculate Heaps' law.")
+
+        total_words = np.arange(1, len(self.tokens) + 1)
+        unique_words = np.zeros(len(self.tokens))
+        word_set = set()
+
+        for i, token in enumerate(self.tokens):
+            word_set.add(token)
+            unique_words[i] = len(word_set)
+
+        log_total_words = np.log(total_words)
+        log_unique_words = np.log(unique_words)
+        beta, logK = np.polyfit(log_total_words, log_unique_words, 1)
+        K = np.exp(logK)
+
+        return K, beta
+
+    def plot_heaps_law(self, K_standard, beta_standard, K_sampling, beta_sampling, corpus_name):
+        """
+        Plot the results of Heap's Law calculations (both standard and sampling methods) for a given corpus.
+        """
+        total_words = np.arange(1, len(self.tokens) + 1)
+        unique_words = []
+        word_set = set()
+
+        for token in self.tokens:
+            word_set.add(token)
+            unique_words.append(len(word_set))
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(total_words, unique_words, label='Empirical Data', color='blue')
+        plt.plot(total_words, K_standard * total_words ** beta_standard, '--', label=f'Standard Fit: K={K_standard:.2f}, beta={beta_standard:.2f}', color='green')
+        plt.plot(total_words, K_sampling * total_words ** beta_sampling, '--', label=f'Sampling Fit: K={K_sampling:.2f}, beta={beta_sampling:.2f}', color='red')
+        plt.xlabel('Total Words')
+        plt.ylabel('Unique Words')
+        plt.title(f"Heap's Law Analysis for {corpus_name} Corpus")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    def calculate_alpha(self, percentile_threshold=90) -> float:
+        # Define the Zipf law function
+        def zipf_func(rank, alpha, C):
+            return C / rank**alpha
+        
         # Extract frequencies and ranks from token details
         frequencies = np.array([details['frequency'] for details in self.token_details.values()])
         ranks = np.array([details['rank'] for details in self.token_details.values()])
+        
+        # Determine threshold based on the specified percentile
+        threshold = np.percentile(frequencies, percentile_threshold)
+        high_freq_indices = frequencies >= threshold  # Include values equal to threshold
 
-        # Log-transform ranks and frequencies
-        log_ranks = np.log(ranks)
-        log_freqs = np.log(frequencies)
+        # Use non-linear optimization to fit the Zipf function
+        popt, _ = curve_fit(zipf_func, ranks[high_freq_indices], frequencies[high_freq_indices], p0=[1.0, np.max(frequencies)], maxfev=10000)
 
-        # Perform linear regression
-        slope, _, _, _, _ = linregress(log_ranks, log_freqs)
+        # popt contains the fitted parameters alpha and C
+        return popt[0]
 
-        # Return the negative of the slope as alpha
-        return -slope
-    
-    def estimate_zipf_mandelbrot_params(self):
-        # Compute R[n] and R[n/2]
-        R_n = len(self.token_details)
-        R_n_2 = len(self.tokens) // 2
+    def plot_zipfs_law_fit(self, corpus_name):
+        # Use the calculate_alpha method to obtain alpha
+        alpha = self.calculate_alpha()
 
-        # Estimate Theta (θb)
-        theta_b = math.log2(R_n / R_n_2) if R_n_2 > 0 else 0
+        ranks = np.arange(1, len(self.frequency) + 1)
+        frequencies = np.array([freq for _, freq in self.frequency.most_common()])
+        
+        # Normalize the actual frequencies
+        normalized_frequencies = frequencies / np.max(frequencies)
+        
+        # Predict frequencies using the fitted alpha
+        predicted_freqs = (1 / ranks**alpha)
+        normalized_predicted_freqs = predicted_freqs / np.max(predicted_freqs)
 
-        # Define r(k) calculation method
-        def r_k(qb, theta_b, k, R_n):
-            alpha_b = 1 / theta_b
-            c = (sum(1 / ((i + qb) ** alpha_b) for i in range(1, R_n + 1))) ** -1
-            return sum(c / ((i + qb) ** alpha_b) for i in range(1, k + 1))
+        plt.figure(figsize=(10, 6))
+        plt.scatter(ranks, normalized_frequencies, color='blue', label='Actual Frequencies', marker='o', linestyle='', s=5)
+        plt.plot(ranks, normalized_predicted_freqs, label='Predicted Frequencies (Zipf\'s Law)', color='red', linestyle='-')
+        plt.xlabel('Rank')
+        plt.ylabel('Normalized Frequency')
+        plt.title(f'Zipf\'s Law Fit for {corpus_name} Corpus')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
-        # Objective function for optimization
-        def objective_function(qb):
-            r_n_estimated = r_k(qb[0], theta_b, R_n, R_n)
-            return (r_n_estimated - R_n) ** 2
+    def fit_zipf_mandelbrot(self, initial_params=None, method='Nelder-Mead', verbose=False):
+        """
+        Fit the Zipf-Mandelbrot distribution to the corpus and find parameters q and s.
+        """
+        frequencies = np.array([details['frequency'] for details in self.token_details.values()])
+        ranks = np.array([details['rank'] for details in self.token_details.values()])
 
-        # Initial guess and bounds for q
-        initial_guess = [0.0]
-        bounds = [(-1.0, 20.0)]
+        # Normalizing data
+        max_freq = frequencies.max()
+        normalized_freqs = frequencies / max_freq
 
-        # Optimization using SciPy's minimize function
-        result = minimize(objective_function, initial_guess, bounds=bounds, method='L-BFGS-B')
+        def zipf_mandelbrot(k, q, s):
+            return (1 / ((k + q) ** s))
+
+        def objective_function(params):
+            q, s = params
+            predicted = np.array([zipf_mandelbrot(rank, q, s) for rank in ranks])
+            normalized_predicted = predicted / predicted.max()  # Normalize predictions
+            return np.sum((normalized_freqs - normalized_predicted) ** 2)
+
+        # Adaptive initial parameters if not provided
+        if initial_params is None:
+            initial_params = [2.7, 1.0]  # Empirical initial values
+
+        # Adjusting bounds based on empirical data
+        bounds = [(0, 10), (0.5, 3)]
+
+        # Optimization to minimize the objective function
+        result = minimize(objective_function, initial_params, method=method, bounds=bounds, options={'disp': verbose})
 
         if result.success:
-            qb = result.x[0]
+            q, s = result.x
+            if verbose:
+                print(f"Optimization successful. Fitted parameters: q = {q}, s = {s}")
+            return q, s
         else:
-            raise ValueError("Optimization failed")
+            if verbose:
+                print("Optimization did not converge.")
+            raise ValueError("Optimization did not converge")
 
-        return theta_b, qb
+    def plot_zipf_mandelbrot_fit(self, q, s, corpus_name):
+        """
+        Plot the actual vs predicted rank-frequency distribution using the Zipf-Mandelbrot model.
+        
+        :param q: Fitted parameter q of the Zipf-Mandelbrot distribution.
+        :param s: Fitted parameter s of the Zipf-Mandelbrot distribution.
+        :param corpus_name: Name of the corpus for labeling the plot.
+        """
+        ranks = np.array([details['rank'] for details in self.token_details.values()])
+        frequencies = np.array([details['frequency'] for details in self.token_details.values()])
+
+        # Zipf-Mandelbrot function
+        def zipf_mandelbrot(k, q, s):
+            return (1 / ((k + q) ** s))
+
+        # Predict frequencies using the fitted parameters
+        predicted_freqs = np.array([zipf_mandelbrot(rank, q, s) for rank in ranks])
+
+        # Normalize both actual and predicted frequencies for comparison
+        max_freq = np.max(frequencies)
+        normalized_freqs = frequencies / max_freq
+        normalized_predicted_freqs = predicted_freqs / np.max(predicted_freqs)
+
+        # Plotting
+        plt.figure(figsize=(10, 6))
+        plt.plot(ranks, normalized_freqs, label='Actual Frequencies', marker='o', linestyle='', markersize=5)
+        plt.plot(ranks, normalized_predicted_freqs, label='Predicted Frequencies', linestyle='-', color='red')
+        plt.xlabel('Rank')
+        plt.ylabel('Normalized Frequency')
+        plt.title(f'Zipf-Mandelbrot Fit for {corpus_name} Corpus')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
 class ZipfianAnalysis(BasicCorpusAnalyzer):
     def __init__(self, tokens):
@@ -376,12 +484,4 @@ class ZipfianAnalysis(BasicCorpusAnalyzer):
         std_deviation = np.std(deviations)
         return mean_deviation, std_deviation
 
-    def calculate_alpha(self) -> float:
-        """Calculate the alpha value for the corpus."""
-        most_common = self.frequency.most_common()
-        ranks = np.arange(1, len(most_common) + 1)
-        frequencies = np.array([freq for _, freq in most_common])
-        log_ranks = np.log(ranks)
-        log_freqs = np.log(frequencies)
-        slope, _, _, _, _ = linregress(log_ranks, log_freqs)
-        return -slope
+
