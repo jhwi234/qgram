@@ -216,6 +216,10 @@ class CorpusTools:
         return [{'token': token, **details}
                 for token, details in self.token_details.items()
                 if start_rank <= details['rank'] <= end_rank]
+    
+    def hapax_legomena_count(self) -> int:
+        """Count the number of hapax legomena in the corpus."""
+        return sum(1 for _, details in self.token_details.items() if details['frequency'] == 1)
 class AdvancedTools(CorpusTools):
     """
     Advanced analysis on a corpus of text, extending CorpusTools.
@@ -224,7 +228,7 @@ class AdvancedTools(CorpusTools):
     """
     def __init__(self, tokens):
         super().__init__(tokens)
-        self._alpha_params = None # Cache for Zipf's Law alpha parameter
+        self._zipf_params = None # Cache for Zipf's Law alpha parameter
         self._heaps_params = None # Cache for Heaps' Law parameters
         self._zipf_mandelbrot_params = None # Cache for Zipf-Mandelbrot parameters
         self.herdans_c_value = None # Cache for Herdan's C value
@@ -329,64 +333,66 @@ class AdvancedTools(CorpusTools):
         estimated_vocab_size = K * (total_tokens ** beta)
         return estimated_vocab_size
 
-    def calculate_alpha(self):
+    def calculate_zipf_params(self):
         """
         Calculate the alpha parameter of Zipf's Law for the corpus using optimization.
         """
-        if self._alpha_params is not None:
-            return self._alpha_params
-        
+        if self._zipf_params is not None:
+            return self._zipf_params
+
         # Extract ranks (1-based) and frequencies
         ranks = np.arange(1, len(self.frequency) + 1)
         frequencies = np.array([freq for _, freq in self.frequency.most_common()])
+
+        # Normalize the frequencies
+        total_tokens = sum(frequencies)
+        normalized_frequencies = frequencies / total_tokens
 
         # Define the objective function for minimization
         def objective_function(params):
             alpha, c = params
             predicted_freqs = c / np.power(ranks, alpha)
-            return np.sum((frequencies - predicted_freqs) ** 2)
+            return np.sum((normalized_frequencies - predicted_freqs) ** 2)
 
         # Initial guesses for alpha and c
-        initial_guess = [-1.0, np.max(frequencies)]
+        initial_c = np.median(frequencies) / total_tokens  # Using median frequency for a balanced start
+        initial_guess = [-1.0, initial_c]
 
         # Optimization using a suitable method, e.g., Nelder-Mead
         result = minimize(objective_function, initial_guess, method='Nelder-Mead')
 
         if result.success:
             alpha, c = result.x
-            self._alpha_params = (alpha, c)
+            self._zipf_params = (alpha, c)
         else:
-            self._alpha_params = (None, None)  # Indicate failure
+            self._zipf_params = (None, None)  # Indicate failure
             raise RuntimeError("Optimization failed to converge")
-        
-        return self._alpha_params
 
-    def assess_alpha_fit(self):
-        """Assess the fit of the corpus to a Zipfian distribution considering both alpha and c."""
-        if self._alpha_params is None or self._alpha_params[0] is None:
+        return self._zipf_params
+
+    def assess_zipf_fit(self):
+        """Calculate the mean and standard deviation of residuals to assess the Zipfian distribution fit."""
+        if self._zipf_params is None or self._zipf_params[0] is None:
             raise ValueError("Alpha and c have not been calculated or optimization failed.")
         
-        alpha, c = self._alpha_params
+        alpha, c = self._zipf_params
         # Normalizing frequencies and preparing data
         total_count = sum(self.frequency.values())
         sorted_freqs = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
         normalized_freqs = {word: freq / total_count for word, freq in sorted_freqs}
 
-        # Handling ties in ranks
-        current_rank, current_freq = 0, None
-        deviations = []
+        # Compute residuals
+        residuals = []
         for index, (word, freq) in enumerate(sorted_freqs, start=1):
-            if freq != current_freq:
-                current_rank = index
-                current_freq = freq
+            rank = index
+            expected_freq = c / (rank ** alpha)
+            residual = normalized_freqs[word] - expected_freq
+            residuals.append(residual)
 
-            expected_freq = c / (current_rank ** alpha)
-            deviations.append(abs(normalized_freqs[word] - expected_freq))
-
-        mean_deviation = np.mean(deviations)
-        std_deviation = np.std(deviations)
-
-        return mean_deviation, std_deviation
+        # Calculate mean and standard deviation of residuals
+        mean_residual = np.mean(residuals)
+        std_dev_residual = np.std(residuals)
+        return mean_residual, std_dev_residual
 
     def calculate_zipf_mandelbrot(self, initial_params=None, verbose=False):
         """
@@ -416,7 +422,7 @@ class AdvancedTools(CorpusTools):
             initial_params = [2.7, 1.0]  # Empirical initial values
 
         # Adjusting bounds based on empirical data
-        bounds = [(0, 10), (0, 10)]
+        bounds = [(1, 10), (0.25, 10)]
 
         # Optimization to minimize the objective function
         result = minimize(objective_function, initial_params, method='Nelder-Mead', bounds=bounds, options={'disp': verbose})
@@ -431,10 +437,10 @@ class AdvancedTools(CorpusTools):
             if verbose:
                 print("Optimization did not converge.")
             raise ValueError("Optimization did not converge")
-        
+
     def assess_zipf_mandelbrot_fit(self, q, s):
         """
-        Assess the fit of the Zipf-Mandelbrot distribution to the corpus using the provided parameters q and s.
+        Calculate the mean and standard deviation of residuals to assess the Zipf-Mandelbrot distribution fit.
         """
         frequencies = np.array([details['frequency'] for details in self.token_details.values()])
         ranks = np.array([details['rank'] for details in self.token_details.values()])
@@ -447,16 +453,17 @@ class AdvancedTools(CorpusTools):
         def zipf_mandelbrot(k, q, s):
             return (1 / ((k + q) ** s))
 
-        # Predict frequencies using the provided parameters
+        # Compute predicted frequencies
         predicted_freqs = np.array([zipf_mandelbrot(rank, q, s) for rank in ranks])
         normalized_predicted_freqs = predicted_freqs / np.max(predicted_freqs)
 
-        # Calculate deviations
-        deviations = np.abs(normalized_freqs - normalized_predicted_freqs)
-        mean_deviation = np.mean(deviations)
-        std_deviation = np.std(deviations)
+        # Compute residuals
+        residuals = np.abs(normalized_freqs - normalized_predicted_freqs)
 
-        return mean_deviation, std_deviation
+        # Calculate mean and standard deviation of residuals
+        mean_residual = np.mean(residuals)
+        std_dev_residual = np.std(residuals)
+        return mean_residual, std_dev_residual
     
 class CorpusPlots:
     def __init__(self, analyzer, corpus_name, plots_dir='plots'):
@@ -471,7 +478,7 @@ class CorpusPlots:
         """
         Plots the rank-frequency distribution of the corpus using Zipf's Law.
         """
-        alpha, c = self.analyzer.calculate_alpha()
+        alpha, c = self.analyzer.calculate_zipf_params()
         if alpha is None or c is None:
             raise ValueError("Alpha or c calculation failed, cannot plot Zipf's Law fit.")
 

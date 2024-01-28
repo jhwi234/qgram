@@ -29,21 +29,20 @@ def analyze_corpus(corpus_name, shuffle_tokens=False, plots_to_generate=None, en
     basic_analyzer = CorpusTools(tokenized_corpus, shuffle_tokens=shuffle_tokens)
     advanced_analyzer = AdvancedTools(tokenized_corpus)
     plotter = CorpusPlots(advanced_analyzer, corpus_name)
-    hapax_legomena_count = sum(1 for _, details in basic_analyzer.token_details.items() if details['frequency'] == 1)
 
     # Gather basic analysis results
     results = [
         f"Token Count: {basic_analyzer.total_token_count}",
         f"Types Count (Distinct Tokens): {len(basic_analyzer.frequency)}",
-        f"Hapax Count (Unique Tokens): {hapax_legomena_count}",
+        f"Hapax Count (Unique Tokens): {basic_analyzer.hapax_legomena_count()}",
         f"Yule's K: {advanced_analyzer.yules_k():.6f}",
         f"Herdan's C: {advanced_analyzer.herdans_c():.6f}",
     ]
 
     # Perform conditional calculations and plot generations
     if "zipf" in plots_to_generate:
-        alpha, c = advanced_analyzer.calculate_alpha()
-        mean_deviation, std_deviation = advanced_analyzer.assess_alpha_fit()
+        alpha, c = advanced_analyzer.calculate_zipf_params()
+        mean_deviation, std_deviation = advanced_analyzer.assess_zipf_fit()
         plotter.plot_zipfs_law_fit()
         results.extend([
             f"Zipf Alpha: {alpha:.6f}",
@@ -93,6 +92,6 @@ def analyze_corpus(corpus_name, shuffle_tokens=False, plots_to_generate=None, en
 
 # Example usage
 corpora = ['brown', 'reuters', 'webtext', 'inaugural', 'nps_chat', 'shakespeare', 'state_union', 'gutenberg']
-plots_required = ["zipf"]
+plots_required = ["zipf", "zipf_mandelbrot"]
 for corpus in corpora:
     analyze_corpus(corpus, plots_to_generate=plots_required, enable_profiling=False)
