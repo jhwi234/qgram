@@ -422,7 +422,7 @@ class AdvancedTools(CorpusTools):
             initial_params = [2.7, 1.0]  # Empirical initial values
 
         # Adjusting bounds based on empirical data
-        bounds = [(1, 10), (0.1, 10)]
+        bounds = [(1, 10), (0.1, 3)]
 
         # Optimization to minimize the objective function
         result = minimize(objective_function, initial_params, method='Nelder-Mead', bounds=bounds, options={'disp': verbose})
