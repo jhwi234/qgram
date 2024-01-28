@@ -180,3 +180,28 @@ The paper by Chakrabarty et al. details a comprehensive methodology for estimati
 - The behavior of this empirical bridge, particularly its convergence to a Gaussian process, is examined to evaluate how well a text fits the Zipf—Mandelbrot law.
 
 In summary, the paper provides a detailed, statistically rigorous approach to estimating the parameters of the Zipf—Mandelbrot law and testing its applicability to natural language texts. This methodology not only quantifies word frequency distributions but also assesses the extent to which these distributions follow theoretical expectations.
+
+The parameters alpha, K, s, q, and beta are crucial in linguistic analysis, particularly in understanding the distribution and frequency of words in a text corpus. Each of these parameters offers insight into different aspects of language use and structure:
+
+1. **Alpha (α) - Zipf's Law Parameter**: 
+   - Conceptually, `alpha` in Zipf's Law can be likened to the "diversity indicator" of word usage in a text. 
+   - A lower `alpha` suggests a more evenly distributed word usage, where no particular set of words overwhelmingly dominates the text. 
+   - Conversely, a higher `alpha` indicates a text where a few words are used very frequently while the majority are used infrequently, signifying a steep drop in usage frequency as you move down the rank of words.
+
+2. **K - Heaps' Law Parameter**: 
+   - In Heaps' Law, `K` could be thought of as the "lexical richness indicator" of a text. 
+   - It reflects how quickly new words are introduced as the corpus size grows. A higher `K` suggests a text that continues to introduce a broad range of unique words even as more content is added, indicative of a rich and diverse vocabulary.
+
+3. **Beta (β) - Heaps' Law Parameter**: 
+   - `Beta` in Heaps' Law can be viewed as a "saturation indicator". 
+   - It tells us how quickly the introduction of new, unique words starts to slow down as more text is added. 
+   - A lower `beta` means that even with large amounts of text, the rate of new word introduction remains relatively high, indicating a language rich in variety and less prone to repetition.
+
+4. **s and q - Zipf-Mandelbrot Law Parameters**: 
+   - In the Zipf-Mandelbrot Law, `s` can be thought of as a "frequency tapering parameter". It adjusts the rate at which word frequency decreases, similar to `alpha` in the classic Zipf's Law but with more flexibility to fit empirical data.
+   - `q`, on the other hand, can be seen as a "starting point adjuster". It shifts the rank-frequency curve, acknowledging that in many real-world scenarios, the highest-frequency words don't always strictly follow the expected mathematical relationship and might start off with a higher base frequency.
+
+### Conceptual Analogue
+- These parameters collectively paint a picture of the linguistic landscape of a corpus. 
+- **Alpha** gives an idea of word concentration and diversity, **K and Beta** reflect the expansion and saturation of vocabulary, and **s and q** fine-tune our understanding of how frequently words are used and how they deviate from expected patterns. 
+- They provide a mathematical model to describe how language is used in different contexts, revealing patterns that might not be immediately apparent but are critical for understanding the complexity and nuance of language use.
