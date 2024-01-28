@@ -5,6 +5,7 @@ import math
 from collections import Counter
 from functools import lru_cache
 import regex as re
+import sys
 
 # Third-party imports
 import nltk
@@ -257,68 +258,49 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         estimated_vocab_size = K * (total_tokens ** beta)
         return estimated_vocab_size
 
-    def calculate_heaps_law(self, use_sampling=True):
+    def calculate_heaps_law(self, base_sampling_rate=0.05, base_num_samples=1000):
         """
-        Calculate Heap's Law constants, with an option to use sampling or standard approach.
+        Estimate the parameters K and beta for Heaps' Law using a sampling approach,
+        with dynamic adjustments based on corpus vocabulary richness (Herdan's C).
+        """
+        corpus_size = len(self.tokens)
         
-        :param use_sampling: If True, use the sampling approach; otherwise, use the standard approach.
-        """
-        if len(self.tokens) < 2:
-            raise ValueError("Not enough data to calculate Heaps' law constants.")
+        # Directly using Herdan's C method from the same class
+        herdans_c_value = self.herdans_c()
 
-        # Common setup for both approaches
+        # Adjust sampling rate and number of samples based on Herdan's C
+        adjusted_sampling_rate = min(base_sampling_rate + herdans_c_value, 0.1)  # Limit the maximum sampling rate
+        adjusted_num_samples = int(base_num_samples * (1 + herdans_c_value))
+
+        # Determine sample sizes
+        sample_sizes = np.unique(np.linspace(0, corpus_size, num=min(adjusted_num_samples, int(corpus_size * adjusted_sampling_rate)), endpoint=False).astype(int))
+
         word_set = set()
         unique_word_counts = []
-        token_index = 0
 
-        if use_sampling:
-            # Sampling approach
-            corpus_size = len(self.tokens)
-            sampling_rate = 0.05
-            sample_points = max(int(corpus_size * sampling_rate), 1000)
-            sample_sizes = np.unique(np.logspace(0, np.log10(corpus_size), sample_points).astype(int))
-            
-            for size in sample_sizes:
-                while token_index < size and token_index < corpus_size:
-                    word_set.add(self.tokens[token_index])
-                    token_index += 1
-                unique_word_counts.append(len(word_set))
+        for size in sample_sizes:
+            sample_tokens = self.tokens[:size]
+            word_set.update(sample_tokens)
+            unique_word_counts.append(len(word_set))
 
-            # Fit in log-log space
-            log_sample_sizes = np.log(sample_sizes)
-            weights = np.sqrt(sample_sizes)
-            beta, logK = np.polyfit(log_sample_sizes, np.log(unique_word_counts), 1, w=weights)
+        # Linear regression on log-transformed sample data
+        log_sample_sizes = np.log(sample_sizes[1:])  # Exclude the first sample (size 0)
+        log_unique_word_counts = np.log(unique_word_counts[1:])
+        beta, logK = np.polyfit(log_sample_sizes, log_unique_word_counts, 1)
+        K_linear = np.exp(logK)
 
+        # Nonlinear optimization
+        def objective_function(params):
+            K, beta = params
+            return np.sum((K * sample_sizes**beta - unique_word_counts)**2)
+
+        initial_params = [K_linear, beta]
+        result = minimize(objective_function, initial_params, method='Nelder-Mead')
+
+        if result.success:
+            K, beta = result.x
         else:
-            # Standard approach
-            total_words = np.arange(1, len(self.tokens) + 1)
-
-            for token in self.tokens:
-                word_set.add(token)
-                unique_word_counts.append(len(word_set))
-
-            # Fit in log-log space
-            beta, logK = np.polyfit(np.log(total_words), np.log(unique_word_counts), 1)
-
-        K = np.exp(logK)
-        return K, beta
-
-    def estimate_k_and_beta(self):
-        """
-        Estimates the parameters k and beta for Heap's Law using linear regression in log-log space.
-        """
-        N = self.total_token_count
-        V = len(self.frequency)
-
-        # Log-log transformation
-        log_N = np.log10(N)
-        log_V = np.log10(V)
-
-        # Fitting a line (logV = beta * logN + logK) in log-log space
-        beta, logK = np.polyfit(log_N, log_V, 1)
-
-        # Transform back K from log space
-        K = 10 ** logK
+            K, beta = K_linear, beta  # Fall back to linear regression estimates
 
         return K, beta
 

@@ -38,7 +38,8 @@ def analyze_corpus(corpus_name, shuffle_tokens=False):
         f"Alpha Fit Mean Deviation: {mean_deviation:.6f}", 
         f"ALpha Fit Standard Deviation: {std_deviation:.6f}",
         f"Heaps' K: {K:.6f} and Beta: {Beta:.6f}",
-        f"Estimated Vocabulary Size: {estimated_vocabulary_size:.2f}"
+        f"Estimated Vocabulary Size: {estimated_vocabulary_size:.2f}",
+        f"Actual Vocabulary Size: {len(basic_analyzer.frequency)}",
     ])
 
     # Calculate and assess Zipf-Mandelbrot parameters
