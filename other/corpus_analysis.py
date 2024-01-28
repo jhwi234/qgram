@@ -17,28 +17,9 @@ from matplotlib import style
 from scipy.optimize import curve_fit
 from scipy.optimize import minimize
 
-# Centralized style settings for all plots
-plot_params = {
-    'figsize': (10, 6),
-    'marker': 'o',
-    'linestyle': '',
-    'markersize': 5,
-}
-
 # Directory for plots
 plots_dir = 'plots'
 os.makedirs(plots_dir, exist_ok=True)
-
-def save_plot(plt, plot_name, corpus_name, title, xlabel='Rank', ylabel='Frequency'):
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.title(title)
-    plt.legend()
-    plt.grid(True)
-    plt.savefig(os.path.join(plots_dir, f'{plot_name}_{corpus_name}.png'))
-    plt.close()
 
 class CorpusLoader:
     """
