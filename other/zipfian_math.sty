@@ -1,207 +1,149 @@
-To understand the math behind going from a corpus token size and an assumed alpha (typically alpha = 1 for an ideal Zipfian distribution) to calculating the vocabulary size (unique words/word types), we need to delve into the principles of Zipf's Law and its mathematical representation.
+### Comprehensive Notes on Linguistic Laws
+
+#### Zipf's Law
+- **Definition**: States that the frequency of a word is inversely proportional to its rank in the frequency table.
+- **Mathematical Representation**: \( f(r) = \frac{C}{r^\alpha} \)
+  - \( f(r) \): Frequency of the word at rank \( r \).
+  - \( C \): Constant, approximating the frequency of the most common word.
+  - \( \alpha \): Exponent, typically close to 1.
+- **Implication**: Higher-ranked words are more frequent; as rank increases, frequency decreases.
+
+#### Generalized Harmonic Number
+- **Role in Zipf's Law**: Normalizes frequencies so their sum equals the total number of words in a corpus.
+- **Formula**: \( H(N, \alpha) = \sum_{i=1}^{N} \frac{1}{i^\alpha} \)
+  - \( N \): Number of terms (vocabulary size).
+  - \( \alpha \): Exponent in Zipf's Law.
+
+#### Heaps' Law
+- **Concept**: Predicts vocabulary growth as a function of corpus size.
+- **Formula**: \( V(R) = K \cdot R^\beta \)
+  - \( V(R) \): Vocabulary size when corpus size is \( R \).
+  - \( K \): Constant representing initial rate of vocabulary growth.
+  - \( \beta \): Rate at which new words appear as corpus size increases.
+- **Application**: Estimating database sizes, predicting language model complexity.
+
+#### Yule's K Measure
+- **Purpose**: Measures lexical diversity and word frequency distribution.
+- **Formula**: \( K = 10^4 \left( \frac{\sum_{i=1}^{V} f_i^2 - N}{N^2} \right) \)
+  - \( f_i \): Frequency of the \( i^{th} \) word.
+  - \( V \): Number of unique words.
+  - \( N \): Total number of words in the corpus.
 
-### Zipf's Law:
+#### Zipf-Mandelbrot Law
+- **Refinement of Zipf's Law**: Adds flexibility to model word frequencies.
+- **Formula**: \( f(k; N, q, s) = \frac{1}{(k + q)^s \cdot H_{N,q,s}} \)
+  - \( k \): Rank of an element.
+  - \( N \): Total number of elements.
+  - \( q \), \( s \): Parameters modifying the distribution.
+  - \( H_{N,q,s} \): Normalizing constant (generalized harmonic number).
+- **Key Properties**:
+  - Generalizes Zipf's Law by introducing \( q \) (shift parameter).
+  - \( s \) adjusts the frequency distribution's slope.
+  - The distribution becomes more sensitive to changes in \( s \) and \( q \).
 
-Zipf's Law is an empirical law that states that the frequency of any word in a corpus is inversely proportional to its rank in the frequency table. Mathematically, it can be represented as:
+#### Application and Interpretation
+- **Lexical Diversity and Frequency**: Alpha and Yule's K reveal concentration and diversity in word usage.
+- **Vocabulary Growth and Saturation**: K and Beta from Heaps' Law indicate the rate and saturation point of new word introduction.
+- **Frequency Tapering and Shift Adjustment**: s and q in Zipf-Mandelbrot Law adjust the frequency distribution slope and starting point, respectively.
 
-\[ f(r) = \frac{C}{r^\alpha} \]
+#### Computational Considerations
+- **Parameter Estimation**: Involves curve fitting techniques, regression analysis, and sometimes iterative methods.
+- **Practical Challenges**: Efficient computation of normalizing constants and accurate parameter estimation from data.
 
-where:
-- \( f(r) \) is the frequency of the word at rank \( r \).
-- \( C \) is a constant approximately equal to the frequency of the most common word.
-- \( \alpha \) is an exponent usually close to 1 (in an ideal Zipfian distribution, \( \alpha = 1 \)).
+### Comprehensive Notes on Zipf's Law and Related Concepts
 
-### Generalized Harmonic Number:
+#### Zipf's Law Overview
+- **Definition**: An empirical law where the nth entry's value in a decreasingly sorted list of values is inversely proportional to n.
+- **Application in Linguistics**: Applies to word frequencies in natural language texts. The most common word occurs roughly twice as often as the second, three times as often as the third, and so on.
+- **Example**: In the Brown Corpus, "the" appears most frequently, making up about 7% of all word occurrences.
 
-The generalized harmonic number is used to normalize the frequencies so that their sum equals the total number of words in the corpus. It is defined as:
+#### Zipf-Mandelbrot Law
+- **Modified Form of Zipf's Law**: Incorporates additional parameters \( a \) and \( b \) for better fit, with \( a \approx 1 \) and \( b \approx 2.7 \).
+- **Formula**: \( \text{frequency} \propto \frac{1}{(\text{rank} + b)^a} \).
 
-\[ H(N, \alpha) = \sum_{i=1}^{N} \frac{1}{i^\alpha} \]
+#### Mathematical Formalization
+- **Probability Mass Function (PMF)**: For an element of rank k in a distribution of N elements, \( f(k;N) = \frac{1}{H_{N}}\frac{1}{k} \) where \( H_{N} \) is the Nth harmonic number.
+- **Generalized Version**: Uses an inverse power law with exponent s, \( f(k;N,s) = \frac{1}{H_{N,s}}\frac{1}{k^s} \), where \( H_{N,s} \) is the generalized harmonic number.
+- **Extension to Infinity**: Valid for \( s > 1 \), where \( H_{N,s} \) becomes Riemann's zeta function.
 
-where \( N \) is the number of terms in the series (i.e., the vocabulary size).
+#### Empirical Testing
+- **Method**: Using a Kolmogorov–Smirnov test to fit empirical distribution to the hypothesized power law.
+- **Visualization**: Plotted on a log-log graph with rank order and frequency logarithms. Conformity to Zipf's law indicated by linear function with slope −s.
 
-### Calculating Vocabulary Size:
+#### Statistical Explanations
+- **Random Text Analysis**: Shows that randomly generated words can follow Zipf's law's macro-trend.
+- **Taylor Series Truncation**: First-order truncation results in Zipf's law, second-order in Mandelbrot's law.
+- **Principle of Least Effort**: Proposes that linguistic efficiency leads to Zipf distribution.
+- **Random Typing Model**: Suggests that random typing by monkeys can produce words following Zipf's law.
+- **Preferential Attachment Process**: "Rich get richer" dynamic can result in Yule–Simon distribution, fitting word frequency and city rank better than Zipf's law.
+- **Atlas Models**: Systems of exchangeable diffusion processes can mathematically yield Zipf's law.
 
-Given a corpus with a total token size \( T \) and assuming an ideal Zipfian distribution (where \( \alpha = 1 \)), the goal is to find the vocabulary size \( N \) such that the sum of the frequencies of all words equals \( T \). The frequency of a word at rank \( r \) in an ideal Zipfian distribution (with \( \alpha = 1 \)) can be expressed as:
+#### Related Laws
+- **Zipf–Mandelbrot Law**: A generalized form with frequencies \( f(k;N,q,s) = \frac{1}{C}\frac{1}{(k+q)^s} \).
+- **Relation to Pareto Distribution**: Zipfian distributions derived from Pareto distributions by variable exchange.
+- **Yule–Simon Distribution Tail Frequencies**: Approximate \( f(k;\rho ) \approx \frac{[constant]}{k^{\rho +1}} \).
+- **Parabolic Fractal Distribution**: Improves fit over simple power-law relationships.
+- **Connection with Benford's Law**: Benford's law seen as a bounded case of Zipf's law.
 
-\[ f(r) = \frac{T}{H(N, 1)} \cdot \frac{1}{r} \]
+#### Applications
+- **Word Frequency in Text**: Power-law distribution of word frequencies in text corpora.
+- **Harmonic Series and Zipf–Mandelbrot Generalization**: Addresses the fixed vocabulary size issue, showing different parameter behaviors for functional and contentive words.
 
-The total number of tokens can be obtained by summing the frequencies of all words:
+The equation that incorporates vocabulary size, corpus token size, and the parameters C, alpha, s, and q in the context of the Zipf-Mandelbrot law can be formulated as follows:
 
-\[ T = \sum_{r=1}^{N} f(r) = \frac{T}{H(N, 1)} \sum_{r=1}^{N} \frac{1}{r} \]
+Let's denote:
+- \( V \) as the vocabulary size,
+- \( T \) as the total corpus token size,
+- \( C \) as a constant,
+- \( \alpha \) as the Zipf-Mandelbrot exponent (similar to s in the original formulation),
+- \( q \) as the shift parameter in the Zipf-Mandelbrot distribution.
 
-Since \( \sum_{r=1}^{N} \frac{1}{r} \) is \( H(N, 1) \), it simplifies to:
+The frequency \( f(k) \) of a word at rank \( k \) in the Zipf-Mandelbrot distribution can be given by:
 
-\[ T = \frac{T}{H(N, 1)} \cdot H(N, 1) \]
+\[ f(k) = \frac{C}{(k + q)^\alpha} \]
 
-Therefore, to find the vocabulary size \( N \), we need to find the largest \( N \) such that \( H(N, 1) \) (the harmonic number) when multiplied by the frequency of the most common word (approximately \( \frac{T}{H(N, 1)} \)) sums up to the total number of tokens \( T \). 
+However, to integrate this with the vocabulary size and corpus token size, we need to consider the normalization of the distribution across all words in the vocabulary. This can be achieved by ensuring the sum of frequencies of all words equals the total corpus token size \( T \). Therefore, we need to find a constant \( C \) that satisfies this condition:
 
-This calculation often requires iterative methods like binary search, as there's no direct algebraic way to solve for \( N \) from \( H(N, 1) \) and \( T \). The binary search iteratively guesses values of \( N \), recalculates \( H(N, 1) \), and checks if the total frequency matches \( T \). The correct vocabulary size \( N \) is the one that makes this equation true.
+\[ T = \sum_{k=1}^{V} \frac{C}{(k + q)^\alpha} \]
 
-Calculating the vocabulary size (the number of unique words or word types) from a given corpus token size, assuming an ideal Zipfian distribution with a specific alpha (e.g., alpha = 1), involves understanding the properties of the Zipfian distribution and some mathematical reasoning.
+This equation represents the balance between the frequency distribution of words (according to Zipf-Mandelbrot law) and the total size of the corpus, taking into account the vocabulary size and the specific parameters of the distribution. Solving this equation for \( C \) in terms of \( T \), \( V \), \( \alpha \), and \( q \) can be complex and might require numerical methods.
 
-### Zipf's Law:
+To solve the equation for the constant \( C \) in the context of the Zipf-Mandelbrot law, given the corpus token size \( T \) and the vocabulary size \( V \), along with the parameters \( \alpha \) and \( q \), we need to approach it numerically. The equation is as follows:
 
-Zipf's Law states that the frequency of a word in natural language is inversely proportional to its rank in the frequency table. Mathematically, the frequency \( f \) of the \( n \)-th most common word is proportional to \( \frac{1}{n^\alpha} \), where \( \alpha \) is typically close to 1 in natural languages.
+\[ T = \sum_{k=1}^{V} \frac{C}{(k + q)^\alpha} \]
 
-### Generalized Harmonic Number:
+This equation can be challenging to solve analytically due to the summation and the nature of the variables involved. Therefore, we use numerical methods to find the value of \( C \) that satisfies this equation. One common approach is to use a numerical optimization technique, such as a binary search or a root-finding algorithm.
 
-The generalized harmonic number is used to sum the frequencies of words in a Zipfian distribution. For a vocabulary of size \( V \) and an alpha \( \alpha \), the generalized harmonic number \( H(V, \alpha) \) is given by:
+Let's outline the steps for solving this using a root-finding algorithm:
 
-\[ H(V, \alpha) = \sum_{i=1}^{V} \frac{1}{i^\alpha} \]
+1. **Define the Function**: We define a function \( f(C) \) representing the difference between the left-hand side and the right-hand side of the equation:
 
-This sum helps in normalizing the frequencies so that they add up to the total size of the corpus.
+   \[ f(C) = \left( \sum_{k=1}^{V} \frac{C}{(k + q)^\alpha} \right) - T \]
 
-### Finding the Vocabulary Size:
+   The goal is to find the value of \( C \) for which \( f(C) = 0 \).
 
-The goal is to find the number of unique words \( V \) such that the sum of their frequencies equals the total number of words (corpus token size) in the corpus. 
+2. **Choose a Root-Finding Algorithm**: Common algorithms include the Newton-Raphson method or the bisection method. These algorithms iteratively adjust the value of \( C \) to find the root of \( f(C) \).
 
-Given a corpus with \( N \) total words (corpus token size) and assuming an ideal Zipfian distribution, the expected frequency of the \( i \)-th word is:
+3. **Iterate to Find the Root**: Starting with an initial guess for \( C \), the algorithm iteratively updates this guess based on the function value and possibly its derivatives, depending on the method used.
 
-\[ f_i = \frac{N}{H(V, \alpha)} \cdot \frac{1}{i^\alpha} \]
+4. **Check for Convergence**: The iteration continues until the function value is sufficiently close to zero, indicating that the equation is balanced.
 
-The total number of words can then be expressed as:
+5. **Output \( C \)**: Once the function converges, the current value of \( C \) is the solution we are looking for.
 
-\[ N = \sum_{i=1}^{V} f_i = \frac{N}{H(V, \alpha)} \cdot \sum_{i=1}^{V} \frac{1}{i^\alpha} \]
+This process would typically be implemented in a computational environment that supports numerical analysis, such as Python with libraries like NumPy or SciPy. Would you like me to perform this calculation with specific values for \( T \), \( V \), \( \alpha \), and \( q \)?
 
-Since the right-hand side also equals \( H(V, \alpha) \), we get:
 
-\[ N = \frac{N}{H(V, \alpha)} \cdot H(V, \alpha) \]
+The parameters in the Zipf-Mandelbrot law – specifically, the constant \( C \), the exponent \( \alpha \), and the shift parameter \( q \) – can be used to predict and understand various characteristics of a text corpus, as well as to make comparisons between different corpora. Here's how each parameter can be informative:
 
-The challenge lies in solving this equation for \( V \) given \( N \) and \( \alpha \), which is not straightforward due to the nature of the generalized harmonic number.
+1. **The Exponent \( \alpha \)**:
+   - **Word Frequency Distribution**: It indicates the steepness of the word frequency distribution. A higher \( \alpha \) suggests that a few words are extremely common, while most other words are rare. A lower \( \alpha \) implies a more uniform distribution of word frequencies.
+   - **Text Complexity and Style**: Texts with a higher \( \alpha \) might be less complex or have a more limited vocabulary, often seen in specialized or technical texts. A lower \( \alpha \) might indicate richer vocabulary and potentially more complex sentence structures, often found in literary or diverse thematic texts.
 
-### Yule's K Measure:
+2. **The Shift Parameter \( q \)**:
+   - **Adjustment for High-Frequency Words**: This parameter helps to model the behavior of the most frequent words more accurately. In some texts, the highest-frequency words do not strictly follow the expected mathematical relationship; \( q \) accounts for this deviation.
+   - **Indicative of Language or Genre**: Different values of \( q \) might characterize different languages or genres, reflecting their unique linguistic structures.
 
-Yule's K is a measure of lexical diversity, specifically focusing on word frequency distribution. It's calculated using the frequencies and squared frequencies of words in a corpus. The formula for Yule's K is as follows:
-
-\[
-K = 10^4 \left( \frac{\sum_{i=1}^{V} f_i^2 - N}{N^2} \right)
-\]
-
-Where:
-- \( f_i \) is the frequency of the \( i^{th} \) word.
-- \( V \) is the number of unique words (vocabulary size).
-- \( N \) is the total number of words in the corpus.
-- The summation \( \sum_{i=1}^{V} f_i^2 \) calculates the sum of the squared frequencies of each word.
-
-### Heaps' Law (K and Beta):
-
-Heaps' Law predicts the growth of vocabulary size as a function of the size of the corpus. The relationship is often described by the following formula:
-
-\[
-V(R) = K \cdot R^\beta
-\]
-
-Where:
-- \( V(R) \) is the vocabulary size (number of unique words) when the corpus size is \( R \) words.
-- \( K \) is a constant representing the rate of vocabulary growth at the start of the corpus.
-- \( \beta \) is a parameter that indicates the rate at which new words appear as the corpus size increases.
-- \( R \) is the size of the corpus (total number of words).
-
-In practice, to find the parameters \( K \) and \( \beta \), a log-log plot is often used where the logarithm of the vocabulary size is plotted against the logarithm of the corpus size. The slope of the line in this plot gives \( \beta \), and the intercept gives \( \log(K) \).
-
-### Interpretation and Application:
-
-- **Yule's K** is typically used to measure the concentration of repetition and lexical diversity within a single text or corpus.
-- **Heaps' Law** is applied to predict how vocabulary size will grow as more text is added to a corpus. It's often used in computational linguistics for tasks like estimating database size for indexing or predicting the complexity of language models.
-
-The Zipf-Mandelbrot law is a refined version of Zipf's law, designed to better accommodate the distribution of ranked data, particularly in linguistic contexts. It's a discrete probability distribution that provides a more flexible model for describing the frequency of words in text corpora, ecological data, and other ranked phenomena.
-
-### Equation and Mathematical Formulation:
-
-The Zipf-Mandelbrot law is defined by the following probability mass function (PMF):
-
-\[ f(k; N, q, s) = \frac{1}{(k + q)^s \cdot H_{N,q,s}} \]
-
-where:
-- \( k \) is the rank of an element.
-- \( N \) is the total number of elements.
-- \( q \) and \( s \) are parameters that modify the distribution.
-- \( H_{N,q,s} \) is a normalizing constant, given by the generalized harmonic number:
-
-  \[ H_{N,q,s} = \sum_{i=1}^{N} \frac{1}{(i + q)^s} \]
-
-As \( N \) approaches infinity, \( H_{N,q,s} \) can be approximated by the Hurwitz zeta function \( \zeta(s, q) \).
-
-### Key Mathematical Properties:
-
-1. **Generalization**: The Zipf-Mandelbrot law generalizes Zipf's law by introducing an additional parameter \( q \), which shifts the rank. This parameter allows for more flexibility in modeling real-world data where the simplest Zipfian model may not fit well.
-
-2. **Reduction to Zipf's Law**: When \( q = 0 \) and \( N \) is finite, the Zipf-Mandelbrot law simplifies to Zipf's law. For infinite \( N \) and \( q = 0 \), it aligns with the Zeta distribution.
-
-3. **Harmonic Number**: The normalizing constant \( H_{N,q,s} \) is a crucial component that ensures the PMF sums to 1 across all ranks. It can be computationally intensive to calculate for large \( N \), and approximations are often used in practical applications.
-
-4. **Parameter Sensitivity**: The behavior of the distribution is sensitive to changes in \( s \) and \( q \). The parameter \( s \) primarily controls the steepness of the distribution, while \( q \) adjusts the distribution's shift along the rank axis.
-
-### Understanding the Parameters:
-
-- **The parameter \( s \)**: This parameter influences the slope of the frequency-rank relationship. A larger \( s \) generally results in a steeper decay of frequency with rank, indicating a more pronounced disparity between the frequencies of high-ranked and low-ranked items.
-  
-- **The parameter \( q \)**: The shift parameter \( q \) modifies how the ranking starts. A higher \( q \) value effectively shifts the frequency curve to the right, changing the distribution's emphasis on higher-ranked items.
-
-### Applications:
-
-- **Linguistics**: In text corpora, the law models the frequency of word occurrences. Different values of \( s \) and \( q \) can reflect variations in language usage, genre, or author style.
-- **Ecology**: Used to model the relative abundance of species, reflecting the ecological diversity and distribution of species in a habitat.
-- **Music**: The distribution of musical notes and their relative frequencies in compositions may conform to the Zipf-Mandelbrot law.
-
-### Computational Considerations:
-
-In practical applications, especially in computational linguistics and data science, it's crucial to efficiently compute the normalizing constant \( H_{N,q,s} \) and to accurately estimate the parameters \( s \) and \( q \) from empirical data. Curve fitting techniques, often involving logarithmic transformations and linear regression, are commonly employed to estimate these parameters. The challenge lies in balancing computational feasibility with the precision of the model, especially when dealing with large datasets.
-
-The paper by Chakrabarty et al. details a comprehensive methodology for estimating the parameters of the Zipf—Mandelbrot law in the context of text analysis. Here is an expanded explanation of their approach:
-
-### Model Assumptions:
-1. **Infinite Dictionary**: The model assumes an infinitely large dictionary. Words in a text are considered to be selected independently from this dictionary.
-2. **Probability Distribution**: The probability \( p_i \) of the occurrence of a word based on its rank \( i \) is governed by the Zipf—Mandelbrot distribution, formulated as:
-   \[ p_i = \frac{c}{(i + q)^{\alpha}} \]
-   where \( c \) is a normalization constant ensuring the sum of probabilities equals 1, \( \alpha = \frac{1}{\theta} \) is a parameter influencing the frequency of word occurrences, and \( q > -1 \) is the Mandelbrot shift parameter, introduced to enhance empirical data fitting.
-
-### Estimating Parameters - θ and q:
-1. **Estimator for θ (θb):**
-   - The estimator \( \theta_b \) is defined by the integral:
-     \[ \theta_b = \int_0^1 \log^+ R[nt] dA(t) \]
-   - Here, \( R[k] \) represents the number of distinct words among the first \( k \) words of the text.
-   - The notation \( \log^+ x \) implies the positive part of the logarithm, meaning \( \log^+ x = \max(\log x, 0) \).
-   - Function \( A(\cdot) \) is chosen such that \( \int_0^1 \log t dA(t) = 1 \) and \( A(0) = A(+0) = A(1) = 0 \).
-   - A specific example for \( A(t) \) provided in the paper simplifies \( \theta_b \) to \( \log_2(R[n]/R[n/2]) \), where \( R[n] \) is the number of distinct words in the entire text.
-
-2. **Finding q (qb):**
-   - The estimation of \( q \) involves adjusting \( q_b \) to match the estimated number of distinct words \( r(n) \) with the actual observed count \( R[n] \).
-   - The estimator \( r(k) \) for distinct word counts is computed based on the estimated values of \( p_i \) and \( q_b \).
-   - \( q_b \) is iteratively adjusted until \( r(n) \) aligns with \( R[n] \).
-
-### Process of the Numbers of Different Words (R1, ..., Rn):
-- The sequence \( R1, ..., Rn \) is pivotal in the methodology. It represents the count of unique words identified upon reading through the first \( n \) words of a text.
-- This sequential count is crucial for the estimation of \( \theta \) and \( q \), as well as for the construction of the statistical test to verify the model’s appropriateness.
-
-### Statistical Test Development:
-- The authors develop a statistical test to determine if a text conforms to the Zipf—Mandelbrot law.
-- This involves constructing the 'empirical text bridge', a stochastic process derived from the sequence \( R[k] \) and the parameter estimates.
-- The behavior of this empirical bridge, particularly its convergence to a Gaussian process, is examined to evaluate how well a text fits the Zipf—Mandelbrot law.
-
-In summary, the paper provides a detailed, statistically rigorous approach to estimating the parameters of the Zipf—Mandelbrot law and testing its applicability to natural language texts. This methodology not only quantifies word frequency distributions but also assesses the extent to which these distributions follow theoretical expectations.
-
-The parameters alpha, K, s, q, and beta are crucial in linguistic analysis, particularly in understanding the distribution and frequency of words in a text corpus. Each of these parameters offers insight into different aspects of language use and structure:
-
-1. **Alpha (α) - Zipf's Law Parameter**: 
-   - Conceptually, `alpha` in Zipf's Law can be likened to the "diversity indicator" of word usage in a text. 
-   - A lower `alpha` suggests a more evenly distributed word usage, where no particular set of words overwhelmingly dominates the text. 
-   - Conversely, a higher `alpha` indicates a text where a few words are used very frequently while the majority are used infrequently, signifying a steep drop in usage frequency as you move down the rank of words.
-
-2. **K - Heaps' Law Parameter**: 
-   - In Heaps' Law, `K` could be thought of as the "lexical richness indicator" of a text. 
-   - It reflects how quickly new words are introduced as the corpus size grows. A higher `K` suggests a text that continues to introduce a broad range of unique words even as more content is added, indicative of a rich and diverse vocabulary.
-
-3. **Beta (β) - Heaps' Law Parameter**: 
-   - `Beta` in Heaps' Law can be viewed as a "saturation indicator". 
-   - It tells us how quickly the introduction of new, unique words starts to slow down as more text is added. 
-   - A lower `beta` means that even with large amounts of text, the rate of new word introduction remains relatively high, indicating a language rich in variety and less prone to repetition.
-
-4. **s and q - Zipf-Mandelbrot Law Parameters**: 
-   - In the Zipf-Mandelbrot Law, `s` can be thought of as a "frequency tapering parameter". It adjusts the rate at which word frequency decreases, similar to `alpha` in the classic Zipf's Law but with more flexibility to fit empirical data.
-   - `q`, on the other hand, can be seen as a "starting point adjuster". It shifts the rank-frequency curve, acknowledging that in many real-world scenarios, the highest-frequency words don't always strictly follow the expected mathematical relationship and might start off with a higher base frequency.
-
-### Conceptual Analogue
-- These parameters collectively paint a picture of the linguistic landscape of a corpus. 
-- **Alpha** gives an idea of word concentration and diversity, **K and Beta** reflect the expansion and saturation of vocabulary, and **s and q** fine-tune our understanding of how frequently words are used and how they deviate from expected patterns. 
-- They provide a mathematical model to describe how language is used in different contexts, revealing patterns that might not be immediately apparent but are critical for understanding the complexity and nuance of language use.
+3. **The Constant \( C \)**:
+   - **Normalization Factor**: It ensures that the predicted frequencies from the model sum up to the actual size of the corpus. It can be adjusted based on the total number of words in the corpus and the vocabulary size.
+   - **Comparative Analysis**: By comparing the value of \( C \) across different corpora, one can infer how word frequencies are distributed relative to the size of the corpus.
+   
