@@ -122,7 +122,7 @@ class Tokenizer:
             tokens = text.split()
 
         return self._remove_unwanted_tokens(tokens)
-class BasicCorpusAnalyzer:
+class CorpusTools:
     """
     Analyze a corpus of text with optimized data structures.
     """
@@ -216,15 +216,24 @@ class BasicCorpusAnalyzer:
         return [{'token': token, **details}
                 for token, details in self.token_details.items()
                 if start_rank <= details['rank'] <= end_rank]
-class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
+class AdvancedTools(CorpusTools):
     """
-    Advanced analysis on a corpus of text, extending BasicCorpusAnalyzer.
+    Advanced analysis on a corpus of text, extending CorpusTools.
     This class includes advanced linguistic metrics such as Yule's K measure,
     Herdan's C measure, and calculations related to Heaps' Law.
     """
     def __init__(self, tokens):
         super().__init__(tokens)
-        self.alpha = self.calculate_alpha()
+        self._alpha_params = None # Cache for Zipf's Law alpha parameter
+        self._heaps_params = None # Cache for Heaps' Law parameters
+        self._zipf_mandelbrot_params = None # Cache for Zipf-Mandelbrot parameters
+        self.herdans_c_value = None # Cache for Herdan's C value
+
+    @staticmethod
+    @lru_cache(maxsize=None)
+    def _calculate_generalized_harmonic(n, alpha) -> float:
+        """Calculate the generalized harmonic number."""
+        return sum(1 / (i ** alpha) for i in range(1, n + 1))
 
     def yules_k(self) -> float:
         """
@@ -243,37 +252,37 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         Herdan's C is a measure of vocabulary richness in a text, representing
         the ratio of unique words to the total number of words.
         """
+        if self.herdans_c_value is not None:
+            return self.herdans_c_value
+        
         V = len(self.token_details)
         N = self._total_token_count
-        return math.log(V) / math.log(N)
+        self.herdans_c_value = math.log(V) / math.log(N)
 
-    def estimate_vocabulary_size(self, total_tokens):
-        """
-        Estimate the vocabulary size for a given number of tokens using Heaps' Law.
+        return self.herdans_c_value
 
-        :param total_tokens: Total number of tokens in the corpus.
-        :return: Estimated vocabulary size.
+    def calculate_heaps_law(self):
         """
-        K, beta = self.calculate_heaps_law()
-        estimated_vocab_size = K * (total_tokens ** beta)
-        return estimated_vocab_size
-
-    def calculate_heaps_law(self, base_sampling_rate=0.05, base_num_samples=1000):
+        Estimate the parameters K and beta for Heaps' Law using a sampling approach.
+        Dynamically adjust the sampling based on corpus vocabulary richness (Herdan's C).
         """
-        Estimate the parameters K and beta for Heaps' Law using a sampling approach,
-        with dynamic adjustments based on corpus vocabulary richness (Herdan's C).
-        """
+        if self._heaps_params is not None:
+            return self._heaps_params
+        
         corpus_size = len(self.tokens)
         
         # Directly using Herdan's C method from the same class
         herdans_c_value = self.herdans_c()
 
-        # Adjust sampling rate and number of samples based on Herdan's C
-        adjusted_sampling_rate = min(base_sampling_rate + herdans_c_value, 0.1)  # Limit the maximum sampling rate
-        adjusted_num_samples = int(base_num_samples * (1 + herdans_c_value))
+        # Base sampling rate and number of samples determined dynamically
+        base_sampling_rate = 0.05 + 0.05 * herdans_c_value  # Adjust base rate based on Herdan's C
+        base_sampling_rate = min(base_sampling_rate, 0.1)  # Limit the maximum sampling rate
+
+        base_num_samples = 1000 + int(500 * herdans_c_value)  # Adjust number of samples based on Herdan's C
 
         # Determine sample sizes
-        sample_sizes = np.unique(np.linspace(0, corpus_size, num=min(adjusted_num_samples, int(corpus_size * adjusted_sampling_rate)), endpoint=False).astype(int))
+        adjusted_num_samples = min(base_num_samples, int(corpus_size * base_sampling_rate))
+        sample_sizes = np.unique(np.linspace(0, corpus_size, num=adjusted_num_samples, endpoint=False).astype(int))
 
         word_set = set()
         unique_word_counts = []
@@ -302,35 +311,62 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         else:
             K, beta = K_linear, beta  # Fall back to linear regression estimates
 
+        # Cache the results before returning
+        self._heaps_params = (K, beta)
         return K, beta
 
-    @staticmethod
-    @lru_cache(maxsize=None)
-    def _calculate_generalized_harmonic(n, alpha) -> float:
-        """Calculate the generalized harmonic number."""
-        return sum(1 / (i ** alpha) for i in range(1, n + 1))
+    def estimate_vocabulary_size(self, total_tokens):
+        """
+        Estimate the vocabulary size for a given number of tokens using Heaps' Law.
+
+        :param total_tokens: Total number of tokens in the corpus.
+        :return: Estimated vocabulary size.
+        """
+        if self._heaps_params is None:
+            self._heaps_params = self.calculate_heaps_law()
+
+        K, beta = self._heaps_params
+        estimated_vocab_size = K * (total_tokens ** beta)
+        return estimated_vocab_size
 
     def calculate_alpha(self):
         """
-        Calculate the alpha parameter of Zipf's Law for the corpus.
+        Calculate the alpha parameter of Zipf's Law for the corpus using optimization.
         """
+        if self._alpha_params is not None:
+            return self._alpha_params
+        
         # Extract ranks (1-based) and frequencies
         ranks = np.arange(1, len(self.frequency) + 1)
         frequencies = np.array([freq for _, freq in self.frequency.most_common()])
 
-        # Define the Zipf function for fitting
-        def zipf_func(rank, alpha, c):
-            return c / np.power(rank, alpha)
+        # Define the objective function for minimization
+        def objective_function(params):
+            alpha, c = params
+            predicted_freqs = c / np.power(ranks, alpha)
+            return np.sum((frequencies - predicted_freqs) ** 2)
 
-        # Fit the Zipf function using non-linear least squares
-        popt, _ = curve_fit(zipf_func, ranks, frequencies, p0=[-1.0, np.max(frequencies)])
+        # Initial guesses for alpha and c
+        initial_guess = [-1.0, np.max(frequencies)]
+
+        # Optimization using a suitable method, e.g., Nelder-Mead
+        result = minimize(objective_function, initial_guess, method='Nelder-Mead')
+
+        if result.success:
+            alpha, c = result.x
+            self._alpha_params = (alpha, c)
+        else:
+            self._alpha_params = (None, None)  # Indicate failure
+            raise RuntimeError("Optimization failed to converge")
         
-        # popt contains the fitted parameters alpha and c
-        alpha = popt[0]
-        return alpha
+        return self._alpha_params
 
-    def assess_alpha_fit(self, alpha):
-        """Assess the fit of the corpus to a Zipfian distribution."""
+    def assess_alpha_fit(self):
+        """Assess the fit of the corpus to a Zipfian distribution considering both alpha and c."""
+        if self._alpha_params is None or self._alpha_params[0] is None:
+            raise ValueError("Alpha and c have not been calculated or optimization failed.")
+        
+        alpha, c = self._alpha_params
         # Normalizing frequencies and preparing data
         total_count = sum(self.frequency.values())
         sorted_freqs = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
@@ -344,7 +380,7 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
                 current_rank = index
                 current_freq = freq
 
-            expected_freq = (1 / current_rank ** self.alpha)
+            expected_freq = c / (current_rank ** alpha)
             deviations.append(abs(normalized_freqs[word] - expected_freq))
 
         mean_deviation = np.mean(deviations)
@@ -352,10 +388,13 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
 
         return mean_deviation, std_deviation
 
-    def calculate_zipf_mandelbrot(self, initial_params=None, method='Nelder-Mead', verbose=False):
+    def calculate_zipf_mandelbrot(self, initial_params=None, verbose=False):
         """
         Fit the Zipf-Mandelbrot distribution to the corpus and find parameters q and s.
         """
+        if self._zipf_mandelbrot_params is not None:
+            return self._zipf_mandelbrot_params
+        
         frequencies = np.array([details['frequency'] for details in self.token_details.values()])
         ranks = np.array([details['rank'] for details in self.token_details.values()])
 
@@ -363,13 +402,13 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
         max_freq = frequencies.max()
         normalized_freqs = frequencies / max_freq
 
-        def zipf_mandelbrot(k, q, s):
-            return (1 / ((k + q) ** s))
+        def zipf_mandelbrot_vectorized(ranks, q, s):
+            return 1 / np.power(ranks + q, s)
 
         def objective_function(params):
             q, s = params
-            predicted = np.array([zipf_mandelbrot(rank, q, s) for rank in ranks])
-            normalized_predicted = predicted / predicted.max()  # Normalize predictions
+            predicted = zipf_mandelbrot_vectorized(ranks, q, s)
+            normalized_predicted = predicted / np.max(predicted)
             return np.sum((normalized_freqs - normalized_predicted) ** 2)
 
         # Adaptive initial parameters if not provided
@@ -377,15 +416,16 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
             initial_params = [2.7, 1.0]  # Empirical initial values
 
         # Adjusting bounds based on empirical data
-        bounds = [(0, 15), (0.25, 3)]
+        bounds = [(0, 10), (0, 10)]
 
         # Optimization to minimize the objective function
-        result = minimize(objective_function, initial_params, method=method, bounds=bounds, options={'disp': verbose})
+        result = minimize(objective_function, initial_params, method='Nelder-Mead', bounds=bounds, options={'disp': verbose})
 
         if result.success:
             q, s = result.x
             if verbose:
                 print(f"Optimization successful. Fitted parameters: q = {q}, s = {s}")
+            self._zipf_mandelbrot_params = q, s
             return q, s
         else:
             if verbose:
@@ -418,7 +458,7 @@ class AdvancedCorpusAnalyzer(BasicCorpusAnalyzer):
 
         return mean_deviation, std_deviation
     
-class CorpusPlotter:
+class CorpusPlots:
     def __init__(self, analyzer, corpus_name, plots_dir='plots'):
         """
         Initializes the CorpusPlotter with an analyzer, corpus name, and plots directory.
@@ -427,10 +467,75 @@ class CorpusPlotter:
         self.corpus_name = corpus_name
         self.plots_dir = plots_dir
 
-    def plot_zipf_mandelbrot_fit(self, q, s):
+    def plot_zipfs_law_fit(self):
+        """
+        Plots the rank-frequency distribution of the corpus using Zipf's Law.
+        """
+        alpha, c = self.analyzer.calculate_alpha()
+        if alpha is None or c is None:
+            raise ValueError("Alpha or c calculation failed, cannot plot Zipf's Law fit.")
+
+        # Prepare ranks and frequencies
+        ranks = np.arange(1, len(self.analyzer.frequency) + 1)
+        frequencies = np.array([freq for _, freq in self.analyzer.frequency.most_common()])
+
+        # Normalize frequencies
+        normalized_frequencies = frequencies / np.max(frequencies)
+
+        # Predict frequencies using Zipf's Law
+        predicted_freqs = c / np.power(ranks, alpha)
+        normalized_predicted_freqs = predicted_freqs / np.max(predicted_freqs)
+
+        # Plot setup
+        plt.figure(figsize=(10, 6))
+        plt.scatter(ranks, normalized_frequencies, color='blue', label='Actual Frequencies', marker='o', linestyle='', s=5)
+        plt.plot(ranks, normalized_predicted_freqs, label=f'Zipf\'s Law Fit (alpha={alpha:.2f}, c={c:.2f})', color='red', linestyle='-')
+        plt.xlabel('Rank')
+        plt.ylabel('Normalized Frequency')
+        plt.title(f'Zipf\'s Law Fit for {self.corpus_name} Corpus')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(os.path.join(self.plots_dir, f'zipfs_law_fit_{self.corpus_name}.png'))
+        plt.close()
+
+    def plot_heaps_law(self):
+        """
+        Plots the relationship between the number of unique words and the total number of words in the corpus, illustrating Heap's Law.
+        """
+        # Directly use the cached values or calculate if not available
+        K, beta = self.analyzer.calculate_heaps_law()
+
+        # Prepare data for Heap's Law plot
+        total_words = np.arange(1, len(self.analyzer.tokens) + 1)
+        unique_words = []
+        word_set = set()
+
+        # Count unique words
+        for token in self.analyzer.tokens:
+            word_set.add(token)
+            unique_words.append(len(word_set))
+
+        # Plot setup
+        plt.figure(figsize=(10, 6))
+        plt.plot(total_words, unique_words, label='Empirical Data', color='blue')
+        plt.plot(total_words, K * np.power(total_words, beta), '--', 
+                 label=f"Heap's Law Fit: K={K:.2f}, beta={beta:.2f}", color='red')
+        plt.xlabel('Token Count')
+        plt.ylabel('Type Count')
+        plt.title(f"Heap's Law Analysis for {self.corpus_name} Corpus")
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(os.path.join(self.plots_dir, f'heaps_law_{self.corpus_name}.png'))
+        plt.close()
+
+    def plot_zipf_mandelbrot_fit(self):
         """
         Plots the fitted parameters of the Zipf-Mandelbrot distribution.
         """
+        q, s = self.analyzer.calculate_zipf_mandelbrot()
+        
         # Retrieve rank and frequency data from the analyzer
         ranks = np.array([details['rank'] for details in self.analyzer.token_details.values()])
         frequencies = np.array([details['frequency'] for details in self.analyzer.token_details.values()])
@@ -449,7 +554,7 @@ class CorpusPlotter:
         # Plotting setup
         plt.figure(figsize=(10, 6))
         plt.plot(ranks, normalized_freqs, label='Actual Frequencies', marker='o', linestyle='', markersize=5)
-        plt.plot(ranks, normalized_predicted_freqs, label='Predicted Frequencies', linestyle='-', color='red')
+        plt.plot(ranks, normalized_predicted_freqs, label=f'Zipf-Mandelbrot Fit (q={q:.2f}, s={s:.2f})', linestyle='-', color='red')
         plt.xlabel('Rank')
         plt.ylabel('Normalized Frequency')
         plt.title(f'Zipf-Mandelbrot Fit for {self.corpus_name} Corpus')
@@ -458,60 +563,4 @@ class CorpusPlotter:
         plt.legend()
         plt.grid(True)
         plt.savefig(os.path.join(self.plots_dir, f'zipf_mandelbrot_fit_{self.corpus_name}.png'))
-        plt.close()
-
-    def plot_zipfs_law_fit(self):
-        """
-        Plots the rank-frequency distribution of the corpus using Zipf's Law.
-        """
-        # Calculate alpha using the analyzer's method
-        alpha = self.analyzer.calculate_alpha()
-
-        # Prepare ranks and frequencies
-        ranks = np.arange(1, len(self.analyzer.frequency) + 1)
-        frequencies = np.array([freq for _, freq in self.analyzer.frequency.most_common()])
-
-        # Normalize frequencies and predict using Zipf's Law
-        normalized_frequencies = frequencies / np.max(frequencies)
-        predicted_freqs = (1 / ranks ** alpha)
-        normalized_predicted_freqs = predicted_freqs / np.max(predicted_freqs)
-
-        # Plot setup
-        plt.figure(figsize=(10, 6))
-        plt.scatter(ranks, normalized_frequencies, color='blue', label='Actual Frequencies', marker='o', linestyle='', s=5)
-        plt.plot(ranks, normalized_predicted_freqs, label='Predicted Frequencies (Zipf\'s Law)', color='red', linestyle='-')
-        plt.xlabel('Rank')
-        plt.ylabel('Normalized Frequency')
-        plt.title(f'Zipf\'s Law Fit for {self.corpus_name} Corpus')
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.legend()
-        plt.grid(True)
-        plt.savefig(os.path.join(self.plots_dir, f'zipfs_law_fit_{self.corpus_name}.png'))
-        plt.close()
-
-    def plot_heaps_law(self, K, beta):
-        """
-        Plots the relationship between the number of unique words and the total number of words in the corpus, illustrating Heap's Law.
-        """
-        # Prepare data for Heap's Law plot
-        total_words = np.arange(1, len(self.analyzer.tokens) + 1)
-        unique_words = []
-        word_set = set()
-
-        # Count unique words
-        for token in self.analyzer.tokens:
-            word_set.add(token)
-            unique_words.append(len(word_set))
-
-        # Plot setup
-        plt.figure(figsize=(10, 6))
-        plt.plot(total_words, unique_words, label='Empirical Data', color='blue')
-        plt.plot(total_words, K * np.power(total_words, beta), '--', label=f'Heap\'s Law Fit: K={K:.2f}, beta={beta:.2f}', color='red')
-        plt.xlabel('Token Count')
-        plt.ylabel('Type Count')
-        plt.title(f"Heap's Law Analysis for {self.corpus_name} Corpus")
-        plt.legend()
-        plt.grid(True)
-        plt.savefig(os.path.join(self.plots_dir, f'heaps_law_{self.corpus_name}.png'))
         plt.close()
