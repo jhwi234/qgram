@@ -8,7 +8,7 @@ from corpus_analysis import CorpusTools, AdvancedTools, CorpusPlots, Tokenizer, 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger()
 
-def analyze_corpus(corpus_name, shuffle_tokens=False, plots_to_generate=None, enable_profiling=False):
+def analyze_corpus(corpus_name, plots_to_generate=None, enable_profiling=False):
     if plots_to_generate is None:
         plots_to_generate = ["zipf", "heaps", "zipf_mandelbrot"]
 
@@ -26,7 +26,7 @@ def analyze_corpus(corpus_name, shuffle_tokens=False, plots_to_generate=None, en
     tokenized_corpus = tokenizer.tokenize(corpus_tokens, lowercase=True)
 
     # Perform basic and advanced analysis
-    basic_analyzer = CorpusTools(tokenized_corpus, shuffle_tokens=shuffle_tokens)
+    basic_analyzer = CorpusTools(tokenized_corpus, shuffle_tokens=True)
     advanced_analyzer = AdvancedTools(tokenized_corpus)
     plotter = CorpusPlots(advanced_analyzer, corpus_name)
 
@@ -92,6 +92,6 @@ def analyze_corpus(corpus_name, shuffle_tokens=False, plots_to_generate=None, en
 
 # Example usage
 corpora = ['brown', 'reuters', 'webtext', 'inaugural', 'nps_chat', 'shakespeare', 'state_union', 'gutenberg']
-plots_required = ["zipf", "zipf_mandelbrot"]
+plots_required = ["heaps"]
 for corpus in corpora:
     analyze_corpus(corpus, plots_to_generate=plots_required, enable_profiling=False)
