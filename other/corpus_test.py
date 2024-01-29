@@ -41,12 +41,11 @@ def analyze_corpus(corpus_name, plots_to_generate=None, enable_profiling=False):
 
     # Perform conditional calculations and plot generations
     if "zipf" in plots_to_generate:
-        alpha, c = advanced_analyzer.calculate_zipf_params()
+        alpha = advanced_analyzer.calculate_zipf_alpha()
         mean_deviation, std_deviation = advanced_analyzer.assess_zipf_fit()
         plotter.plot_zipfs_law_fit()
         results.extend([
             f"Zipf Alpha: {alpha:.6f}",
-            f"Zipf C: {c:.6f}",
             f"Alpha Fit Mean Deviation: {mean_deviation:.6f}", 
             f"Alpha Fit Standard Deviation: {std_deviation:.6f}"
         ])
@@ -92,6 +91,6 @@ def analyze_corpus(corpus_name, plots_to_generate=None, enable_profiling=False):
 
 # Example usage
 corpora = ['brown', 'reuters', 'webtext', 'inaugural', 'nps_chat', 'shakespeare', 'state_union', 'gutenberg']
-plots_required = ["heaps"]
+plots_required = ["zipf"]
 for corpus in corpora:
     analyze_corpus(corpus, plots_to_generate=plots_required, enable_profiling=False)
