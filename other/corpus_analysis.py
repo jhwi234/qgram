@@ -419,7 +419,7 @@ class AdvancedTools(CorpusTools):
 
     def calculate_zipf_alpha(self):
         """
-        Calculate the alpha parameter for Zipf's Law using curve fitting.
+        Calculate the alpha parameter for Zipf's Law using curve fitting with optimization.
         """
         if self._zipf_alpha is not None:
             # Use cached value if available
@@ -433,17 +433,31 @@ class AdvancedTools(CorpusTools):
         ranks = np.arange(1, len(self.frequency) + 1)
         frequencies = np.array([freq for _, freq in self.frequency.most_common()])
 
-        # Non-linear optimization to fit the Zipf function
-        popt, _ = curve_fit(zipf_func, ranks, frequencies, p0=[1.0, np.max(frequencies)], maxfev=10000)
+        # Set up grid search for initial alpha guesses
+        alpha_guesses = np.linspace(0.5, 1.5, num=20)  # Adjust the range and number of points as needed
+        best_alpha = None
+        min_error = float('inf')
 
-        # popt contains the fitted parameters alpha and C
-        alpha = popt[0]
+        # Loop over alpha guesses to find the best starting point
+        for alpha_guess in alpha_guesses:
+            try:
+                popt, _ = curve_fit(zipf_func, ranks, frequencies, p0=[alpha_guess, np.max(frequencies)], maxfev=10000)
+                current_error = np.sum(np.abs(frequencies - zipf_func(ranks, *popt)))
+                if current_error < min_error:
+                    min_error = current_error
+                    best_alpha = popt[0]
+            except RuntimeError:
+                # Handle cases where curve_fit fails to converge for a given alpha guess
+                continue
+
+        if best_alpha is None:
+            raise RuntimeError("Optimization failed to converge")
 
         # Cache the calculated alpha value
-        self._zipf_alpha = alpha
+        self._zipf_alpha = best_alpha
 
-        return alpha
-
+        return best_alpha
+    
     def calculate_zipf_c(self):
         """
         Calculate the c parameter for Zipf's Law.
@@ -595,7 +609,7 @@ class CorpusPlots:
         plt.yscale('log')
         plt.legend()
         plt.grid(True)
-        plt.savefig(os.path.join(self.plots_dir, f'zipfs_law_alpha_fit_{self.corpus_name}.png'))
+        plt.savefig(os.path.join(self.plots_dir, f'zipfs_alpha_fit_{self.corpus_name}.png'))
         plt.close()
 
     def plot_heaps_law(self):
