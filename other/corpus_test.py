@@ -26,7 +26,7 @@ def analyze_corpus(corpus_name, plots_to_generate=None, enable_profiling=False):
     tokenized_corpus = tokenizer.tokenize(corpus_tokens, lowercase=True)
 
     # Perform basic and advanced analysis
-    basic_analyzer = CorpusTools(tokenized_corpus, shuffle_tokens=True)
+    basic_analyzer = CorpusTools(tokenized_corpus, shuffle_tokens=False)
     advanced_analyzer = AdvancedTools(tokenized_corpus)
     plotter = CorpusPlots(advanced_analyzer, corpus_name)
 

@@ -1,55 +1,63 @@
-# README for Text Corpus Analysis Tool
-
-## Overview
-This Python tool provides a comprehensive suite for analyzing text corpora. It includes functionalities such as corpus loading, tokenization, basic corpus analysis, advanced linguistic measures, and visualization of statistical laws like Zipf's and Heaps' laws. It's designed for linguistic researchers, NLP practitioners, and anyone interested in a detailed textual analysis.
-
 ## Modules and Classes
-The tool is composed of several classes, each designed for a specific aspect of corpus analysis:
 
-### 1. CorpusLoader
-- **Purpose**: To load a text corpus either from a local source or from NLTK's datasets.
+### CorpusLoader
+- **Purpose**: Loads a text corpus from NLTK or local files/directories. It supports optional downloading if the corpus is not available.
 - **Key Methods**:
-  - `load_corpus()`: Loads the corpus from the specified source.
-  - `is_corpus_available()`: Checks if the corpus is available locally or through NLTK.
+  - `load_corpus()`: Loads and caches the corpus. If the corpus is not locally available, it downloads it if `allow_download` is True.
+  - `is_corpus_available()`: Checks if the corpus is locally available or in NLTK.
+- **Initialization Parameters**:
+  - `corpus_source`: Path to the corpus or NLTK corpus name.
+  - `allow_download`: Boolean to allow downloading the corpus from NLTK.
+  - `custom_download_dir`: Directory to store downloaded corpus.
 
-### 2. Tokenizer
-- **Purpose**: To tokenize text into individual words with options for removing stopwords and punctuation.
+### Tokenizer
+- **Purpose**: Tokenizes text with options to remove stopwords and punctuation.
 - **Key Methods**:
-  - `tokenize(text, lowercase)`: Tokenizes the given text. If `lowercase` is `True`, it converts text to lowercase.
+  - `tokenize(text, lowercase)`: Tokenizes the input text. Converts to lowercase if `lowercase` is True.
+  - `set_custom_regex(pattern)`: Sets a custom regex pattern for tokenization.
+- **Initialization Parameters**:
+  - `remove_stopwords`: Boolean to remove stopwords.
+  - `remove_punctuation`: Boolean to remove punctuation.
+  - `use_nltk_tokenizer`: Boolean to use NLTK's tokenizer.
+  - `stopwords_language`: Language for stopwords.
 
-### 3. CorpusTools
-- **Purpose**: Provides basic tools for analyzing a corpus, like frequency distribution, querying tokens or ranks, etc.
+### CorpusTools
+- **Purpose**: Provides basic analysis tools for a corpus, such as frequency distribution and token querying.
 - **Key Methods**:
-  - `find_median_token()`: Finds the median token in the corpus.
+  - `find_median_token()`: Finds the median token based on frequency.
   - `mean_token_frequency()`: Calculates the mean frequency of tokens.
-  - `query_by_token(token)`: Returns details for a given token.
-  - `query_by_rank(rank)`: Returns details for a given rank.
-  - `cumulative_frequency_analysis()`: Analyzes cumulative frequency.
-  - `hapax_legomena_count()`: Counts unique tokens (hapax legomena) in the corpus.
+  - `query_by_token(token)`: Returns frequency and rank for a given token.
+  - `query_by_rank(rank)`: Returns token and frequency for a given rank.
+  - `cumulative_frequency_analysis()`: Provides frequency details in a specified cumulative frequency range.
+  - `list_tokens_in_rank_range()`: Lists tokens within a specified rank range.
+  - `hapax_legomena_count()`: Counts unique tokens in the corpus.
+- **Initialization Parameters**:
+  - `tokens`: List of tokens to be analyzed.
+  - `shuffle_tokens`: Boolean to shuffle tokens before analysis.
 
-### 4. AdvancedTools
-- **Purpose**: Extends `CorpusTools` with advanced linguistic metrics and law fittings.
+### AdvancedTools
+- **Purpose**: Extends `CorpusTools` with advanced linguistic metrics and statistical law fittings.
 - **Key Methods**:
-  - `calculate_zipf_params()`: Calculates parameters for Zipf's law.
-  - `calculate_heaps_law()`: Estimates parameters for Heaps' law.
-  - `calculate_zipf_mandelbrot()`: Fits the Zipf-Mandelbrot distribution to the corpus.
   - `yules_k()`: Calculates Yule's K measure for lexical diversity.
   - `herdans_c()`: Calculates Herdan's C measure for vocabulary richness.
+  - `calculate_heaps_law()`: Estimates parameters for Heaps' Law.
+  - `estimate_vocabulary_size(total_tokens)`: Estimates vocabulary size using Heaps' Law.
+  - `calculate_zipf_params()`: Calculates parameters for Zipf's Law.
+  - `assess_zipf_fit()`: Assesses the fit of Zipf's Law.
+  - `calculate_zipf_mandelbrot()`: Fits the Zipf-Mandelbrot distribution to the corpus.
+  - `assess_zipf_mandelbrot_fit(q, s)`: Assesses the fit of the Zipf-Mandelbrot distribution.
+- **Inheritance**: Inherits from `CorpusTools`.
 
-### 5. CorpusPlots
-- **Purpose**: To create and save plots related to corpus analysis.
+### CorpusPlots
+- **Purpose**: Creates and saves plots related to corpus analysis.
 - **Key Methods**:
-  - `plot_zipfs_law_fit()`: Plots the rank-frequency distribution using Zipf's law.
-  - `plot_heaps_law()`: Plots the relationship between the number of unique words and the total number of words (Heap's law).
+  - `plot_zipfs_law_fit()`: Plots the rank-frequency distribution using Zipf's Law.
+  - `plot_heaps_law()`: Plots the relationship between unique words and total words (Heap's Law).
   - `plot_zipf_mandelbrot_fit()`: Plots the Zipf-Mandelbrot distribution fit.
-
-## Usage
-To use the tool, follow these steps:
-1. **Load a Corpus**: Use `CorpusLoader` to load a text corpus.
-2. **Tokenize Text**: Use `Tokenizer` to tokenize the corpus.
-3. **Basic Analysis**: Apply `CorpusTools` for basic corpus analysis.
-4. **Advanced Analysis**: Use `AdvancedTools` for advanced statistical measures and law fittings.
-5. **Visualization**: Use `CorpusPlots` to generate and save visualizations.
+- **Initialization Parameters**:
+  - `analyzer`: Instance of `AdvancedTools` or `CorpusTools`.
+  - `corpus_name`: Name of the corpus for labeling plots.
+  - `plots_dir`: Directory to save plots.
 
 ## Requirements
 - Python 3.x
@@ -59,7 +67,7 @@ To use the tool, follow these steps:
 - SciPy package
 
 ## Installation
-Ensure that you have Python installed and then install the required packages using pip:
+Install the required packages using pip:
 ```bash
 pip install nltk numpy matplotlib scipy
 ```
@@ -87,77 +95,10 @@ plotter = CorpusPlots(advanced_analyzer, 'Corpus_Name')
 plotter.plot_zipfs_law_fit()
 ```
 
-### Key Features
-- Load corpora from various sources, including NLTK's dataset.
-- Advanced tokenization capabilities with customizability.
-- Basic corpus analysis including frequency distribution, median token identification, and rank-based queries.
-- Advanced linguistic metrics like Yule's K measure and Herdan's C measure.
-- Implementation and visualization of linguistic laws such as Zipf's, Heaps', and Zipf-Mandelbrot.
-- Plotting capabilities for visual analysis and presentation.
+## Detailed Functionalities
 
-### Detailed Module and Class Descriptions
-
-#### CorpusLoader
-- **Functionality**: Manages the loading of text corpora either from local files or from NLTK's datasets.
-- **Usage**: Ideal for initializing the corpus analysis process. Supports custom download directories for offline usage.
-
-#### Tokenizer
-- **Functionality**: Provides robust text tokenization, including options to remove stopwords and punctuation.
-- **Customization**: Allows setting up custom regular expressions for specialized tokenization needs.
-
-#### CorpusTools
-- **Functionality**: Offers a suite of tools for basic corpus analysis.
-- **Key Features**: 
-  - Token frequency analysis with cumulative frequency reporting.
-  - Queries for specific tokens or ranks within the corpus.
-  - Identification of hapax legomena (words that occur only once).
-
-#### AdvancedTools
-- **Functionality**: Extends the capabilities of `CorpusTools` with advanced statistical methods.
-- **Key Features**: 
-  - Estimation and fitting of Zipf's Law parameters.
-  - Heaps' Law parameter estimation for predicting vocabulary growth.
-  - Implementation of Zipf-Mandelbrot distribution fitting.
-  - Calculation of lexical diversity and vocabulary richness metrics.
-
-#### CorpusPlots
-- **Functionality**: Facilitates the generation and saving of graphical representations of corpus analyses.
-- **Visualizations**: Includes plots for Zipf's Law, Heaps' Law, and the Zipf-Mandelbrot distribution, aiding in the visual understanding of corpus characteristics.
-
-### Installation and Dependencies
-- Python version: 3.x
-- Required Python packages: `nltk`, `numpy`, `matplotlib`, `scipy`
-
-To install the required Python packages, run:
-```bash
-pip install nltk numpy matplotlib scipy
-```
-
-### Quick Start Guide
-1. **Initializing the Corpus**:
-   ```python
-   loader = CorpusLoader('path_or_nltk_corpus')
-   corpus = loader.load_corpus()
-   ```
-2. **Tokenization**:
-   ```python
-   tokenizer = Tokenizer(remove_stopwords=True)
-   tokens = tokenizer.tokenize(corpus)
-   ```
-3. **Basic Analysis**:
-   ```python
-   analyzer = CorpusTools(tokens)
-   median_token_info = analyzer.find_median_token()
-   ```
-4. **Advanced Analysis**:
-   ```python
-   advanced_analyzer = AdvancedTools(tokens)
-   zipf_params = advanced_analyzer.calculate_zipf_params()
-   yules_k_value = advanced_analyzer.yules_k()
-   ```
-5. **Visualization**:
-   ```python
-   plotter = CorpusPlots(advanced_analyzer, 'MyCorpus')
-   plotter.plot_zipfs_law_fit()
-   plotter.plot_heaps_law()
-   ```
+- **Corpus Loading**: Handles diverse sources, including local directories and NLTK datasets. Supports conditional downloading and caching for performance optimization.
+- **Tokenization**: Offers customizable tokenization, including NLTK's tokenizer, custom regex, and options to remove stopwords and punctuation. Handles text input as strings or lists.
+- **Basic Analysis**: Provides frequency distribution, median token, mean token frequency, specific token queries, rank-based queries, cumulative frequency analysis, and hapax legomena count.
+- **Advanced Analysis**: Implements Zipf's Law, Heaps' Law, and Zipf-Mandelbrot distribution, including parameter estimation and fitting. Provides methods for lexical diversity (Yule's K) and vocabulary richness (Herdan's C).
+- **Visualization**: Supports plotting for visual representation of Zipf's Law, Heaps' Law, and the Zipf-Mandelbrot distribution, enhancing the understanding of corpus characteristics. Plots are saved to a specified directory.
