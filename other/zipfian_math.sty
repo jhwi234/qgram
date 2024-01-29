@@ -146,4 +146,59 @@ The parameters in the Zipf-Mandelbrot law – specifically, the constant \( C \)
 3. **The Constant \( C \)**:
    - **Normalization Factor**: It ensures that the predicted frequencies from the model sum up to the actual size of the corpus. It can be adjusted based on the total number of words in the corpus and the vocabulary size.
    - **Comparative Analysis**: By comparing the value of \( C \) across different corpora, one can infer how word frequencies are distributed relative to the size of the corpus.
+
+
+   ### Rendering of Equations in a More Readable Format
+
+   #### General Form Equations
    
+   1. **Equation for \( y(x) \)**:
+      \[
+      y(x) = \phi\left(\frac{x-1}{x}, 1, 1\right)
+      \]
+      This equation defines \( y(x) \) as a polygamma function, a special mathematical function, where \( x \) is the fraction of tokens sampled from the corpus.
+   
+   2. **Equation for \( \hat{k}_0(x) \)**:
+      \[
+      \hat{k}_0(x) = 1 - y(x) = 1 - \phi\left(\frac{x-1}{x}, 1, 1\right)
+      \]
+      This equation calculates the fraction of types that are hapax legomena (words appearing only once in the corpus), derived from the \( y(x) \) function.
+   
+   3. **Equation for \( \hat{k}_n(x) \)**:
+      \[
+      \hat{k}_n(x) = (-1)^{n+1} \frac{x^n}{n!} y^{(n)}(x) = \frac{1}{n} - \frac{1}{x} \phi\left(\frac{x-1}{x}, 1, n+1\right)
+      \]
+      This general formula calculates the fraction of types that appear exactly \( n \) times in the corpus, incorporating the \( n^{th} \) derivative of the \( y(x) \) function.
+   
+   #### The \( n \)-Legomena Curves
+   
+   1. **Equation 17**:
+      \[
+      y(x) = \frac{\ln(x)x}{x-1}
+      \]
+      This version of the \( y(x) \) equation involves natural logarithms and is a core part of the \( n \)-legomena curve analysis.
+   
+   2. **Equation 17.0**:
+      \[
+      k'_0(x) = 1 - y(x) = \frac{x-\ln(x)x-1}{x-1}
+      \]
+      This equation provides the fraction of types that are hapax legomena in a normalized form.
+   
+   3. **Equation 17.1**:
+      \[
+      k'_1(x) = \frac{x^2-\ln(x)x-x}{(x-1)^2}
+      \]
+      This equation represents the fraction of types appearing exactly once in the corpus, normalized by total tokens.
+   
+   4. **Further Equations for \( k'_n(x) \)**:
+      - Equations 17.2 to 17.5 follow a similar pattern, adjusting the formula for types that appear \( n \) times in the corpus.
+   
+   #### Hapax Ratio
+   
+   - **Formula**:
+     \[
+     H(x) = \frac{k_1(x)}{E(x)} = \frac{k'_1(x)}{y(x)} = \frac{1}{\ln(x)}+\frac{1}{1-x}
+     \]
+     This ratio provides a specific focus on hapax legomena, comparing them to the entire corpus to assess vocabulary richness.
+   
+   These equations collectively offer a comprehensive framework for analyzing word frequency distributions, particularly focusing on words that occur a specific number of times in a text corpus. The mathematical sophistication underlying these formulas reflects the complexity and depth of natural language analysis in the field of computational linguistics.
