@@ -12,7 +12,10 @@ from nltk.corpus import PlaintextCorpusReader, stopwords
 from nltk.tokenize import word_tokenize
 import numpy as np
 from scipy.optimize import minimize
+from scipy.optimize import curve_fit
+from scipy.special import zeta
 import matplotlib.pyplot as plt
+import functools
 
 # Directory for plots
 plots_dir = 'plots'
@@ -290,7 +293,8 @@ class AdvancedTools(CorpusTools):
     def __init__(self, tokens):
         super().__init__(tokens)
         # Caches to store precomputed parameters for efficient reuse
-        self._zipf_params = None  # For Zipf's Law
+        self._zipf_alpha = None  # For Zipf's Law
+        self._zipf_c = None  # For Zipf's Law
         self._heaps_params = None  # For Heaps' Law
         self._zipf_mandelbrot_params = None  # For Zipf-Mandelbrot Law
         self.herdans_c_value = None  # For Herdan's C measure
@@ -359,13 +363,11 @@ class AdvancedTools(CorpusTools):
         # Herdan's C value is used to inform the sampling strategy, reflecting the complexity of the corpus
         herdans_c_value = self.herdans_c()
 
-        # Adjust the sampling rate based on Herdan's C value to ensure a diverse range of samples
-        base_sampling_rate = 0.05 + 0.05 * herdans_c_value
-        base_sampling_rate = min(base_sampling_rate, 0.1)  # Set a reasonable upper bound for the sampling rate
-        base_num_samples = 1000 + int(500 * herdans_c_value)
+        # Calculate the sampling rate and number of samples based on Herdan's C value
+        base_sampling_rate = min(0.05 + 0.05 * herdans_c_value, 0.1)
+        adjusted_num_samples = min(1000 + int(500 * herdans_c_value), int(corpus_size * base_sampling_rate))
 
         # Determine the sizes of corpus samples to be analyzed
-        adjusted_num_samples = min(base_num_samples, int(corpus_size * base_sampling_rate))
         sample_sizes = np.unique(np.linspace(0, corpus_size, num=adjusted_num_samples, endpoint=False).astype(int))
 
         # Set up data structures for calculating Heaps' Law
@@ -415,62 +417,67 @@ class AdvancedTools(CorpusTools):
         # Round the estimated vocabulary size to the nearest integer
         return int(round(estimated_vocab_size))
 
-    def calculate_zipf_params(self):
+    def calculate_zipf_alpha(self):
         """
-        Calculate parameters for Zipf's Law, relating word frequency and rank.
+        Calculate the alpha parameter for Zipf's Law using curve fitting.
         """
-        if self._zipf_params is not None:
-            return self._zipf_params  # Use cached parameters if available
+        if self._zipf_alpha is not None:
+            # Use cached value if available
+            return self._zipf_alpha
 
-        # Normalize frequencies to compare with theoretical distribution
+        # Define the Zipf function for curve fitting
+        def zipf_func(rank, alpha, C):
+            return C / np.power(rank, alpha)
+
+        # Extract ranks and frequencies
+        ranks = np.arange(1, len(self.frequency) + 1)
+        frequencies = np.array([freq for _, freq in self.frequency.most_common()])
+
+        # Non-linear optimization to fit the Zipf function
+        popt, _ = curve_fit(zipf_func, ranks, frequencies, p0=[1.0, np.max(frequencies)], maxfev=10000)
+
+        # popt contains the fitted parameters alpha and C
+        alpha = popt[0]
+
+        # Cache the calculated alpha value
+        self._zipf_alpha = alpha
+
+        return alpha
+
+    def calculate_zipf_c(self):
+        """
+        Calculate the c parameter for Zipf's Law.
+        """
+        if self._zipf_alpha is None:
+            raise ValueError("Alpha has not been calculated.")
+
+        alpha = self._zipf_alpha
+        ranks = np.arange(1, len(self.frequency) + 1)
+        frequencies = np.array([freq for _, freq in self.frequency.most_common()])
+
+        # Compute theoretical frequencies based on alpha
+        theoretical_freqs = 1 / np.power(ranks, alpha)
+
+        # Calculate c using the mean ratio of observed to theoretical frequencies
+        self._zipf_c = np.mean(frequencies / theoretical_freqs)
+        return self._zipf_c
+
+    def assess_zipf_fit(self):
+        """
+        Assess the fit of the Zipfian distribution for alpha.
+        """
+        if self._zipf_alpha is None:
+            raise ValueError("Alpha has not been calculated.")
+
+        alpha = self._zipf_alpha
         ranks = np.arange(1, len(self.frequency) + 1)
         frequencies = np.array([freq for _, freq in self.frequency.most_common()])
         total_tokens = sum(frequencies)
-        normalized_frequencies = frequencies / total_tokens
 
-        # Objective function aims to fit the corpus data to the Zipfian distribution
-        def objective_function(params):
-            alpha, c = params
-            # Predicted frequencies according to Zipf's Law
-            predicted_freqs = c / np.power(ranks, alpha)
-            # Minimization target is the sum of squared differences
-            return np.sum((normalized_frequencies - predicted_freqs) ** 2)
+        harmonic = sum(1 / np.power(np.arange(1, len(frequencies) + 1), alpha))
+        predicted_freqs = 1 / np.power(ranks, alpha)
+        residuals = frequencies / (total_tokens * harmonic) - predicted_freqs
 
-        initial_c = np.median(frequencies) / total_tokens
-        initial_guess = [-1.0, initial_c]
-
-        # Nonlinear optimization to find best-fit parameters
-        result = minimize(objective_function, initial_guess, method='Nelder-Mead')
-
-        if result.success:
-            alpha, c = result.x
-            self._zipf_params = (alpha, c)
-        else:
-            self._zipf_params = (None, None) # Mark as failed
-            raise RuntimeError("Optimization failed to converge")
-
-        return self._zipf_params
-
-    def assess_zipf_fit(self):
-        """Calculate the mean and standard deviation of residuals to assess the Zipfian distribution fit."""
-        if self._zipf_params is None or self._zipf_params[0] is None:
-            raise ValueError("Alpha and c have not been calculated or optimization failed.")
-        
-        alpha, c = self._zipf_params
-        # Normalizing frequencies and preparing data
-        total_count = sum(self.frequency.values())
-        sorted_freqs = sorted(self.frequency.items(), key=lambda x: x[1], reverse=True)
-        normalized_freqs = {word: freq / total_count for word, freq in sorted_freqs}
-
-        # Compute residuals
-        residuals = []
-        for index, (word, freq) in enumerate(sorted_freqs, start=1): # Start at 1 to avoid division by zero
-            rank = index 
-            expected_freq = c / (rank ** alpha) # Zipf's Law
-            residual = normalized_freqs[word] - expected_freq # Difference between actual and expected frequencies
-            residuals.append(residual)
-
-        # Calculate mean and standard deviation of residuals
         mean_residual = np.mean(residuals)
         std_dev_residual = np.std(residuals)
         return mean_residual, std_dev_residual
@@ -559,42 +566,36 @@ class CorpusPlots:
 
     def plot_zipfs_law_fit(self):
         """
-        Plots the rank-frequency distribution of the corpus using Zipf's Law.
-        Illustrates the relationship between word ranks and their frequencies.
+        Plot the rank-frequency distribution using Zipf's Law focusing on alpha.
         """
-        # Check if Zipf's Law parameters are already calculated
-        if self.analyzer._zipf_params is None:
-            alpha, c = self.analyzer.calculate_zipf_params()
+        # Check if alpha is already calculated
+        if self.analyzer._zipf_alpha is None:
+            alpha = self.analyzer.calculate_zipf_alpha()
         else:
-            alpha, c = self.analyzer._zipf_params
-
+            alpha = self.analyzer._zipf_alpha
+        
         # Check if the calculation was successful
-        if alpha is None or c is None:
-            raise ValueError("Alpha or c calculation failed, cannot plot Zipf's Law fit.")
+        if alpha is None:
+            raise ValueError("Alpha calculation failed, cannot plot Zipf's Law fit.")
 
-        # Generate ranks and retrieve frequencies
         ranks = np.arange(1, len(self.analyzer.frequency) + 1)
         frequencies = np.array([freq for _, freq in self.analyzer.frequency.most_common()])
 
-        # Normalize frequencies for plotting on a logarithmic scale
         normalized_frequencies = frequencies / np.max(frequencies)
-
-        # Calculate predicted frequencies using Zipf's Law
-        predicted_freqs = c / np.power(ranks, alpha)
+        predicted_freqs = 1 / np.power(ranks, alpha)
         normalized_predicted_freqs = predicted_freqs / np.max(predicted_freqs)
 
-        # Setting up the plot
         plt.figure(figsize=(10, 6))
         plt.scatter(ranks, normalized_frequencies, color='blue', label='Actual Frequencies', marker='o', linestyle='', s=5)
-        plt.plot(ranks, normalized_predicted_freqs, label=f'Zipf\'s Law Fit (alpha={alpha:.2f}, c={c:.2f})', color='red', linestyle='-')
+        plt.plot(ranks, normalized_predicted_freqs, label=f'Zipf\'s Law Fit (alpha={alpha:.2f})', color='red', linestyle='-')
         plt.xlabel('Rank')
         plt.ylabel('Normalized Frequency')
-        plt.title(f'Zipf\'s Law Fit for {self.corpus_name} Corpus')
-        plt.xscale('log')  # Logarithmic scale to visualize Zipf's Law
+        plt.title(f'Zipf\'s Law Fit (Alpha Only) for {self.corpus_name} Corpus')
+        plt.xscale('log')
         plt.yscale('log')
         plt.legend()
         plt.grid(True)
-        plt.savefig(os.path.join(self.plots_dir, f'zipfs_law_fit_{self.corpus_name}.png'))
+        plt.savefig(os.path.join(self.plots_dir, f'zipfs_law_alpha_fit_{self.corpus_name}.png'))
         plt.close()
 
     def plot_heaps_law(self):
