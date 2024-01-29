@@ -33,8 +33,8 @@ def analyze_corpus(corpus_name, plots_to_generate=None, enable_profiling=False):
     # Gather basic analysis results
     results = [
         f"Token Count: {basic_analyzer.total_token_count}",
-        f"Types Count (Distinct Tokens): {len(basic_analyzer.frequency)}",
-        f"Hapax Count (Unique Tokens): {basic_analyzer.hapax_legomena_count()}",
+        f"Vocabulary: {len(basic_analyzer.frequency)}",
+        f"Hapaxes: {basic_analyzer.hapax_legomena_count()}",
         f"Yule's K: {advanced_analyzer.yules_k():.6f}",
         f"Herdan's C: {advanced_analyzer.herdans_c():.6f}",
     ]
@@ -91,6 +91,6 @@ def analyze_corpus(corpus_name, plots_to_generate=None, enable_profiling=False):
 
 # Example usage
 corpora = ['brown', 'reuters', 'webtext', 'inaugural', 'nps_chat', 'shakespeare', 'state_union', 'gutenberg']
-plots_required = ["zipf"]
+plots_required = ["zipf", "heaps", "zipf_mandelbrot"]
 for corpus in corpora:
     analyze_corpus(corpus, plots_to_generate=plots_required, enable_profiling=False)
