@@ -1,122 +1,75 @@
 import nltk
-from string import ascii_lowercase
-'''
-# Ensure the Brown corpus is downloaded
-nltk.download('brown')
-brown_words = nltk.corpus.brown.words()
-
-# Convert words to lowercase and create a set of unique words
-unique_words = set(word.lower() for word in brown_words)
-
-# Initialize dictionaries to store counts
-token_frequency = {letter: 0 for letter in ascii_lowercase}
-type_frequency = {letter: 0 for letter in ascii_lowercase}
-
-# Count token frequencies
-for word in brown_words:
-    for letter in word.lower():
-        if letter in ascii_lowercase:
-            token_frequency[letter] += 1
-
-# Count type frequencies
-for word in unique_words:
-    for letter in set(word):
-        if letter in ascii_lowercase:
-            type_frequency[letter] += 1
-
-# Calculate percentages
-total_tokens = len(brown_words)
-total_types = len(unique_words)
-
-token_percentage = {letter: (count / total_tokens) * 100 for letter, count in token_frequency.items()}
-type_percentage = {letter: (count / total_types) * 100 for letter, count in type_frequency.items()}
-
-# Sort and print the results
-print("Token Percentages:")
-for letter, percentage in sorted(token_percentage.items(), key=lambda item: item[1], reverse=True):
-    print(f"{letter}: {percentage:.2f}%")
-
-print("\nType Percentages:")
-for letter, percentage in sorted(type_percentage.items(), key=lambda item: item[1], reverse=True):
-    print(f"{letter}: {percentage:.2f}%")
-
-import nltk
-from string import ascii_lowercase
-
-# Ensure the Brown corpus is downloaded
-nltk.download('brown')
-brown_words = nltk.corpus.brown.words()
-
-# Convert words to lowercase and create a set of unique words
-unique_words = set(word.lower() for word in brown_words)
-
-# Initialize dictionaries to store counts
-token_letter_frequency = {letter: 0 for letter in ascii_lowercase}
-type_letter_frequency = {letter: 0 for letter in ascii_lowercase}
-
-# Count letter frequencies by tokens
-for word in brown_words:
-    for letter in word.lower():
-        if letter in ascii_lowercase:
-            token_letter_frequency[letter] += 1
-
-# Count letter frequencies by types
-for word in unique_words:
-    for letter in set(word):
-        if letter in ascii_lowercase:
-            type_letter_frequency[letter] += 1
-
-# Calculate total number of letters
-total_letters_by_tokens = sum(token_letter_frequency.values())
-total_letters_by_types = sum(type_letter_frequency.values())
-
-# Calculate percentages
-token_letter_percentage = {letter: (count / total_letters_by_tokens) * 100 for letter, count in token_letter_frequency.items()}
-type_letter_percentage = {letter: (count / total_letters_by_types) * 100 for letter, count in type_letter_frequency.items()}
-
-# Print the results
-print("Token Letter Percentages:")
-for letter, percentage in sorted(token_letter_percentage.items(), key=lambda item: item[1], reverse=True):
-    print(f"{letter}: {percentage:.2f}%")
-
-print("\nType Letter Percentages:")
-for letter, percentage in sorted(type_letter_percentage.items(), key=lambda item: item[1], reverse=True):
-    print(f"{letter}: {percentage:.2f}%")
-'''
-import nltk
 import re
-from typing import Set
+from string import ascii_lowercase
+from collections import Counter
+from typing import Set, Dict
+from pathlib import Path
 
 # Ensure NLTK corpora are downloaded
-nltk.download('brown')
-nltk.download('cmudict')
+def download_corpus(corpus_name: str):
+    """Download the specified NLTK corpus if not already present."""
+    try:
+        nltk.data.find(corpus_name)
+    except LookupError:
+        nltk.download(corpus_name, quiet=True)
 
 def process_words(corpus_words: Set[str]) -> Set[str]:
-    # Remove punctuation/non-alphanumeric characters and numbers
-    words = {re.sub(r'[^a-zA-Z]', '', word) for word in corpus_words}
-    return {word for word in words if word.isalpha()}
+    """Remove punctuation/non-alphanumeric characters and numbers."""
+    return {re.sub(r'[^a-zA-Z]', '', word).lower() for word in corpus_words if word.isalpha()}
 
-def read_file_words(file_path: str) -> Set[str]:
-    with open(file_path, 'r') as file:
-        return set(file.read().lower().split())
+def calculate_letter_frequencies(words: Set[str], unique: bool = False) -> Dict[str, int]:
+    """Calculate letter frequencies in the given set of words."""
+    if unique:
+        # Count type frequencies (each letter once per word)
+        return Counter(letter for word in words for letter in set(word.lower()) if letter in ascii_lowercase)
+    else:
+        # Count token frequencies
+        return Counter(letter for word in words for letter in word.lower() if letter in ascii_lowercase)
 
-def count_corpus_words(corpus_name: str, corpus_words: Set[str]) -> None:
-    processed_words = process_words(corpus_words)
-    print(f"There are {len(processed_words)} unique words in the {corpus_name} corpus.")
+def calculate_percentages(frequencies: Dict[str, int], total: int) -> Dict[str, float]:
+    """Calculate percentage frequencies."""
+    return {letter: (count / total) * 100 for letter, count in frequencies.items()}
+
+def print_frequencies(title: str, frequencies: Dict[str, float]):
+    """Print sorted letter frequencies."""
+    print(f"{title}:")
+    for letter, freq in sorted(frequencies.items(), key=lambda item: item[1], reverse=True):
+        print(f"{letter}: {freq:.2f}%")
+
+def read_file_words(file_path: Path) -> Set[str]:
+    """Read and process words from a file."""
+    with file_path.open('r') as file:
+        return process_words(set(file.read().split()))
 
 def main():
-    # Process and count words from the Brown corpus
-    brown_words = set(word.lower() for word in nltk.corpus.brown.words())
-    count_corpus_words("Brown", brown_words)
+    download_corpus('corpora/brown')
+    download_corpus('corpora/cmudict')
 
-    # Process and count words from the CMU Pronouncing Dictionary
-    cmu_words = set(word.lower() for word, _ in nltk.corpus.cmudict.entries())
-    count_corpus_words("CMU", cmu_words)
+    # Process Brown corpus
+    brown_words = process_words(nltk.corpus.brown.words())
+    token_freq = calculate_letter_frequencies(brown_words)
+    type_freq = calculate_letter_frequencies(brown_words, unique=True)
 
-    # Process and count words from CLMET3_words.txt
-    clmet3_words = read_file_words('CLMET3_words.txt')
-    count_corpus_words("CLMET3", clmet3_words)
+    # Calculate and print token and type percentages
+    total_tokens = sum(token_freq.values())
+    total_types = sum(type_freq.values())
+
+    token_percentage = calculate_percentages(token_freq, total_tokens)
+    type_percentage = calculate_percentages(type_freq, total_types)
+
+    print_frequencies("Token Letter Percentages", token_percentage)
+    print("\nType Letter Percentages:")
+    print_frequencies("Type Letter Percentages", type_percentage)
+
+    # Process and count words from other sources
+    for corpus_name, corpus_function in [("Brown", nltk.corpus.brown.words), 
+                                         ("CMU", lambda: (word.lower() for word, _ in nltk.corpus.cmudict.entries()))]:
+        words = process_words(set(corpus_function()))
+        print(f"There are {len(words)} unique words in the {corpus_name} corpus.")
+
+    # Read and process CLMET3.txt
+    clmet3_words = read_file_words(Path('CLMET3.txt'))
+    print(f"There are {len(clmet3_words)} unique words in the CLMET3 corpus.")
 
 if __name__ == "__main__":
     main()
-
