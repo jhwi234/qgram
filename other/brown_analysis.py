@@ -43,7 +43,7 @@ def analyze_corpus(corpus_name: str):
     return f"{corpus_name}\t{avg_sent_len:.2f}\t{std_sent_len:.2f}\t{avg_token_len:.2f}\t{std_token_len:.2f}\t{avg_type_len:.2f}\t{std_type_len:.2f}"
 
 # Headers for the output table
-headers = ["Corpus", "Avg. Sentence Length", "Std. Dev. Sentence Length", "Avg. Word Token Length", "Std. Dev. Word Token Length", "Avg. Word Type Length", "Std. Dev. Word Type Length"]
+headers = ["Corpus", "Avg_Sent_Len", "SD_Sent_Len", "Avg_Token_Len", "SD_Token_Len", "Avg_Type_Len", "SD_Type_Len"]
 header_line = "\t".join(headers)
 
 # Analyze the corpora
