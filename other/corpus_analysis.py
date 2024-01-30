@@ -15,7 +15,6 @@ from scipy.optimize import minimize
 from scipy.optimize import curve_fit
 from scipy.special import zeta
 import matplotlib.pyplot as plt
-import functools
 
 # Directory for plots
 plots_dir = 'plots'
@@ -148,74 +147,75 @@ class Tokenizer:
 
         # Remove unwanted tokens from the result
         return self._remove_unwanted_tokens(tokens)
+
 class CorpusTools:
     """
-    Analyze a corpus of text with optimized data structures.
-    Provides basic corpus analysis tools like frequency distribution and queries.
+    Provides basic corpus analysis tools like frequency distribution and querying capabilities.
     """
 
     def __init__(self, tokens, shuffle_tokens=False):
-        # Ensure all items in tokens are strings
+        """
+        Initialize the CorpusTools object with a list of tokens.
+        
+        :param tokens: List of tokens (words) in the corpus.
+        :param shuffle_tokens: Boolean indicating whether to shuffle the tokens. Useful for unbiased analysis.
+        """
+        # Validate that all elements in tokens are strings
         if not all(isinstance(token, str) for token in tokens):
             raise ValueError("All tokens must be strings.")
-        
-        self.tokens = tokens
-        # Shuffle option for randomizing order, useful in certain analyses to remove bias
+
+        # Shuffle the tokens if required
         if shuffle_tokens:
-            self._shuffle_tokens()
+            np.random.shuffle(tokens)
 
-        # Frequency distribution of tokens
-        self.frequency = Counter(self.tokens)
-        # Total token count to avoid repeated calculations
+        # Store tokens and calculate frequency distribution
+        self.tokens = tokens
+        self.frequency = Counter(tokens)
         self._total_token_count = sum(self.frequency.values())
-        # Token details including frequency and rank
-        self.token_details = self._initialize_token_details()
 
-    def _shuffle_tokens(self):
-        """Shuffle the tokens in the corpus using NumPy for efficiency."""
-        np.random.shuffle(self.tokens)
-
-    def _initialize_token_details(self):
-        """
-        Initialize a dictionary with token details including frequency, rank, and cumulative frequency.
-        Useful for quick lookups and analysis.
-        """
-        token_details = {}
-        cumulative = 0
-        for rank, (token, freq) in enumerate(self.frequency.most_common(), start=1):
-            # Cumulative frequency helps in calculating median and other stats
-            cumulative += freq
-            token_details[token] = {
-                'frequency': freq,
-                'rank': rank,
-                'cumulative_freq': cumulative
-            }
-        return token_details
+        # Initialize token details with frequency and rank
+        self.token_details = {token: {'frequency': freq, 'rank': rank}
+                              for rank, (token, freq) in enumerate(self.frequency.most_common(), 1)}
 
     @property
     def total_token_count(self) -> int:
-        """Return the total number of tokens in the corpus."""
+        """
+        Return the total number of tokens in the corpus.
+        """
         return self._total_token_count
 
     def find_median_token(self) -> dict:
         """
         Find the median token based on frequency. 
         The median token is the token in the middle of the sorted frequency distribution.
+
+        :return: Dictionary with the median token and its frequency.
         """
         median_index = self._total_token_count / 2
         cumulative = 0
-        for token, details in self.token_details.items():
-            cumulative += details['frequency']
+        # Iterate over tokens in order of decreasing frequency
+        for token, freq in self.frequency.most_common():
+            cumulative += freq
+            # Return the token once the cumulative count crosses the median index
             if cumulative >= median_index:
-                # Token that crosses the median count is the median token
-                return {'token': token, 'frequency': details['frequency']}
+                return {'token': token, 'frequency': freq}
 
     def mean_token_frequency(self) -> float:
-        """Calculate the mean frequency of tokens across the corpus."""
+        """
+        Calculate the mean frequency of tokens in the corpus.
+
+        :return: Float representing the mean token frequency.
+        """
         return self.total_token_count / len(self.token_details)
 
     def query_by_token(self, token) -> dict:
-        """Retrieve frequency and rank details for a specific token."""
+        """
+        Retrieve frequency and rank details for a specific token.
+
+        :param token: Token to query.
+        :return: Dictionary with token details (frequency and rank).
+        :raises ValueError: If the token is not found in the corpus.
+        """
         token = token.lower()
         details = self.token_details.get(token)
         if details:
@@ -224,38 +224,56 @@ class CorpusTools:
             raise ValueError(f"Token '{token}' not found in the corpus.")
 
     def query_by_rank(self, rank) -> dict:
-        """Retrieve token and frequency details for a specific rank in the frequency distribution."""
-        for token, details in self.token_details.items():
-            if details['rank'] == rank:
-                return {'token': token, 'frequency': details['frequency'], 'rank': rank}
-        raise ValueError(f"Rank {rank} is out of range.")
-    
-    def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100):
+        """
+        Retrieve token details for a specific rank in the frequency distribution.
+
+        :param rank: Rank to query.
+        :return: Dictionary with token details for the given rank.
+        :raises ValueError: If the rank is out of range.
+        """
+        # Validate rank range
+        if rank < 1 or rank > len(self.token_details):
+            raise ValueError("Rank is out of range.")
+        
+        # Find the token with the specified rank
+        token = next((t for t, d in self.token_details.items() if d['rank'] == rank), None)
+        if token:
+            return {'token': token, 'rank': rank, **self.token_details[token]}
+        else:
+            raise ValueError(f"Rank {rank} is out of range.")
+
+    def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100) -> list:
         """
         Analyze tokens within a specific cumulative frequency range. 
-        Useful for understanding distribution of common vs. rare tokens.
+        Useful for understanding the distribution of common vs. rare tokens.
+
+        :param lower_percent: Lower bound of the cumulative frequency range (in percentage).
+        :param upper_percent: Upper bound of the cumulative frequency range (in percentage).
+        :return: List of dictionaries with token details in the specified range.
+        :raises ValueError: If the provided percentages are out of bounds.
         """
-        # Validation of percentage inputs
+        # Validate percentage inputs
         if not 0 <= lower_percent <= 100 or not 0 <= upper_percent <= 100:
             raise ValueError("Percentages must be between 0 and 100.")
 
-        # Adjusting the range if inputs are in reverse order
-        if lower_percent > upper_percent:
-            lower_percent, upper_percent = upper_percent, lower_percent
-
-        # Calculate threshold counts based on percentages
+        # Calculate the numeric thresholds based on percentages
         lower_threshold = self._total_token_count * (lower_percent / 100)
         upper_threshold = self._total_token_count * (upper_percent / 100)
 
-        # Extract tokens within the specified cumulative frequency range
+        # Extract tokens within the specified frequency range
         return [{'token': token, **details}
                 for token, details in self.token_details.items()
-                if lower_threshold <= details['cumulative_freq'] <= upper_threshold]
+                if lower_threshold <= details['frequency'] <= upper_threshold]
 
-    def list_tokens_in_rank_range(self, start_rank, end_rank):
+    def list_tokens_in_rank_range(self, start_rank, end_rank) -> list:
         """
         List tokens within a specific rank range. 
         Useful for examining the most/least frequent subsets of tokens.
+
+        :param start_rank: Starting rank of the range.
+        :param end_rank: Ending rank of the range.
+        :return: List of dictionaries with token details within the specified rank range.
+        :raises ValueError: If the rank range is out of valid bounds.
         """
         # Validate rank range inputs
         if not (1 <= start_rank <= end_rank <= len(self.token_details)):
@@ -266,23 +284,24 @@ class CorpusTools:
                 for token, details in self.token_details.items()
                 if start_rank <= details['rank'] <= end_rank]
     
-    def x_legomena_count(self, x) -> int:
+    def x_legomena(self, x) -> set:
         """
-        Count the number of x-legomena (tokens that occur x times) in the corpus.
+        List tokens that occur exactly x times in the corpus.
+        Useful for finding specific frequency occurrences like hapax legomena.
+
+        :param x: Number of occurrences to filter tokens by.
+        :return: Set of tokens occurring exactly x times.
+        :raises ValueError: If x is not a positive integer.
         """
-        return sum(1 for _, details in self.token_details.items() if details['frequency'] == x)
-    
-    def hapax_legomena_count(self) -> int:
-        """Count the number of hapax legomena (tokens that occur only once) in the corpus."""
-        return self.x_legomena_count(1)
-    
+        if not isinstance(x, int) or x < 1:
+            raise ValueError("x must be a positive integer.")
+        return {token for token, details in self.token_details.items() if details['frequency'] == x}
+
     def vocabulary(self) -> set:
-        """Return the set of distinct tokens in the corpus."""
+        """
+        Return the set of distinct tokens in the corpus.
+        """
         return set(self.frequency.keys())
-    
-    def vocabulary_size(self) -> int:
-        """Return the number of distinct tokens in the corpus."""
-        return len(self.frequency)
 
 class AdvancedTools(CorpusTools):
     """
@@ -323,7 +342,7 @@ class AdvancedTools(CorpusTools):
             return self.herdans_c_value  # Use cached value if available
         
         # Utilize properties from CorpusTools
-        V = self.vocabulary_size()  # Distinct token count (Vocabulary size)
+        V = len(self.vocabulary())  # Distinct token count (Vocabulary size)
         N = self.total_token_count  # Total token count (Corpus size)
 
         # Check for edge cases to prevent division by zero or logarithm of zero
@@ -434,7 +453,7 @@ class AdvancedTools(CorpusTools):
         frequencies = np.array([freq for _, freq in self.frequency.most_common()])
 
         # Set up grid search for initial alpha guesses
-        alpha_guesses = np.linspace(0.5, 1.5, num=20)  # Adjust the range and number of points as needed
+        alpha_guesses = np.linspace(0.5, 1.25, num=1000)  # Adjust the range and number of points as needed
         best_alpha = None
         min_error = float('inf')
 
@@ -457,44 +476,6 @@ class AdvancedTools(CorpusTools):
         self._zipf_alpha = best_alpha
 
         return best_alpha
-    
-    def calculate_zipf_c(self):
-        """
-        Calculate the c parameter for Zipf's Law.
-        """
-        if self._zipf_alpha is None:
-            raise ValueError("Alpha has not been calculated.")
-
-        alpha = self._zipf_alpha
-        ranks = np.arange(1, len(self.frequency) + 1)
-        frequencies = np.array([freq for _, freq in self.frequency.most_common()])
-
-        # Compute theoretical frequencies based on alpha
-        theoretical_freqs = 1 / np.power(ranks, alpha)
-
-        # Calculate c using the mean ratio of observed to theoretical frequencies
-        self._zipf_c = np.mean(frequencies / theoretical_freqs)
-        return self._zipf_c
-
-    def assess_zipf_fit(self):
-        """
-        Assess the fit of the Zipfian distribution for alpha.
-        """
-        if self._zipf_alpha is None:
-            raise ValueError("Alpha has not been calculated.")
-
-        alpha = self._zipf_alpha
-        ranks = np.arange(1, len(self.frequency) + 1)
-        frequencies = np.array([freq for _, freq in self.frequency.most_common()])
-        total_tokens = sum(frequencies)
-
-        harmonic = sum(1 / np.power(np.arange(1, len(frequencies) + 1), alpha))
-        predicted_freqs = 1 / np.power(ranks, alpha)
-        residuals = frequencies / (total_tokens * harmonic) - predicted_freqs
-
-        mean_residual = np.mean(residuals)
-        std_dev_residual = np.std(residuals)
-        return mean_residual, std_dev_residual
 
     def calculate_zipf_mandelbrot(self, initial_params=None, verbose=False):
         """
@@ -524,7 +505,7 @@ class AdvancedTools(CorpusTools):
             initial_params = [2.7, 1.0]  # Empirical initial values
 
         # Adjusting bounds based on empirical data
-        bounds = [(1, 10), (0.1, 3)]
+        bounds = [(1.0, 10.0), (0.1, 3.0)]
 
         # Optimization to minimize the objective function
         result = minimize(objective_function, initial_params, method='Nelder-Mead', bounds=bounds, options={'disp': verbose})
@@ -539,33 +520,6 @@ class AdvancedTools(CorpusTools):
             if verbose:
                 print("Optimization did not converge.")
             raise ValueError("Optimization did not converge")
-
-    def assess_zipf_mandelbrot_fit(self, q, s):
-        """
-        Calculate the mean and standard deviation of residuals to assess the Zipf-Mandelbrot distribution fit.
-        """
-        frequencies = np.array([details['frequency'] for details in self.token_details.values()])
-        ranks = np.array([details['rank'] for details in self.token_details.values()])
-
-        # Normalizing actual frequencies
-        max_freq = frequencies.max()
-        normalized_freqs = frequencies / max_freq
-
-        # Zipf-Mandelbrot function
-        def zipf_mandelbrot(k, q, s):
-            return (1 / ((k + q) ** s))
-
-        # Compute predicted frequencies
-        predicted_freqs = np.array([zipf_mandelbrot(rank, q, s) for rank in ranks])
-        normalized_predicted_freqs = predicted_freqs / np.max(predicted_freqs)
-
-        # Compute residuals
-        residuals = np.abs(normalized_freqs - normalized_predicted_freqs)
-
-        # Calculate mean and standard deviation of residuals
-        mean_residual = np.mean(residuals)
-        std_dev_residual = np.std(residuals)
-        return mean_residual, std_dev_residual
 class CorpusPlots:
     def __init__(self, analyzer, corpus_name, plots_dir='plots'):
         """

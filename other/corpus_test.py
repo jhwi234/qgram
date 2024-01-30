@@ -33,21 +33,18 @@ def analyze_corpus(corpus_name, plots_to_generate=None, enable_profiling=False):
     # Gather basic analysis results
     results = [
         f"Token Count: {basic_analyzer.total_token_count}",
-        f"Vocabulary: {len(basic_analyzer.frequency)}",
-        f"Hapaxes: {basic_analyzer.hapax_legomena_count()}",
-        f"Yule's K: {advanced_analyzer.yules_k():.6f}",
-        f"Herdan's C: {advanced_analyzer.herdans_c():.6f}",
+        f"Vocab Count: {len(basic_analyzer.frequency)}",
+        f"Hapax Count: {len(basic_analyzer.x_legomena(1))}",
+        f"Yule K: {advanced_analyzer.yules_k():.6f}",
+        f"Herdan C: {advanced_analyzer.herdans_c():.6f}",
     ]
 
     # Perform conditional calculations and plot generations
     if "zipf" in plots_to_generate:
         alpha = advanced_analyzer.calculate_zipf_alpha()
-        mean_deviation, std_deviation = advanced_analyzer.assess_zipf_fit()
         plotter.plot_zipfs_law_fit()
         results.extend([
-            f"Zipf Alpha: {alpha:.6f}",
-            f"Alpha Fit Mean Deviation: {mean_deviation:.6f}", 
-            f"Alpha Fit Standard Deviation: {std_deviation:.6f}"
+            f"Zipf Alpha: {alpha:.6f}"
         ])
 
     if "heaps" in plots_to_generate:
@@ -55,7 +52,7 @@ def analyze_corpus(corpus_name, plots_to_generate=None, enable_profiling=False):
         estimated_vocabulary_size = advanced_analyzer.estimate_vocabulary_size(basic_analyzer.total_token_count)
         plotter.plot_heaps_law()
         results.extend([
-            f"Heaps' K: {K:.6f} and Beta: {Beta:.6f}",
+            f"Heaps K: {K:.6f} and Beta: {Beta:.6f}",
             f"Estimated Vocabulary Size: {estimated_vocabulary_size:.2f}",
             f"Actual Vocabulary Size: {len(basic_analyzer.frequency)}"
         ])
@@ -63,12 +60,9 @@ def analyze_corpus(corpus_name, plots_to_generate=None, enable_profiling=False):
     if "zipf_mandelbrot" in plots_to_generate:
         try:
             q, s = advanced_analyzer.calculate_zipf_mandelbrot()
-            zipf_mandelbrot_mean_deviation, zipf_mandelbrot_std_deviation = advanced_analyzer.assess_zipf_mandelbrot_fit(q, s)
             plotter.plot_zipf_mandelbrot_fit()
             results.extend([
-                f"Zipf-Mandelbrot params: s = {s:.6f}, q = {q:.6f}",
-                f"Zipf-Mandelbrot Fit Mean Deviation: {zipf_mandelbrot_mean_deviation:.6f}",
-                f"Zipf-Mandelbrot Fit Standard Deviation: {zipf_mandelbrot_std_deviation:.6f}"
+                f"Zipf-Mandelbrot params: s = {s:.6f}, q = {q:.6f}"
             ])
         except Exception as e:
             results.append(f"Error in fitting Zipf-Mandelbrot distribution: {e}")
