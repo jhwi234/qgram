@@ -22,15 +22,16 @@
   - `stopwords_language`: Language for stopwords.
 
 ### CorpusTools
-- **Purpose**: Provides basic analysis tools for a corpus, such as frequency distribution and token querying.
+- **Purpose**: Provides basic analysis tools for a corpus, including frequency distribution, token querying, and lexical diversity measures.
 - **Key Methods**:
-  - `find_median_token()`: Finds the median token based on frequency.
-  - `mean_token_frequency()`: Calculates the mean frequency of tokens.
-  - `query_by_token(token)`: Returns frequency and rank for a given token.
-  - `query_by_rank(rank)`: Returns token and frequency for a given rank.
-  - `cumulative_frequency_analysis()`: Provides frequency details in a specified cumulative frequency range.
-  - `list_tokens_in_rank_range()`: Lists tokens within a specified rank range.
-  - `hapax_legomena_count()`: Counts unique tokens in the corpus.
+  - `find_median_token()`: Identifies the median token based on frequency.
+  - `mean_token_frequency()`: Calculates the average frequency of tokens throughout the corpus.
+  - `query_by_token(token)`: Retrieves detailed information (frequency and rank) for a specific token.
+  - `query_by_rank(rank)`: Retrieves the token and its frequency for a specific rank in the frequency distribution.
+  - `cumulative_frequency_analysis(lower_percent, upper_percent)`: Analyzes tokens within a specified cumulative frequency range.
+  - `list_tokens_in_rank_range(start_rank, end_rank)`: Lists tokens within a specific range of ranks.
+  - `x_legomena(x)`: Lists tokens that occur exactly `x` times in the corpus.
+  - `vocabulary()`: Returns a set of all distinct tokens in the corpus.
 - **Initialization Parameters**:
   - `tokens`: List of tokens to be analyzed.
   - `shuffle_tokens`: Boolean to shuffle tokens before analysis.
@@ -42,10 +43,8 @@
   - `herdans_c()`: Calculates Herdan's C measure for vocabulary richness.
   - `calculate_heaps_law()`: Estimates parameters for Heaps' Law.
   - `estimate_vocabulary_size(total_tokens)`: Estimates vocabulary size using Heaps' Law.
-  - `calculate_zipf_params()`: Calculates parameters for Zipf's Law.
-  - `assess_zipf_fit()`: Assesses the fit of Zipf's Law.
+  - `calculate_zipf_alpha()`: Calculates alpha for Zipf's Law.
   - `calculate_zipf_mandelbrot()`: Fits the Zipf-Mandelbrot distribution to the corpus.
-  - `assess_zipf_mandelbrot_fit(q, s)`: Assesses the fit of the Zipf-Mandelbrot distribution.
 - **Inheritance**: Inherits from `CorpusTools`.
 
 ### CorpusPlots
