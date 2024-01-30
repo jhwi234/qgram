@@ -1,46 +1,72 @@
 import nltk
 from collections import Counter
 
+# Function to calculate probabilities based on Zipf's law for a given text corpus
 def calculate_zipfian_probabilities(corpus_name):
-    nltk.download(corpus_name)
+    # Download the specified NLTK corpus, if not already present
+    nltk.download(corpus_name, quiet=True)
+    
+    # Retrieve words from the corpus and clean them
+    # Cleaning involves converting words to lowercase and filtering out non-alphabetic strings
     corpus_words = getattr(nltk.corpus, corpus_name).words()
     cleaned_words = [word.lower() for word in corpus_words if word.isalpha()]
-    # Counts how many times each word type appears in the corpus
+
+    # Count the frequency of each word in the cleaned list
+    # Counter creates a dictionary with words as keys and their counts as values
     word_frequencies = Counter(cleaned_words)
-    # Sums up the total number of word tokens in the corpus
+    
+    # Calculate the total number of word occurrences in the corpus
     total_word_count = sum(word_frequencies.values())
-    # Counts the tokens of unique word types in the corpus
-    distinct_word_count = len(word_frequencies)
-    # Sorts the word frequencies in ascending order (from least frequent to most frequent)
-    frequencies_sorted = sorted(word_frequencies.values())
-    # Initializes variables for tracking the cumulative frequency
-    cumulative_count = 0
-    mid_word_count = total_word_count / 2
+
+    # Sort the word frequencies in descending order (most frequent word first)
+    frequencies_sorted = sorted(word_frequencies.values(), reverse=True)
+
+    # Initialize variables to calculate the cumulative sum of word frequencies
+    # and to count the number of word types in the most frequent half
+    cumulative_sum = 0
     top_half_word_types = 0
-    # Iterates through the sorted frequencies to find out how many of the word types
-    # are needed to reach half of the total word count
+
+    # Loop through the sorted frequencies and accumulate their count
+    # Stop accumulating once the sum reaches half of the total word count
     for frequency in frequencies_sorted:
-        cumulative_count += frequency  # Adds the current word type's frequency to the cumulative total
-        top_half_word_types += 1       # Counts how many word types have been added
+        cumulative_sum += frequency
+        top_half_word_types += 1
+        if cumulative_sum >= total_word_count / 2:
+            break
 
-        # Checks if the cumulative count has reached half of the total word count
-        if cumulative_count >= mid_word_count:
-            break  # Stops the loop when half of the word count is reached
-    # Calculates the probability of encountering a word type from the top half of most frequent word types
-    probability_top_half = cumulative_count / total_word_count
-    # Calculates the probability of encountering a word type from the bottom half of least frequent word types
-    probability_bottom_half = (total_word_count - cumulative_count) / total_word_count
-    # Returns the calculated probabilities and word token counts
-    return probability_top_half, probability_bottom_half, top_half_word_types, total_word_count, distinct_word_count
+    # Calculate the probability of encountering a word from the most frequent half
+    probability_top_half = cumulative_sum / total_word_count
+    # Calculate the probability of encountering a word from the least frequent half
+    probability_bottom_half = 1 - probability_top_half
 
+    # Calculate the number of word types in the least frequent half
+    bottom_half_word_types = len(word_frequencies) - top_half_word_types
+
+    # Return the calculated probabilities, word type counts, and total counts
+    return probability_top_half, probability_bottom_half, top_half_word_types, bottom_half_word_types, total_word_count, len(word_frequencies)
+
+# Function to format the output in a readable way
+def format_output(corpus, top_half_prob, bottom_half_prob, top_half_types, bottom_half_types, total_tokens, unique_types):
+    # Construct a multi-line string with formatted output
+    output = (
+        f"Corpus: {corpus}\n"
+        f"--------------------------------------------\n"
+        f"Most Frequent Half - Word Probability   : {top_half_prob:.4f}\n"
+        f"Least Frequent Half - Word Probability  : {bottom_half_prob:.4f}\n"
+        f"Word Types in Most Frequent Half        : {top_half_types}\n"
+        f"Word Types in Least Frequent Half       : {bottom_half_types}\n"
+        f"Total Word Tokens                       : {total_tokens}\n"
+        f"Total Word Types                        : {unique_types}\n"
+    )
+    return output
+
+# List of corpora to analyze using the calculate_zipfian_probabilities function
 corpora_to_analyze = ['brown', 'gutenberg', 'reuters', 'webtext', 'inaugural']
 
+# Iterate over each corpus in the list
 for corpus in corpora_to_analyze:
-    top_half_prob, bottom_half_prob, top_half_types, total_tokens, unique_types = calculate_zipfian_probabilities(corpus)
+    # Calculate probabilities and counts for the current corpus
+    top_half_prob, bottom_half_prob, top_half_types, bottom_half_types, total_tokens, unique_types = calculate_zipfian_probabilities(corpus)
     
-    print(f"Corpus: {corpus}")
-    print(f"Probability of encountering a word from the most frequent half: {top_half_prob:.4f}")
-    print(f"Probability of encountering a word from the least frequent half: {bottom_half_prob:.4f}")
-    print(f"Number of unique word types in the most frequent half: {top_half_types}")
-    print(f"Total number of word tokens in the corpus: {total_tokens}")
-    print(f"Total number of unique word types in the corpus: {unique_types}\n")
+    # Print the formatted results
+    print(format_output(corpus, top_half_prob, bottom_half_prob, top_half_types, bottom_half_types, total_tokens, unique_types))

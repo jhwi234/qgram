@@ -2,49 +2,55 @@ import nltk
 from nltk.corpus import brown, gutenberg, reuters, webtext, inaugural
 import numpy as np
 
-def analyze_corpus(corpus_name: str):
+def download_if_missing(corpus_name):
     try:
-        corpora = {
-            "brown": brown,
-            "gutenberg": gutenberg,
-            "reuters": reuters,
-            "webtext": webtext,
-            "inaugural": inaugural
-        }
-        corpus = corpora[corpus_name]
+        nltk.data.find('corpora/' + corpus_name)
+    except LookupError:
+        try:
+            nltk.download(corpus_name, quiet=True)
+        except Exception as e:
+            print(f"Error downloading {corpus_name}: {e}")
+            return False
+    return True
 
-        sentence_lengths = [len(sentence) for sentence in corpus.sents()]
-        average_sentence_length = np.mean(sentence_lengths)
-        std_dev_sentence_length = np.std(sentence_lengths)
+def analyze_corpus(corpus_name: str):
+    if not download_if_missing(corpus_name):
+        return f"{corpus_name}\tDownload Failed"
 
-        word_tokens = corpus.words()
-        word_token_lengths = [len(word) for word in word_tokens]
-        average_word_token_length = np.mean(word_token_lengths)
-        std_dev_word_token_length = np.std(word_token_lengths)
+    corpora = {
+        "brown": brown,
+        "gutenberg": gutenberg,
+        "reuters": reuters,
+        "webtext": webtext,
+        "inaugural": inaugural
+    }
+    corpus = corpora[corpus_name]
 
-        word_types = set(word_tokens)
-        word_type_lengths = [len(word) for word in word_types]
-        average_word_type_length = np.mean(word_type_lengths)
-        std_dev_word_type_length = np.std(word_type_lengths)
+    sentence_lengths = np.array([len(sentence) for sentence in corpus.sents()])
+    word_tokens = corpus.words()
+    word_token_lengths = np.array([len(word) for word in word_tokens])
+    word_types = set(word_tokens)
+    word_type_lengths = np.array([len(word) for word in word_types])
 
-        # Return formatted string
-        return f"{corpus_name}\t{average_sentence_length:.2f}\t{average_word_token_length:.2f}\t{average_word_type_length:.2f}\t{std_dev_sentence_length:.2f}\t{std_dev_word_token_length:.2f}\t{std_dev_word_type_length:.2f}"
+    # Calculating averages and standard deviations
+    avg_sent_len = np.mean(sentence_lengths)
+    std_sent_len = np.std(sentence_lengths)
+    avg_token_len = np.mean(word_token_lengths)
+    std_token_len = np.std(word_token_lengths)
+    avg_type_len = np.mean(word_type_lengths)
+    std_type_len = np.std(word_type_lengths)
 
-    except Exception as e:
-        return f"Failed to analyze {corpus_name}: {e}"
+    return f"{corpus_name}\t{avg_sent_len:.2f}\t{std_sent_len:.2f}\t{avg_token_len:.2f}\t{std_token_len:.2f}\t{avg_type_len:.2f}\t{std_type_len:.2f}"
 
-# Download corpora
-nltk.download('brown')
-nltk.download('gutenberg')
-nltk.download('reuters')
-nltk.download('webtext')
-nltk.download('inaugural')
+# Headers for the output table
+headers = ["Corpus", "Avg. Sentence Length", "Std. Dev. Sentence Length", "Avg. Word Token Length", "Std. Dev. Word Token Length", "Avg. Word Type Length", "Std. Dev. Word Type Length"]
+header_line = "\t".join(headers)
 
-# Analyze multiple corpora and collect results
+# Analyze the corpora
 corpora_names = ['brown', 'gutenberg', 'reuters', 'webtext', 'inaugural']
-results = ["Corpus\tAvg. Sentence Length (words)\tAvg. Token Length (letters)\tAvg. Word Type Length (letters)\tStd. Dev. Sentence Length\tStd. Dev. Word Token Length\tStd. Dev. Word Type Length"]
+results = [header_line]
 for corpus_name in corpora_names:
     results.append(analyze_corpus(corpus_name))
 
-# Print final output
+# Print the formatted results
 print("\n".join(results))
