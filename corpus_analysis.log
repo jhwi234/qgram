@@ -1,0 +1,53 @@
+Processing corpus: brown
+brown Corpus Analysis:
+   EMD (Train-Prediction): 1.147535
+   EMD (Train-Test): 0.034391
+   Frequency Similarity (Train-Prediction): 0.772961
+   Frequency Similarity (Train-Test): 0.787896
+
+Processing corpus: CLMET3
+CLMET3 Corpus Analysis:
+   EMD (Train-Prediction): 1.758454
+   EMD (Train-Test): 0.035798
+   Frequency Similarity (Train-Prediction): 0.811928
+   Frequency Similarity (Train-Test): 0.834876
+
+Processing corpus: cmudict
+cmudict Corpus Analysis:
+   EMD (Train-Prediction): 1.785927
+   EMD (Train-Test): 0.035911
+   Frequency Similarity (Train-Prediction): 0.786307
+   Frequency Similarity (Train-Test): 0.815693
+
+Processing corpus: gutenberg
+gutenberg Corpus Analysis:
+   EMD (Train-Prediction): 1.179023
+   EMD (Train-Test): 0.033317
+   Frequency Similarity (Train-Prediction): 0.773361
+   Frequency Similarity (Train-Test): 0.793415
+
+Processing corpus: inaugural
+inaugural Corpus Analysis:
+   EMD (Train-Prediction): 0.750773
+   EMD (Train-Test): 0.065978
+   Frequency Similarity (Train-Prediction): 0.726798
+   Frequency Similarity (Train-Test): 0.732482
+
+Processing corpus: mega_corpus
+mega_corpus Corpus Analysis:
+   EMD (Train-Prediction): 2.116850
+   EMD (Train-Test): 0.031140
+   Frequency Similarity (Train-Prediction): 0.812712
+   Frequency Similarity (Train-Test): 0.844249
+
+Control Analysis for mega_corpus:
+   EMD (Mega Corpus Test vs. Inaugural Train): 6.956166557261536
+   Frequency Similarity (Mega Corpus Test vs. Inaugural Train): 0.5586200392871166
+
+Processing corpus: reuters
+reuters Corpus Analysis:
+   EMD (Train-Prediction): 1.129431
+   EMD (Train-Test): 0.032955
+   Frequency Similarity (Train-Prediction): 0.721408
+   Frequency Similarity (Train-Test): 0.744618
+

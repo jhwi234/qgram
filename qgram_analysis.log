@@ -1,0 +1,49 @@
+2024-01-25 23:35:08,146 - INFO - Processing corpus: brown
+2024-01-25 23:35:11,185 - INFO - brown Corpus Analysis:
+2024-01-25 23:35:11,195 - INFO -    EMD (Train-Prediction): 1.147535
+2024-01-25 23:35:11,196 - INFO -    EMD (Train-Test): 0.034391
+2024-01-25 23:35:11,196 - INFO -    Frequency Similarity (Train-Prediction): 0.716744
+2024-01-25 23:35:11,196 - INFO -    Frequency Similarity (Train-Test): 0.787942
+
+2024-01-25 23:35:11,215 - INFO - Processing corpus: CLMET3
+2024-01-25 23:35:18,772 - INFO - CLMET3 Corpus Analysis:
+2024-01-25 23:35:18,773 - INFO -    EMD (Train-Prediction): 1.758454
+2024-01-25 23:35:18,782 - INFO -    EMD (Train-Test): 0.035798
+2024-01-25 23:35:18,782 - INFO -    Frequency Similarity (Train-Prediction): 0.730291
+2024-01-25 23:35:18,783 - INFO -    Frequency Similarity (Train-Test): 0.834928
+
+2024-01-25 23:35:18,819 - INFO - Processing corpus: cmudict
+2024-01-25 23:35:24,203 - INFO - cmudict Corpus Analysis:
+2024-01-25 23:35:24,203 - INFO -    EMD (Train-Prediction): 1.785927
+2024-01-25 23:35:24,203 - INFO -    EMD (Train-Test): 0.035911
+2024-01-25 23:35:24,203 - INFO -    Frequency Similarity (Train-Prediction): 0.686102
+2024-01-25 23:35:24,203 - INFO -    Frequency Similarity (Train-Test): 0.815714
+
+2024-01-25 23:35:24,235 - INFO - Processing corpus: gutenberg
+2024-01-25 23:35:26,212 - INFO - gutenberg Corpus Analysis:
+2024-01-25 23:35:26,213 - INFO -    EMD (Train-Prediction): 1.179023
+2024-01-25 23:35:26,213 - INFO -    EMD (Train-Test): 0.033317
+2024-01-25 23:35:26,214 - INFO -    Frequency Similarity (Train-Prediction): 0.718674
+2024-01-25 23:35:26,214 - INFO -    Frequency Similarity (Train-Test): 0.793429
+
+2024-01-25 23:35:26,241 - INFO - Processing corpus: inaugural
+2024-01-25 23:35:26,705 - INFO - inaugural Corpus Analysis:
+2024-01-25 23:35:26,706 - INFO -    EMD (Train-Prediction): 0.750773
+2024-01-25 23:35:26,706 - INFO -    EMD (Train-Test): 0.065978
+2024-01-25 23:35:26,712 - INFO -    Frequency Similarity (Train-Prediction): 0.695533
+2024-01-25 23:35:26,712 - INFO -    Frequency Similarity (Train-Test): 0.733021
+
+2024-01-25 23:35:26,715 - INFO - Processing corpus: mega_corpus
+2024-01-25 23:35:38,113 - INFO - mega_corpus Corpus Analysis:
+2024-01-25 23:35:38,113 - INFO -    EMD (Train-Prediction): 2.116850
+2024-01-25 23:35:38,113 - INFO -    EMD (Train-Test): 0.031140
+2024-01-25 23:35:38,114 - INFO -    Frequency Similarity (Train-Prediction): 0.712429
+2024-01-25 23:35:38,114 - INFO -    Frequency Similarity (Train-Test): 0.844323
+
+2024-01-25 23:35:38,179 - INFO - Processing corpus: reuters
+2024-01-25 23:35:39,839 - INFO - reuters Corpus Analysis:
+2024-01-25 23:35:39,840 - INFO -    EMD (Train-Prediction): 1.129431
+2024-01-25 23:35:39,840 - INFO -    EMD (Train-Test): 0.032955
+2024-01-25 23:35:39,841 - INFO -    Frequency Similarity (Train-Prediction): 0.657708
+2024-01-25 23:35:39,841 - INFO -    Frequency Similarity (Train-Test): 0.744649
+
