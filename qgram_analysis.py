@@ -91,11 +91,19 @@ def dice_coefficient(freq1, freq2):
     total = sum(freq1.values()) + sum(freq2.values())
     return 2 * intersection / total if total > 0 else 0
 
+# Extract q-grams from correctly predicted words
 def extract_correct_predictions(csv_file_path, qgram_range):
     with csv_file_path.open() as file:
         reader = csv.DictReader(file)
-        return Counter(qgram for row in reader if row['Correct_Letter'] == row['Top1_Predicted_Letter'] 
-                       for qgram in generate_qgrams(row['Original_Word'], qgram_range))
+        correct_words = [row['Original_Word'] for row in reader if row['Correct_Letter'] == row['Top1_Predicted_Letter']]
+        return Counter(qgram for word in correct_words for qgram in generate_qgrams(word, qgram_range))
+
+# Extract q-grams from incorrectly predicted words
+def extract_incorrect_predictions(csv_file_path, qgram_range):
+    with csv_file_path.open() as file:
+        reader = csv.DictReader(file)
+        incorrect_words = [row['Original_Word'] for row in reader if row['Correct_Letter'] != row['Top1_Predicted_Letter']]
+        return Counter(qgram for word in incorrect_words for qgram in generate_qgrams(word, qgram_range))
 
 def load_corpus_data(corpus_name, config):
     all_words_file = config.sets_dir / f'{corpus_name}_all_words.txt'
@@ -114,41 +122,64 @@ def process_corpus(corpus_name, config):
     logger = logging.getLogger(corpus_name)
     logger.info(f'Processing corpus: {corpus_name}')
     try:
+        # Load corpus data
         train_set, test_set = load_corpus_data(corpus_name, config)
+
+        # File paths for Qgram datasets
         train_file = config.get_file_path(corpus_name, 'qgram', 'train')
         test_file = config.get_file_path(corpus_name, 'qgram', 'test')
         pred_file = config.get_file_path(corpus_name, 'qgram', 'correct')
         csv_file = config.get_file_path(corpus_name, 'csv')
+        incorrect_pred_file = config.get_file_path(corpus_name, 'qgram', 'incorrect_pred')
 
+        # Process and save Qgrams for train, test, and correct predictions
         process_and_save_qgrams(train_set, train_file, config)
         process_and_save_qgrams(test_set, test_file, config)
         correct_qgrams = extract_correct_predictions(csv_file, config.qgram_range)
         write_qgram_frequencies_to_file(correct_qgrams, pred_file)
 
+        # Process and save Qgrams for incorrect predictions
+        incorrect_pred_qgrams = extract_incorrect_predictions(csv_file, config.qgram_range)
+        write_qgram_frequencies_to_file(incorrect_pred_qgrams, incorrect_pred_file)
+
+        # Read Qgram frequencies
         train_qgrams = read_qgram_frequencies(train_file)
         pred_qgrams = read_qgram_frequencies(pred_file)
         test_qgrams = read_qgram_frequencies(test_file)
+        incorrect_pred_qgrams = read_qgram_frequencies(incorrect_pred_file)
 
+        # Calculate metrics
         metrics = {
             "EMD (Train-Prediction)": calculate_emd(train_qgrams, pred_qgrams),
             "EMD (Train-Test)": calculate_emd(train_qgrams, test_qgrams),
+            "EMD (Train-Incorrect Prediction)": calculate_emd(train_qgrams, incorrect_pred_qgrams),
             "Frequency Similarity (Train-Prediction)": calculate_frequency_similarity(train_qgrams, pred_qgrams),
             "Frequency Similarity (Train-Test)": calculate_frequency_similarity(train_qgrams, test_qgrams),
+            "Frequency Similarity (Train-Incorrect Prediction)": calculate_frequency_similarity(train_qgrams, incorrect_pred_qgrams),
             "Jaccard Similarity (Train-Prediction)": jaccard_similarity(train_qgrams, pred_qgrams),
             "Jaccard Similarity (Train-Test)": jaccard_similarity(train_qgrams, test_qgrams),
+            "Jaccard Similarity (Train-Incorrect Prediction)": jaccard_similarity(train_qgrams, incorrect_pred_qgrams),
             "Cosine Similarity (Train-Prediction)": cosine_similarity(train_qgrams, pred_qgrams),
             "Cosine Similarity (Train-Test)": cosine_similarity(train_qgrams, test_qgrams),
+            "Cosine Similarity (Train-Incorrect Prediction)": cosine_similarity(train_qgrams, incorrect_pred_qgrams),
             "KL Divergence (Train-Prediction)": kl_divergence(train_qgrams, pred_qgrams),
             "KL Divergence (Train-Test)": kl_divergence(train_qgrams, test_qgrams),
+            "KL Divergence (Train-Incorrect Prediction)": kl_divergence(train_qgrams, incorrect_pred_qgrams),
             "Overlap Coefficient (Train-Prediction)": overlap_coefficient(train_qgrams, pred_qgrams),
             "Overlap Coefficient (Train-Test)": overlap_coefficient(train_qgrams, test_qgrams),
+            "Overlap Coefficient (Train-Incorrect Prediction)": overlap_coefficient(train_qgrams, incorrect_pred_qgrams),
             "Dice Coefficient (Train-Prediction)": dice_coefficient(train_qgrams, pred_qgrams),
-            "Dice Coefficient (Train-Test)": dice_coefficient(train_qgrams, test_qgrams)
+            "Dice Coefficient (Train-Test)": dice_coefficient(train_qgrams, test_qgrams),
+            "Dice Coefficient (Train-Incorrect Prediction)": dice_coefficient(train_qgrams, incorrect_pred_qgrams)
         }
 
+        # Log results
         log_results(corpus_name, metrics, logger)
+
+        # Control comparisons for mega_corpus
         if corpus_name == 'mega_corpus':
             perform_control_comparisons(corpus_name, config, test_qgrams, logger)
+
     except Exception as e:
         logger.error(f"Error processing {corpus_name}: {e}")
 
@@ -167,25 +198,28 @@ def log_results(corpus_name, metrics, logger):
                                 ('Overlap Metrics', overlap_metrics)]:
         logger.info(f'\n{group}:')
         for metric in metrics_list:
+            # Keys for each comparison
             train_pred_key = f"{metric} (Train-Prediction)"
             train_test_key = f"{metric} (Train-Test)"
-            train_pred_value = metrics[train_pred_key] if train_pred_key in metrics else 'N/A'
-            train_test_value = metrics[train_test_key] if train_test_key in metrics else 'N/A'
-            if isinstance(train_pred_value, tuple):  # For Chi Squared Test
-                logger.info(f'   {metric}:')
-                logger.info(f'      Train-Prediction: chi2={train_pred_value[0]:.6f}, p-value={train_pred_value[1]:.6f}')
-                logger.info(f'      Train-Test: chi2={train_test_value[0]:.6f}, p-value={train_test_value[1]:.6f}')
-            else:
-                logger.info(f'   {metric}:')
-                logger.info(f'      Train-Prediction: {train_pred_value:.6f}')
-                logger.info(f'      Train-Test: {train_test_value:.6f}')
+            train_incorrect_pred_key = f"{metric} (Train-Incorrect Prediction)" 
+
+            # Values for each comparison
+            train_pred_value = metrics.get(train_pred_key, 'N/A')
+            train_test_value = metrics.get(train_test_key, 'N/A')
+            train_incorrect_pred_value = metrics.get(train_incorrect_pred_key, 'N/A')
+
+            # Formatting and rounding off the values
+            logger.info(f'   {metric}:')
+            logger.info(f'      Train-Prediction: {train_pred_value:.4f}' if isinstance(train_pred_value, (float, int)) else f'      Train-Prediction: N/A')
+            logger.info(f'      Train-Test: {train_test_value:.4f}' if isinstance(train_test_value, (float, int)) else f'      Train-Test: N/A')
+            logger.info(f'      Train-Incorrect Prediction: {train_incorrect_pred_value:.4f}' if isinstance(train_incorrect_pred_value, (float, int)) else f'      Train-Incorrect Prediction: N/A')
 
     # Control Analysis for mega_corpus
     if corpus_name == 'mega_corpus':
         logger.info(f'\nControl Analysis for {corpus_name}:')
         for key, value in metrics.items():
             if "Control" in key:
-                logger.info(f'   {key}: {value:.6f}')
+                logger.info(f'   {key}: {value:.4f}' if isinstance(value, (float, int)) else f'   {key}: {value}')
 
     logger.info(separator)
 
