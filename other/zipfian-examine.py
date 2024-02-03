@@ -87,7 +87,7 @@ def save_table_as_png(data, filename='corpus_analysis.png'):
     plt.close()
 
 # List of corpora to analyze
-corpora_to_analyze = ['brown', 'gutenberg', 'reuters', 'webtext', 'inaugural', 'genesis', 'nps_chat', 'shakespeare', 'state_union']
+corpora_to_analyze = ['brown', 'gutenberg', 'reuters', 'webtext', 'inaugural', 'nps_chat', 'state_union']
 
 # Accumulate results in a DataFrame
 results = []

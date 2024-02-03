@@ -51,3 +51,667 @@ reuters Corpus Analysis:
    Frequency Similarity (Train-Prediction): 0.721408
    Frequency Similarity (Train-Test): 0.744618
 
+Processing corpus: brown
+
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 1.1475
+      Train-Test: 0.0344
+      Train-Incorrect Prediction: 2.9010
+   Frequency Similarity:
+      Train-Prediction: 0.7730
+      Train-Test: 0.7879
+      Train-Incorrect Prediction: 0.6047
+   Jaccard Similarity:
+      Train-Prediction: 0.1937
+      Train-Test: 0.1832
+      Train-Incorrect Prediction: 0.0927
+   Cosine Similarity:
+      Train-Prediction: 0.9931
+      Train-Test: 0.9971
+      Train-Incorrect Prediction: 0.9603
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 3.0541
+      Train-Test: 2.7293
+      Train-Incorrect Prediction: 6.0726
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8593
+      Train-Test: 0.7890
+      Train-Incorrect Prediction: 0.7838
+   Dice Coefficient:
+      Train-Prediction: 0.7167
+      Train-Test: 0.7879
+      Train-Incorrect Prediction: 0.3448
+   Intersection Count:
+      Train-Prediction: 47718.0000
+      Train-Test: 52823.0000
+      Train-Incorrect Prediction: 22796.0000
+--------------------------------------------------
+Processing corpus: CLMET3
+
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 1.7585
+      Train-Test: 0.0358
+      Train-Incorrect Prediction: 3.6402
+   Frequency Similarity:
+      Train-Prediction: 0.8119
+      Train-Test: 0.8349
+      Train-Incorrect Prediction: 0.6870
+   Jaccard Similarity:
+      Train-Prediction: 0.1935
+      Train-Test: 0.1854
+      Train-Incorrect Prediction: 0.1109
+   Cosine Similarity:
+      Train-Prediction: 0.9952
+      Train-Test: 0.9991
+      Train-Incorrect Prediction: 0.9811
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 2.3185
+      Train-Test: 1.9912
+      Train-Incorrect Prediction: 4.2129
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8994
+      Train-Test: 0.8372
+      Train-Incorrect Prediction: 0.8425
+   Dice Coefficient:
+      Train-Prediction: 0.7303
+      Train-Test: 0.8349
+      Train-Incorrect Prediction: 0.4103
+   Intersection Count:
+      Train-Prediction: 127260.0000
+      Train-Test: 145029.0000
+      Train-Incorrect Prediction: 75489.0000
+--------------------------------------------------
+Processing corpus: cmudict
+
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 1.7859
+      Train-Test: 0.0359
+      Train-Incorrect Prediction: 2.9296
+   Frequency Similarity:
+      Train-Prediction: 0.7863
+      Train-Test: 0.8157
+      Train-Incorrect Prediction: 0.6789
+   Jaccard Similarity:
+      Train-Prediction: 0.1845
+      Train-Test: 0.1789
+      Train-Incorrect Prediction: 0.1069
+   Cosine Similarity:
+      Train-Prediction: 0.9935
+      Train-Test: 0.9987
+      Train-Incorrect Prediction: 0.9804
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 2.7883
+      Train-Test: 2.3649
+      Train-Incorrect Prediction: 4.6307
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8868
+      Train-Test: 0.8163
+      Train-Incorrect Prediction: 0.8305
+   Dice Coefficient:
+      Train-Prediction: 0.6861
+      Train-Test: 0.8157
+      Train-Incorrect Prediction: 0.4465
+   Intersection Count:
+      Train-Prediction: 97508.0000
+      Train-Test: 113398.0000
+      Train-Incorrect Prediction: 59050.0000
+--------------------------------------------------
+Processing corpus: gutenberg
+
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 1.1790
+      Train-Test: 0.0333
+      Train-Incorrect Prediction: 3.0032
+   Frequency Similarity:
+      Train-Prediction: 0.7734
+      Train-Test: 0.7934
+      Train-Incorrect Prediction: 0.6182
+   Jaccard Similarity:
+      Train-Prediction: 0.2031
+      Train-Test: 0.1941
+      Train-Incorrect Prediction: 0.0979
+   Cosine Similarity:
+      Train-Prediction: 0.9922
+      Train-Test: 0.9973
+      Train-Incorrect Prediction: 0.9659
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 2.9390
+      Train-Test: 2.5924
+      Train-Incorrect Prediction: 6.0062
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8610
+      Train-Test: 0.7936
+      Train-Incorrect Prediction: 0.7986
+   Dice Coefficient:
+      Train-Prediction: 0.7187
+      Train-Test: 0.7934
+      Train-Incorrect Prediction: 0.3535
+   Intersection Count:
+      Train-Prediction: 46593.0000
+      Train-Test: 51500.0000
+      Train-Incorrect Prediction: 22240.0000
+--------------------------------------------------
+Processing corpus: inaugural
+
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 0.7508
+      Train-Test: 0.0660
+      Train-Incorrect Prediction: 2.5428
+   Frequency Similarity:
+      Train-Prediction: 0.7268
+      Train-Test: 0.7325
+      Train-Incorrect Prediction: 0.5146
+   Jaccard Similarity:
+      Train-Prediction: 0.2030
+      Train-Test: 0.1918
+      Train-Incorrect Prediction: 0.0785
+   Cosine Similarity:
+      Train-Prediction: 0.9858
+      Train-Test: 0.9896
+      Train-Incorrect Prediction: 0.9281
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 3.8063
+      Train-Test: 3.5331
+      Train-Incorrect Prediction: 8.4593
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8077
+      Train-Test: 0.7406
+      Train-Incorrect Prediction: 0.7200
+   Dice Coefficient:
+      Train-Prediction: 0.6955
+      Train-Test: 0.7330
+      Train-Incorrect Prediction: 0.2631
+   Intersection Count:
+      Train-Prediction: 14844.0000
+      Train-Test: 15812.0000
+      Train-Incorrect Prediction: 5397.0000
+--------------------------------------------------
+Processing corpus: mega_corpus
+
+--------------------------------------------------
+mega_corpus Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 2.1168
+      Train-Test: 0.0311
+      Train-Incorrect Prediction: 3.6108
+   Frequency Similarity:
+      Train-Prediction: 0.8127
+      Train-Test: 0.8442
+      Train-Incorrect Prediction: 0.7103
+   Jaccard Similarity:
+      Train-Prediction: 0.1863
+      Train-Test: 0.1809
+      Train-Incorrect Prediction: 0.1153
+   Cosine Similarity:
+      Train-Prediction: 0.9946
+      Train-Test: 0.9994
+      Train-Incorrect Prediction: 0.9850
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 2.2784
+      Train-Test: 1.9069
+      Train-Incorrect Prediction: 3.7607
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.9092
+      Train-Test: 0.8454
+      Train-Incorrect Prediction: 0.8558
+   Dice Coefficient:
+      Train-Prediction: 0.7124
+      Train-Test: 0.8443
+      Train-Incorrect Prediction: 0.4515
+   Intersection Count:
+      Train-Prediction: 175183.0000
+      Train-Test: 205190.0000
+      Train-Incorrect Prediction: 114657.0000
+
+Control Analysis for mega_corpus:
+--------------------------------------------------
+Control Analysis for mega_corpus:
+   EMD (Mega Corpus Test vs. Inaugural Train): 6.956167
+   Frequency Similarity (Mega Corpus Test vs. Inaugural Train): 0.558620
+Processing corpus: reuters
+
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 1.1294
+      Train-Test: 0.0330
+      Train-Incorrect Prediction: 2.0717
+   Frequency Similarity:
+      Train-Prediction: 0.7214
+      Train-Test: 0.7446
+      Train-Incorrect Prediction: 0.5738
+   Jaccard Similarity:
+      Train-Prediction: 0.1604
+      Train-Test: 0.1517
+      Train-Incorrect Prediction: 0.0841
+   Cosine Similarity:
+      Train-Prediction: 0.9865
+      Train-Test: 0.9952
+      Train-Incorrect Prediction: 0.9549
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 4.1443
+      Train-Test: 3.6640
+      Train-Incorrect Prediction: 6.7895
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8308
+      Train-Test: 0.7450
+      Train-Incorrect Prediction: 0.7362
+   Dice Coefficient:
+      Train-Prediction: 0.6577
+      Train-Test: 0.7446
+      Train-Incorrect Prediction: 0.3768
+   Intersection Count:
+      Train-Prediction: 29129.0000
+      Train-Test: 33492.0000
+      Train-Incorrect Prediction: 15845.0000
+--------------------------------------------------
+Processing corpus: brown
+
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 1.1475
+      Train-Test: 0.0344
+      Train-Incorrect Prediction: 2.9010
+   Frequency Similarity:
+      Train-Prediction: 0.7730
+      Train-Test: 0.7879
+      Train-Incorrect Prediction: 0.6047
+   Jaccard Similarity:
+      Train-Prediction: 0.1937
+      Train-Test: 0.1832
+      Train-Incorrect Prediction: 0.0927
+   Cosine Similarity:
+      Train-Prediction: 0.9931
+      Train-Test: 0.9971
+      Train-Incorrect Prediction: 0.9603
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 3.0541
+      Train-Test: 2.7293
+      Train-Incorrect Prediction: 6.0726
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8593
+      Train-Test: 0.7890
+      Train-Incorrect Prediction: 0.7838
+   Dice Coefficient:
+      Train-Prediction: 0.7167
+      Train-Test: 0.7879
+      Train-Incorrect Prediction: 0.3448
+   Intersection Count:
+      Train-Prediction: 0.6577
+      Train-Test: 0.5370
+      Train-Incorrect Prediction: 0.4808
+--------------------------------------------------
+Processing corpus: CLMET3
+
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 1.7585
+      Train-Test: 0.0358
+      Train-Incorrect Prediction: 3.6402
+   Frequency Similarity:
+      Train-Prediction: 0.8119
+      Train-Test: 0.8349
+      Train-Incorrect Prediction: 0.6870
+   Jaccard Similarity:
+      Train-Prediction: 0.1935
+      Train-Test: 0.1854
+      Train-Incorrect Prediction: 0.1109
+   Cosine Similarity:
+      Train-Prediction: 0.9952
+      Train-Test: 0.9991
+      Train-Incorrect Prediction: 0.9811
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 2.3185
+      Train-Test: 1.9912
+      Train-Incorrect Prediction: 4.2129
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8994
+      Train-Test: 0.8372
+      Train-Incorrect Prediction: 0.8425
+   Dice Coefficient:
+      Train-Prediction: 0.7303
+      Train-Test: 0.8349
+      Train-Incorrect Prediction: 0.4103
+   Intersection Count:
+      Train-Prediction: 0.6768
+      Train-Test: 0.5412
+      Train-Incorrect Prediction: 0.5109
+--------------------------------------------------
+Processing corpus: cmudict
+
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 1.7859
+      Train-Test: 0.0359
+      Train-Incorrect Prediction: 2.9296
+   Frequency Similarity:
+      Train-Prediction: 0.7863
+      Train-Test: 0.8157
+      Train-Incorrect Prediction: 0.6789
+   Jaccard Similarity:
+      Train-Prediction: 0.1845
+      Train-Test: 0.1789
+      Train-Incorrect Prediction: 0.1069
+   Cosine Similarity:
+      Train-Prediction: 0.9935
+      Train-Test: 0.9987
+      Train-Incorrect Prediction: 0.9804
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 2.7883
+      Train-Test: 2.3649
+      Train-Incorrect Prediction: 4.6307
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8868
+      Train-Test: 0.8163
+      Train-Incorrect Prediction: 0.8305
+   Dice Coefficient:
+      Train-Prediction: 0.6861
+      Train-Test: 0.8157
+      Train-Incorrect Prediction: 0.4465
+   Intersection Count:
+      Train-Prediction: 0.6640
+      Train-Test: 0.5276
+      Train-Incorrect Prediction: 0.4913
+--------------------------------------------------
+Processing corpus: gutenberg
+
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 1.1790
+      Train-Test: 0.0333
+      Train-Incorrect Prediction: 3.0032
+   Frequency Similarity:
+      Train-Prediction: 0.7734
+      Train-Test: 0.7934
+      Train-Incorrect Prediction: 0.6182
+   Jaccard Similarity:
+      Train-Prediction: 0.2031
+      Train-Test: 0.1941
+      Train-Incorrect Prediction: 0.0979
+   Cosine Similarity:
+      Train-Prediction: 0.9922
+      Train-Test: 0.9973
+      Train-Incorrect Prediction: 0.9659
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 2.9390
+      Train-Test: 2.5924
+      Train-Incorrect Prediction: 6.0062
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8610
+      Train-Test: 0.7936
+      Train-Incorrect Prediction: 0.7986
+   Dice Coefficient:
+      Train-Prediction: 0.7187
+      Train-Test: 0.7934
+      Train-Incorrect Prediction: 0.3535
+   Intersection Count:
+      Train-Prediction: 0.6742
+      Train-Test: 0.5599
+      Train-Incorrect Prediction: 0.5094
+--------------------------------------------------
+Processing corpus: inaugural
+
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 0.7508
+      Train-Test: 0.0660
+      Train-Incorrect Prediction: 2.5428
+   Frequency Similarity:
+      Train-Prediction: 0.7268
+      Train-Test: 0.7325
+      Train-Incorrect Prediction: 0.5146
+   Jaccard Similarity:
+      Train-Prediction: 0.2030
+      Train-Test: 0.1918
+      Train-Incorrect Prediction: 0.0785
+   Cosine Similarity:
+      Train-Prediction: 0.9858
+      Train-Test: 0.9896
+      Train-Incorrect Prediction: 0.9281
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 3.8063
+      Train-Test: 3.5331
+      Train-Incorrect Prediction: 8.4593
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8077
+      Train-Test: 0.7406
+      Train-Incorrect Prediction: 0.7200
+   Dice Coefficient:
+      Train-Prediction: 0.6955
+      Train-Test: 0.7330
+      Train-Incorrect Prediction: 0.2631
+   Intersection Count:
+      Train-Prediction: 0.6539
+      Train-Test: 0.5579
+      Train-Incorrect Prediction: 0.4875
+--------------------------------------------------
+Processing corpus: mega_corpus
+
+--------------------------------------------------
+mega_corpus Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 2.1168
+      Train-Test: 0.0311
+      Train-Incorrect Prediction: 3.6108
+   Frequency Similarity:
+      Train-Prediction: 0.8127
+      Train-Test: 0.8442
+      Train-Incorrect Prediction: 0.7103
+   Jaccard Similarity:
+      Train-Prediction: 0.1863
+      Train-Test: 0.1809
+      Train-Incorrect Prediction: 0.1153
+   Cosine Similarity:
+      Train-Prediction: 0.9946
+      Train-Test: 0.9994
+      Train-Incorrect Prediction: 0.9850
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 2.2784
+      Train-Test: 1.9069
+      Train-Incorrect Prediction: 3.7607
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.9092
+      Train-Test: 0.8454
+      Train-Incorrect Prediction: 0.8558
+   Dice Coefficient:
+      Train-Prediction: 0.7124
+      Train-Test: 0.8443
+      Train-Incorrect Prediction: 0.4515
+   Intersection Count:
+      Train-Prediction: 0.6759
+      Train-Test: 0.5316
+      Train-Incorrect Prediction: 0.5085
+
+Control Analysis for mega_corpus:
+--------------------------------------------------
+Control Analysis for mega_corpus:
+   EMD (Mega Corpus Test vs. Inaugural Train): 6.956167
+   Frequency Similarity (Mega Corpus Test vs. Inaugural Train): 0.558620
+Processing corpus: reuters
+
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+
+Similarity Metrics:
+   EMD:
+      Train-Prediction: 1.1294
+      Train-Test: 0.0330
+      Train-Incorrect Prediction: 2.0717
+   Frequency Similarity:
+      Train-Prediction: 0.7214
+      Train-Test: 0.7446
+      Train-Incorrect Prediction: 0.5738
+   Jaccard Similarity:
+      Train-Prediction: 0.1604
+      Train-Test: 0.1517
+      Train-Incorrect Prediction: 0.0841
+   Cosine Similarity:
+      Train-Prediction: 0.9865
+      Train-Test: 0.9952
+      Train-Incorrect Prediction: 0.9549
+
+Statistical Metrics:
+   KL Divergence:
+      Train-Prediction: 4.1443
+      Train-Test: 3.6640
+      Train-Incorrect Prediction: 6.7895
+
+Overlap Metrics:
+   Overlap Coefficient:
+      Train-Prediction: 0.8308
+      Train-Test: 0.7450
+      Train-Incorrect Prediction: 0.7362
+   Dice Coefficient:
+      Train-Prediction: 0.6577
+      Train-Test: 0.7446
+      Train-Incorrect Prediction: 0.3768
+   Intersection Count:
+      Train-Prediction: 0.6092
+      Train-Test: 0.4667
+      Train-Incorrect Prediction: 0.4178
+--------------------------------------------------
+Processing corpus: brown
+Error processing brown: float() argument must be a string or a real number, not 'dict'
+Processing corpus: CLMET3
+Error processing CLMET3: float() argument must be a string or a real number, not 'dict'
+Processing corpus: cmudict
+Processing corpus: brown
+Error processing brown: unsupported operand type(s) for -: 'dict' and 'dict'
+Processing corpus: CLMET3
+Error processing CLMET3: unsupported operand type(s) for -: 'dict' and 'int'
+Processing corpus: cmudict
+Error processing cmudict: unsupported operand type(s) for -: 'dict' and 'int'
+Processing corpus: gutenberg
+Error processing gutenberg: unsupported operand type(s) for -: 'int' and 'dict'
+Processing corpus: inaugural
+Error processing inaugural: unsupported operand type(s) for -: 'dict' and 'int'
+Processing corpus: mega_corpus
+Error processing mega_corpus: unsupported operand type(s) for -: 'dict' and 'int'
+Processing corpus: reuters
+Error processing reuters: unsupported operand type(s) for -: 'dict' and 'int'
+Processing corpus: brown
+Error processing brown: 'int' object is not subscriptable
+Processing corpus: CLMET3
+Error processing CLMET3: 'int' object is not subscriptable
+Processing corpus: cmudict
+Processing corpus: brown
+Error processing brown: 'int' object is not subscriptable
+Processing corpus: CLMET3
+Error processing CLMET3: 'int' object is not subscriptable
+Processing corpus: cmudict
+Error processing cmudict: 'int' object is not subscriptable
+Processing corpus: gutenberg
+Error processing gutenberg: 'int' object is not subscriptable
+Processing corpus: inaugural
+Error processing inaugural: 'int' object is not subscriptable
+Processing corpus: mega_corpus
+Error processing mega_corpus: 'int' object is not subscriptable
+Processing corpus: reuters
+Error processing reuters: 'int' object is not subscriptable

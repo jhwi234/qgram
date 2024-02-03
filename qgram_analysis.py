@@ -1,9 +1,9 @@
-import csv
 import logging
+import csv
 from collections import Counter
 from pathlib import Path
 import numpy as np
-from scipy.stats import wasserstein_distance, entropy
+from scipy.stats import spearmanr, wasserstein_distance, entropy
 from scipy.spatial.distance import cosine
 from sklearn.metrics import jaccard_score
 
@@ -50,6 +50,14 @@ def normalize_frequencies(qgram_freq):
     total = sum(qgram_freq.values())
     return {qgram: freq / total for qgram, freq in qgram_freq.items()}
 
+def augment_with_ranks(qgram_freqs):
+    """Augment frequency dictionaries with ranks."""
+    sorted_items = sorted(qgram_freqs.items(), key=lambda x: x[1], reverse=True)
+    ranked_qgrams = {}
+    for rank, (qgram, freq) in enumerate(sorted_items, start=1):
+        ranked_qgrams[qgram] = {'freq': freq, 'rank': rank}
+    return ranked_qgrams
+
 # Metric calculation functions
 def calculate_emd(freq1, freq2):
     qgrams = set(freq1.keys()).union(freq2.keys())
@@ -69,11 +77,21 @@ def jaccard_similarity(freq1, freq2):
     vector2 = [1 if freq2.get(k, 0) > 0 else 0 for k in keys]
     return jaccard_score(vector1, vector2, average='macro')
 
-def cosine_similarity(freq1, freq2):
-    keys = set(freq1.keys()).union(freq2.keys())
-    vector1 = np.array([freq1.get(k, 0) for k in keys])
-    vector2 = np.array([freq2.get(k, 0) for k in keys])
-    return 1 - cosine(vector1, vector2)
+def spearman_correlation(ranks1, ranks2):
+    """Calculate Spearman correlation between two sets of ranks."""
+    common_words = ranks1.keys() & ranks2.keys()
+    rank_list1 = [ranks1[word]['rank'] for word in common_words]
+    rank_list2 = [ranks2[word]['rank'] for word in common_words]
+    correlation, _ = spearmanr(rank_list1, rank_list2)
+    return correlation
+
+def cosine_similarity(freqs1, freqs2):
+    """Calculate cosine similarity between two frequency vectors."""
+    # Convert to vectors based on common words
+    common_words = set(freqs1.keys()) & set(freqs2.keys())
+    vec1 = np.array([freqs1[word]['freq'] for word in common_words])
+    vec2 = np.array([freqs2[word]['freq'] for word in common_words])
+    return 1 - cosine(vec1, vec2)
 
 def kl_divergence(freq1, freq2):
     keys = set(freq1.keys()).union(freq2.keys())
@@ -85,6 +103,12 @@ def overlap_coefficient(freq1, freq2):
     intersection = sum(min(freq1[k], freq2[k]) for k in freq1 if k in freq2)
     smaller_sum = min(sum(freq1.values()), sum(freq2.values()))
     return intersection / smaller_sum if smaller_sum > 0 else 0
+
+def calculate_intersection_count(freq1, freq2):
+    intersection_set = set(freq1.keys()).intersection(set(freq2.keys()))
+    intersection_count = len(intersection_set)
+    smaller_set_size = min(len(freq1), len(freq2))
+    return intersection_count / smaller_set_size if smaller_set_size > 0 else 0
 
 def dice_coefficient(freq1, freq2):
     intersection = sum(min(freq1[k], freq2[k]) for k in freq1 if k in freq2)
@@ -132,21 +156,29 @@ def process_corpus(corpus_name, config):
         csv_file = config.get_file_path(corpus_name, 'csv')
         incorrect_pred_file = config.get_file_path(corpus_name, 'qgram', 'incorrect_pred')
 
-        # Process and save Qgrams for train, test, and correct predictions
+        # Process and save Qgrams for train and test sets
         process_and_save_qgrams(train_set, train_file, config)
         process_and_save_qgrams(test_set, test_file, config)
-        correct_qgrams = extract_correct_predictions(csv_file, config.qgram_range)
-        write_qgram_frequencies_to_file(correct_qgrams, pred_file)
 
-        # Process and save Qgrams for incorrect predictions
+        # Extract and process Qgrams for correct and incorrect predictions
+        correct_qgrams = extract_correct_predictions(csv_file, config.qgram_range)
         incorrect_pred_qgrams = extract_incorrect_predictions(csv_file, config.qgram_range)
+
+        # Write Qgram frequencies to file
+        write_qgram_frequencies_to_file(correct_qgrams, pred_file)
         write_qgram_frequencies_to_file(incorrect_pred_qgrams, incorrect_pred_file)
 
         # Read Qgram frequencies
         train_qgrams = read_qgram_frequencies(train_file)
-        pred_qgrams = read_qgram_frequencies(pred_file)
         test_qgrams = read_qgram_frequencies(test_file)
+        pred_qgrams = read_qgram_frequencies(pred_file)
         incorrect_pred_qgrams = read_qgram_frequencies(incorrect_pred_file)
+
+        # Augment with ranks
+        train_qgrams_with_ranks = augment_with_ranks(train_qgrams)
+        test_qgrams_with_ranks = augment_with_ranks(test_qgrams)
+        pred_qgrams_with_ranks = augment_with_ranks(pred_qgrams)
+        incorrect_pred_qgrams_with_ranks = augment_with_ranks(incorrect_pred_qgrams)
 
         # Calculate metrics
         metrics = {
@@ -162,6 +194,14 @@ def process_corpus(corpus_name, config):
             "Cosine Similarity (Train-Prediction)": cosine_similarity(train_qgrams, pred_qgrams),
             "Cosine Similarity (Train-Test)": cosine_similarity(train_qgrams, test_qgrams),
             "Cosine Similarity (Train-Incorrect Prediction)": cosine_similarity(train_qgrams, incorrect_pred_qgrams),
+            "Intersection Count (Train-Prediction)": calculate_intersection_count(train_qgrams, pred_qgrams),
+            "Intersection Count (Train-Test)": calculate_intersection_count(train_qgrams, test_qgrams),
+            "Intersection Count (Train-Incorrect Prediction)": calculate_intersection_count(train_qgrams, incorrect_pred_qgrams),
+            
+            "Spearman Correlation (Train-Prediction)": spearman_correlation(train_qgrams_with_ranks, pred_qgrams_with_ranks),
+            "Spearman Correlation (Train-Test)": spearman_correlation(train_qgrams_with_ranks, test_qgrams_with_ranks),
+            "Spearman Correlation (Train-Incorrect Prediction)": spearman_correlation(train_qgrams_with_ranks, incorrect_pred_qgrams_with_ranks),
+            
             "KL Divergence (Train-Prediction)": kl_divergence(train_qgrams, pred_qgrams),
             "KL Divergence (Train-Test)": kl_divergence(train_qgrams, test_qgrams),
             "KL Divergence (Train-Incorrect Prediction)": kl_divergence(train_qgrams, incorrect_pred_qgrams),
@@ -191,7 +231,7 @@ def log_results(corpus_name, metrics, logger):
     # Grouping and formatting the metrics for better readability
     similarity_metrics = ['EMD', 'Frequency Similarity', 'Jaccard Similarity', 'Cosine Similarity']
     statistical_metrics = ['KL Divergence']
-    overlap_metrics = ['Overlap Coefficient', 'Dice Coefficient']
+    overlap_metrics = ['Overlap Coefficient', 'Dice Coefficient', 'Intersection Count']
 
     for group, metrics_list in [('Similarity Metrics', similarity_metrics), 
                                 ('Statistical Metrics', statistical_metrics), 
