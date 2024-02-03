@@ -1,0 +1,39 @@
+2024-01-18 18:31:54,821 - INFO - __main__: Analyzing corpus: brown
+2024-01-18 18:32:18,145 - INFO - __main__: Mean deviation from Ideal Zipfian: 3.6099
+2024-01-18 18:32:18,146 - INFO - __main__: Standard deviation from Ideal Zipfian: 127.1587
+2024-01-18 18:32:18,146 - INFO - __main__: Analyzing corpus: gutenberg
+2024-01-18 18:32:28,535 - INFO - __main__: Mean deviation from Ideal Zipfian: 14.7931
+2024-01-18 18:32:28,539 - INFO - __main__: Standard deviation from Ideal Zipfian: 336.8440
+2024-01-18 18:32:28,539 - INFO - __main__: Analyzing corpus: reuters
+2024-01-18 18:32:45,226 - INFO - __main__: Mean deviation from Ideal Zipfian: 12.5551
+2024-01-18 18:32:45,226 - INFO - __main__: Standard deviation from Ideal Zipfian: 402.5355
+2024-01-18 18:35:44,720 - INFO - __main__: Analyzing corpus: brown
+2024-01-18 18:35:48,604 - INFO - __main__: Yule's K Measure: 84.0194, Interpretation: low lexical diversity
+2024-01-18 18:35:48,644 - INFO - __main__: Herdan's C Measure: 0.7895, Interpretation: very rich vocabulary
+2024-01-18 18:35:51,967 - INFO - __main__: Mean deviation from Ideal Zipfian: 3.6099
+2024-01-18 18:35:51,967 - INFO - __main__: Standard deviation from Ideal Zipfian: 127.1587
+2024-01-18 18:35:52,034 - INFO - __main__: Analyzing corpus: gutenberg
+2024-01-18 18:35:57,778 - INFO - __main__: Yule's K Measure: 81.7804, Interpretation: low lexical diversity
+2024-01-18 18:35:57,830 - INFO - __main__: Herdan's C Measure: 0.7418, Interpretation: very rich vocabulary
+2024-01-18 18:36:00,671 - INFO - __main__: Mean deviation from Ideal Zipfian: 14.7931
+2024-01-18 18:36:00,672 - INFO - __main__: Standard deviation from Ideal Zipfian: 336.8440
+2024-01-18 18:36:00,710 - INFO - __main__: Analyzing corpus: reuters
+2024-01-18 18:36:08,549 - INFO - __main__: Yule's K Measure: 52.2576, Interpretation: low lexical diversity
+2024-01-18 18:36:08,612 - INFO - __main__: Herdan's C Measure: 0.7484, Interpretation: very rich vocabulary
+2024-01-18 18:36:10,972 - INFO - __main__: Mean deviation from Ideal Zipfian: 12.5551
+2024-01-18 18:36:10,973 - INFO - __main__: Standard deviation from Ideal Zipfian: 402.5355
+2024-01-18 18:40:54,883 - INFO - __main__: Analyzing corpus: brown
+2024-01-18 18:40:58,497 - INFO - __main__: Yule's K Measure: 84.0194, Interpretation: low lexical diversity
+2024-01-18 18:40:58,499 - INFO - __main__: Herdan's C Measure: 0.7895, Interpretation: very rich vocabulary
+2024-01-18 18:41:01,658 - INFO - __main__: Mean deviation from Ideal Zipfian: 3.6099
+2024-01-18 18:41:01,659 - INFO - __main__: Standard deviation from Ideal Zipfian: 127.1587
+2024-01-18 18:41:01,716 - INFO - __main__: Analyzing corpus: gutenberg
+2024-01-18 18:41:06,297 - INFO - __main__: Yule's K Measure: 81.7804, Interpretation: low lexical diversity
+2024-01-18 18:41:06,298 - INFO - __main__: Herdan's C Measure: 0.7418, Interpretation: very rich vocabulary
+2024-01-18 18:41:08,582 - INFO - __main__: Mean deviation from Ideal Zipfian: 14.7931
+2024-01-18 18:41:08,583 - INFO - __main__: Standard deviation from Ideal Zipfian: 336.8440
+2024-01-18 18:41:08,644 - INFO - __main__: Analyzing corpus: reuters
+2024-01-18 18:41:15,663 - INFO - __main__: Yule's K Measure: 52.2576, Interpretation: low lexical diversity
+2024-01-18 18:41:15,664 - INFO - __main__: Herdan's C Measure: 0.7484, Interpretation: very rich vocabulary
+2024-01-18 18:41:17,842 - INFO - __main__: Mean deviation from Ideal Zipfian: 12.5551
+2024-01-18 18:41:17,843 - INFO - __main__: Standard deviation from Ideal Zipfian: 402.5355
