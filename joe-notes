@@ -7,91 +7,44 @@ Exclude hapax legomena (words occurring only once within the dataset) from the t
 
 Task 3:
 
-We aim to measure the informational content of our entire word list by calculating the entropy of each letter in every word. This helps us understand the effectiveness of q-gram models across the corpus.
+Goal is to measure the informational content of the entire word list by calculating the entropy of each letter in every word. This involves estimating the uncertainty associated with each letter's occurrence in different contexts, such as when a letter is missing from a word. The process can be broken down into several steps:
 
 Start by assigning a probability to every alphabet letter based on how often it appears in the language. This initial step helps us estimate how likely each letter is to occur in any given position.
 
-Refine these probabilities with q-gram analysis, which considers the specific letters surrounding a missing letter to improve our prediction accuracy. This process narrows down the most likely letters by comparing broader frequency-based estimates to those informed by immediate letter context, thus aiming to reduce our prediction's entropy or uncertainty.
+Refine these probabilities with qgram analysis, which considers the specific letters surrounding a missing letter to improve our prediction accuracy. This process narrows down the most likely letters by comparing broader frequencybased estimates to those informed by immediate letter context, thus aiming to reduce our prediction's entropy or uncertainty.
 
 Calculate entropy in two ways:
 
 First, using the letter frequencies (unigram probabilities) to see how much uncertainty there is without considering the surrounding letters.
 Second, by assuming each letter is equally likely (uniform probability), representing the highest entropy scenario or the maximum uncertainty.
-Assess the information gain by comparing the entropy from our unigram model to that of the uniform probability model. The difference tells us how much more accurate our predictions are when using the q-gram model over a random guess.
+Assess the information gain by comparing the entropy from our unigram model to that of the uniform probability model. The difference tells us how much more accurate our predictions are when using the qgram model over a random guess.
 
-Finally, average the entropy across all words for each letter in different contexts to determine the overall informativeness of the q-gram models. This means calculating the entropy for each scenario where a letter is missing, then averaging these values to get a sense of how well the q-gram models perform across the entire corpus.
+Finally, average the entropy across all words for each letter in different contexts to determine the overall informativeness of the qgram models. This means calculating the entropy for each scenario where a letter is missing, then averaging these values to get a sense of how well the qgram models perform across the entire corpus.
 
-In essence, we're evaluating how effective q-gram models are by starting with a broad prediction based on letter frequency, refining it with context-specific data, and then measuring the improvement in our predictions through entropy reduction. This process highlights the value of context in improving the accuracy of our language models.
+In essence, we're evaluating how effective qgram models are by starting with a broad prediction based on letter frequency, refining it with contextspecific data\*\*, and then measuring the improvement in our predictions through entropy reduction. This process highlights the value of context in improving the accuracy of our language models.
 
-We need to get the overall information metric for the entire word list of the corpus. We can do this by getting the entropy for each letter in each word and in order to charactrerize how informative these q-gram modles are and then do this for each word in the corpus and then average.
+We need to get the overall information metric for the entire word list of the corpus. We can do this by getting the entropy for each letter in each word and in order to charactrerize how informative these qgram modles are and then do this for each word in the corpus and then average.
 
-Consider a scenario involving a word with a missing letter. Begin by assigning a probability to every letter in the alphabet based on its overall frequency of occurrence.
+The process can be broken down into several steps:
 
-some word with a missing letter.
+ 1. Initial Probability Assignment
+ Objective: Estimate the likelihood of each letter's occurrence across all positions within a word, based on its overall frequency in the language. This foundational step assigns a baseline probability, \(P(l)\), to each letter \(l\) in the alphabet.
+ Methodology: Compute the frequency of each letter in a large corpus, normalizing these frequencies to probabilities. This calculation forms the basis for further refinement and adjustment.
 
-first step for every letter in the alphabet get a proabablity based on the overall letter freqency.
+ 2. Refinement Using QGram Probabilities
+ Objective: Enhance the predictive accuracy of initial probabilities by incorporating the context provided by qgrams, which are sequences of characters including the missing letter and its immediate neighbors.
+ Methodology: Adjust letter probabilities (\(P(l)\)) to \(P(l | \text{"context"})\) by analyzing qgram frequencies within the corpus. This step leverages conditional probabilities to account for the influence of surrounding letters, significantly reducing prediction entropy.
 
-Next, refine these probabilities by taking into account the specific q-gram probabilities relevant to the context of the missing letter, aiming to more accurately predict the missing letter. This refinement process may involve comparing the initial approach to a more targeted method, potentially described as a reduction in entropy.
+ 3. Entropy Calculation
+ Objective: Measure the uncertainty or information content associated with the occurrence of each letter in a given context, employing two distinct entropy calculations to evaluate this uncertainty.
+ Methodology:
+   Unigram Entropy (\(H_{\text{unigram}}(l)\)): Calculated from the refined probabilities, indicating the entropy without specific context.
+   Uniform Entropy (\(H_{\text{uniform}}\)): Assumes an equal probability for all letters, serving as a baseline for maximum uncertainty.
 
-then we want to constrain that to the specific q-gram probabilities to narrow down the probablities for all the letters (what would this probablity be narrowing process be?) might be a "difference in entropy" between the itinail way of framing the problem and the new way. 
+ 4. Information Gain (Reduction in Entropy)
+ Objective: Quantify the improvement in predictive accuracy by comparing the entropy from the refined model against the uniform model, thereby illustrating the effectiveness of qgram analysis.
+ Methodology: Determine the information gain by calculating the difference between \(H_{\text{unigram}}(l)\) and \(H_{\text{uniform}}\), with significant reductions indicating a substantial increase in predictive power due to contextual considerations.
 
-get the entropy for each character in each word and in order to charactrerize how informative these q-gram modles are.
-
-Calculate the entropy for each character within a word to gauge the effectiveness of the q-gram models. Perform two calculations: one based on the probabilities of individual letters (unigram probabilities) and another based on a uniform probability distribution (representing the highest possible entropy, also known as Shannon entropy).
-
-Determine the reduction in entropy to understand the information gain provided by the q-gram models. This involves comparing the entropy based on unigram probabilities with the entropy based on uniform probability distribution.
-
-For a specific letter within a word, calculate its entropy considering the context provided by the word. Then, calculate the average entropy for each letter across all words, providing a measure of how informative the q-gram models are in different contexts.
-
-calculate two numbers: entropy based on the unigram probablities and based the actual uniform probabliy (the maximum possible entropy I could have aka shannon entropy)
-
-how much I have reduced the entrpy
-
-1/n (n = number of letters)
-
-1/uni_n (the unigram proabablities for the letters)
-
-The = a:0, b:1, c:2...
-tHe
-thE
-
-for a speiciic letter in the word find the entropy for the letter given the word and then average. do this each each letter in every word for each word then average
-
-1. **Initial Probability Assignment**: For a given word with a missing letter (e.g., "c_t"), assign a probability to each possible letter (a-z) based on its overall frequency of occurrence in the language. This can be represented as \(P(l)\) for each letter \(l\) in the alphabet.
-
-2. **Refinement Using Q-gram Probabilities**: Refine these initial probabilities by considering the specific q-gram probabilities surrounding the missing letter. For instance, if we are looking at the trigram "c_t", we refine \(P(l)\) for each letter \(l\) to \(P(l | \text{"c\_t"})\), where the context of "c" before and "t" after the blank is taken into account. This step aims to narrow down the most probable letters based on the surrounding letters, effectively reducing the uncertainty or entropy.
-
-3. **Entropy Calculation**:
-   - Calculate the entropy for each candidate letter in our example word. The entropy \(H(l)\) for a letter \(l\) given the word context (e.g., "c_t") measures the unpredictability or information content associated with the letter's occurrence. 
-   - Perform two entropy calculations: 
-     - \(H_{\text{unigram}}(l)\), based on the unigram probabilities \(P(l)\), represents the entropy without considering the specific context.
-     - \(H_{\text{uniform}}\), based on a uniform probability distribution where each letter is equally likely, represents the maximum possible entropy (Shannon entropy).
-
-4. **Information Gain (Reduction in Entropy)**:
-   - Determine the reduction in entropy by comparing \(H_{\text{unigram}}(l)\) with \(H_{\text{uniform}}\). This comparison quantifies how much more predictive the model becomes when moving from a uniform distribution to one informed by actual letter frequencies and contextual q-gram probabilities.
-   - For example, if \(H_{\text{uniform}} = \log_2(26)\) (assuming 26 equally likely letters) and \(H_{\text{unigram}}(l) < H_{\text{uniform}}\), the difference indicates an information gain.
-
-5. **Average Entropy Across Words**:
-   - For each specific context (e.g., "_a_", "b_e", "c_t"), calculate the average entropy based on the refined probabilities \(P(l | \text{"context"})\). This involves summing the entropies for all letters and dividing by the number of letters, providing an average measure of how informative the q-gram models are across different contexts.
-
-1. **Initial Probability Assignment**:
-    - **Objective**: Assign initial probabilities to each letter of the alphabet (a-z) based on its overall frequency of occurrence in a large corpus of the language.
-    - **Process**: This involves calculating or retrieving the frequency of each letter in a dataset and using these frequencies to determine the probability of each letter's occurrence.
-
-2. **Refinement Using Q-Gram Probabilities**:
-    - **Objective**: Refine the initial letter probabilities by considering the context provided by q-grams, which are sequences of q characters surrounding the missing letter.
-    - **Process**: Analyze the sequence of letters around the missing letter to adjust the probabilities. For example, if the missing letter is in the pattern "c_t", the probabilities are updated to reflect how likely each letter is to fill this gap, based on observed patterns in the language data.
-
-3. **Entropy Calculation**:
-    - **Objective**: Calculate the entropy for each possible letter replacement, providing a measure of uncertainty or information content for each letter’s occurrence.
-    - **Process**:
-        - Calculate entropy using unigram probabilities, which reflects the entropy without specific context.
-        - Calculate entropy based on a uniform distribution, representing the highest possible entropy or the maximum level of uncertainty.
-
-4. **Information Gain (Reduction in Entropy)**:
-    - **Objective**: Assess the reduction in entropy from the initial uniform distribution to the context-informed distribution, quantifying the improvement in predictive accuracy.
-    - **Process**: Compare the `H_unigram` for each letter with to determine the reduction in entropy, illustrating how much the model's predictions have improved by incorporating q-gram probabilities.
-
-5. **Average Entropy Across Words**:
-    - **Objective**: Calculate the average entropy for each letter across different contexts to evaluate how informative the q-gram models are.
-    - **Process**: For each context (e.g., missing letter scenarios), calculate the entropy for each letter and then average these values. This step involves aggregating the entropies across various contexts and dividing by the number of contexts to obtain an average entropy measure.
+ 5. Average Entropy Across Words
+ Objective: Evaluate the overall performance and informativeness of qgram models across the corpus by calculating the average entropy for each letter in different contexts.
+ Methodology: Aggregate and average the entropies calculated for each context (\(P(l | \text{"context"})\)), providing a comprehensive measure of how informative and effective the qgram models are in reducing uncertainty across all words.
