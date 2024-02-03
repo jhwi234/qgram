@@ -1,0 +1,26 @@
+For the Split type B do an after the fact analysis seeing which words weren't in the trinaing set and see how well it did on them
+
+Withold all the hapax and train on everyhting else and then test it on the hapax.
+
+
+some word with a missing letter.
+
+first step every letter in the alphabet has a proabablity based on the overall letter freqency
+
+then we want to constrain that to the specific q-gram probabilities to narrow down the probablities for all the letters (what would this probablity be narrowing process be?) might be a "difference in entropy" between the itinail way of framing the problem and the new way. 
+
+get the entropy for each character in each word and in order to charactrerize how informative these q-gram modles are.
+
+calculate two numbers: entropy based on the unigram probablities and based the actual uniform probabliy (the maximum possible entropy I could have aka shannon entropy)
+
+how much I have reduced the entrpy
+
+1/n (n = number of letters)
+
+1/uni_n (the unigram proabablities for the letters)
+
+The = a:0, b:1, c:2...
+tHe
+thE
+
+for a speiciic letter in the word find the entropy for the letter given the word and then average. do this each each letter in every word for each word then average
