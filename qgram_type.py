@@ -52,41 +52,40 @@ class Config:
         for directory in [self.data_dir, self.model_dir, self.log_dir, self.corpus_dir, self.output_dir, self.sets_dir, self.text_dir, self.csv_dir]:
             directory.mkdir(exist_ok=True)
 
-def run(corpus_name, config):
-    # Use the static method from CorpusManager to format the corpus name
-    formatted_corpus_name = CorpusManager.format_corpus_name(corpus_name)
-    logging.info(f'Processing {formatted_corpus_name} Corpus')
-    logging.info('-' * 40)
-
-    # Initialize CorpusManager with the formatted corpus name and configuration settings
-    corpus_manager = CorpusManager(formatted_corpus_name, config)
-
-    # Add unique words from the current corpus to the global corpus
-    CorpusManager.add_to_global_corpus(corpus_manager.corpus)
-
-    # Create an EvaluateModel instance, passing the CorpusManager instance
-    eval_model = EvaluateModel(corpus_manager)
-
-    # Retrieve the prediction method based on the configuration
-    prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
-
-    # Evaluate character predictions using the selected prediction method
-    evaluation_metrics, predictions = eval_model.evaluate_character_predictions(prediction_method)
-
-    # Log the results of the evaluation for accuracy and validity
-    logging.info(f'Evaluated with: {prediction_method.__name__}')
+# Helper function to log standard evaluation results
+def log_evaluation_results(evaluation_metrics, corpus_name, prediction_method_name):
+    logging.info(f'Evaluated with: {prediction_method_name}')
     logging.info(f'Model evaluation completed for: {corpus_name}')
     for i in range(1, 4):
-        logging.info(f'TOP{i} ACCURACY: {evaluation_metrics["accuracy"][i]:.2%} | TOP{i} VALIDITY: {evaluation_metrics["validity"][i]:.2%}')
+        accuracy = evaluation_metrics['accuracy'].get(i, 0.0)
+        validity = evaluation_metrics['validity'].get(i, 0.0)
+        logging.info(f'TOP{i} ACCURACY: {accuracy:.2%} | TOP{i} VALIDITY: {validity:.2%}')
 
-    # Export the prediction details and summary statistics to CSV and text files
+def run(corpus_name, config):
+    """
+    Process a given corpus with the specified configuration and log the results.
+    """
+    formatted_corpus_name = CorpusManager.format_corpus_name(corpus_name)
+    logging.info(f'Processing {formatted_corpus_name} Corpus')
+    logging.info('-' * 45)
+
+    corpus_manager = CorpusManager(formatted_corpus_name, config)
+    CorpusManager.add_to_global_corpus(corpus_manager.corpus)
+
+    eval_model = EvaluateModel(corpus_manager)
+    prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
+
+    evaluation_metrics, predictions = eval_model.evaluate_character_predictions(prediction_method)
+
+    # Log evaluation results using the new function
+    log_evaluation_results(evaluation_metrics, corpus_name, prediction_method.__name__)
+
+    # Export details and summary
     eval_model.export_prediction_details_to_csv(predictions, prediction_method.__name__)
     eval_model.save_summary_stats_txt(evaluation_metrics, predictions, prediction_method.__name__)
-
-    # Save recall and precision statistics
     eval_model.save_recall_precision_stats(evaluation_metrics)
 
-    logging.info('-' * 40)
+    logging.info('-' * 45)
 
 def main():
     # Setup logging and create necessary directories
@@ -98,13 +97,6 @@ def main():
     corpora = ['cmudict', 'brown', 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural']
     for corpus_name in corpora:
         run(corpus_name, config)
-
-    # Create, process, and evaluate the mega-corpus
-    mega_corpus_name = 'mega_corpus'
-    with open(config.corpus_dir / f'{mega_corpus_name}.txt', 'w', encoding='utf-8') as file:
-        file.write('\n'.join(CorpusManager.unique_words_all_corpora))
-
-    run(mega_corpus_name, config)
 
 if __name__ == '__main__':
     main()

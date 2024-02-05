@@ -3,7 +3,7 @@ import csv
 from predictions_class import Predictions
 
 class EvaluateModel:
-    def __init__(self, corpus_manager):
+    def __init__(self, corpus_manager, log_initialization_details=True):
         # Initialization and dataset preparation using the provided corpus_manager
         self.corpus_manager = corpus_manager
         self.corpus_name = corpus_manager.corpus_name 
@@ -28,7 +28,8 @@ class EvaluateModel:
         self.predictor = Predictions(self.model, self.q_range, unique_characters)
 
         # Logging model initialization details
-        self.log_initialization_details()
+        if log_initialization_details:
+            self.log_initialization_details()
 
         # Retrieve the appropriate prediction method
         prediction_methods = {

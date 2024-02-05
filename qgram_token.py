@@ -3,7 +3,6 @@
 import random
 import logging
 import regex as reg
-import csv
 from pathlib import Path
 import subprocess
 from enum import Enum
@@ -28,29 +27,37 @@ class Letters(Enum):
 
 # Function to build language models with KenLM for specified q-gram sizes
 def build_kenlm_model(corpus_name, q, corpus_path, model_directory) -> tuple[int, str]:
+    """
+    Builds KenLM language models for specified q-gram sizes.
+    Generates an ARPA file and then converts it to a binary format for efficiency.
+    """
     arpa_file = model_directory / f"{corpus_name}_{q}gram.arpa"
     binary_file = model_directory / f"{corpus_name}_{q}gram.klm"
 
+    # Attempt to build the ARPA model file
+    if not run_command(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
+                       "lmplz failed to generate ARPA model"):
+        return q, None  # Early return on failure
+
+    # Attempt to convert the ARPA model to binary format
+    if not run_command(['build_binary', '-s', str(arpa_file), str(binary_file)],
+                       "build_binary failed to convert ARPA model to binary format"):
+        return q, None  # Early return on failure
+
+    # If both commands succeed, no need to log success explicitly here
+    return q, str(binary_file)  # Ensure the path is returned as a string for compatibility
+
+def run_command(command, error_message):
+    """
+    Executes a command as a subprocess and logs any errors encountered.
+    Returns True if the command executes successfully, or False if an error occurs.
+    """
     try:
-        # Build ARPA file and convert it to binary format for efficient usage
-        with subprocess.Popen(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)], 
-                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE) as process:
-            _, stderr = process.communicate()
-            if process.returncode != 0:
-                raise subprocess.SubprocessError(f"lmplz failed: {stderr.decode()}")
-
-        with subprocess.Popen(['build_binary', '-s', str(arpa_file), str(binary_file)], 
-                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE) as process:
-            _, stderr = process.communicate()
-            if process.returncode != 0:
-                raise subprocess.SubprocessError(f"build_binary failed: {stderr.decode()}")
-
-    except subprocess.SubprocessError as e:
-        logging.error(f"Error in building KenLM model for {corpus_name} with q={q}: {e}")
-        return q, None
-
-    # Return q-gram size and path to the binary model file
-    return q, str(binary_file)
+        result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        logging.error(f"{error_message}: {e.stderr.decode()}")
+        return False
 
 # Configuration class for language model testing parameters. Change the testing inputs here.class Config:
 class Config:
@@ -118,7 +125,6 @@ class CorpusManager:
         self.load_corpus()
         self.train_set = [] # Not a set in the python sense allows for duplicates
         self.test_set = [] # Not a set in the python sense allows for duplicates
-        self.unique_test_tokens = set()
         self.model = {}
         self.all_words = set()
         self.prepare_datasets()
@@ -159,7 +165,7 @@ class CorpusManager:
             self._split_type_a()
         elif self.split_type == 'B':
             self._split_type_b()
-        elif self.split_type == 'Hapax':  # New split type for hapax legomena
+        elif self.split_type == 'HAPAX':  # New split type for hapax legomena
             self._split_hapax()
         else:
             raise ValueError(f"Unknown split type: {self.split_type}")
@@ -289,7 +295,6 @@ class CorpusManager:
         if self.debug:
             self.save_list_to_file(self.train_set, f'{self.corpus_name}_train_list_b.txt')
             self.save_list_to_file(self.test_set, f'{self.corpus_name}_test_list_b.txt')
-            logging.info(f"Identified {len(unique_test_tokens)} unique test tokens not present in training data.")
 
     def generate_formatted_corpus(self, data_set, formatted_corpus_path) -> Path:
         # Prepare a corpus file formatted for KenLM training, with each word on a new line
@@ -313,7 +318,7 @@ class CorpusManager:
                 # Generate and load KenLM models for each q-gram size
                 _, binary_file = build_kenlm_model(self.corpus_name, q, corpus_path, model_directory)
                 if binary_file:
-                    self.model[q] = kenlm.Model(binary_file)
+                    self.model[q] = kenlm.Model(str(binary_file))
                     model_loaded = True
 
         if model_loaded:
@@ -370,88 +375,76 @@ class CorpusManager:
         with file_path.open('w', encoding='utf-8', buffering=8192) as file:  # 8192 bytes buffer size
             file.write(aggregated_data_str)
 
-def analyze_test_tokens_not_in_training_performance(test_tokens, predictions):
-    # Filter predictions for test tokens not in training
-    unique_predictions = [(mod_word, miss_letter, orig_word, pred, rank) for mod_word, miss_letter, orig_word, pred, rank in predictions if orig_word in test_tokens]
-    
-    total_unique_predictions = len(unique_predictions)
-    if total_unique_predictions == 0:
-        logging.info("No test tokens found in predictions.")
-        return
+def analyze_test_tokens_not_in_training_performance(corpus_manager, test_tokens):
+    filtered_test_set = [
+        (mod_word, miss_letter, orig_word) 
+        for mod_word, miss_letter, orig_word in corpus_manager.test_set 
+        if orig_word in test_tokens
+    ]
 
-    # Initialize counters for correct predictions within top N accuracy
-    correct_predictions_top_n = {1: 0, 2: 0, 3: 0}
+    num_analyzed_tokens = len(filtered_test_set)
 
-    for _, miss_letter, _, pred, _ in unique_predictions:
-        for n in range(1, 4):
-            # Check if the correct letter is within the top N predictions
-            if any(miss_letter == p[0] for p in pred[:n]):
-                correct_predictions_top_n[n] += 1
+    if num_analyzed_tokens == 0:
+        logging.info("Evaluation: No test tokens found in predictions for analysis.")
+        return num_analyzed_tokens
 
-    # Calculate and log accuracies for top 1, 2, and 3 predictions
-    logging.info(f"Model evaluation completed for test tokens not in training:")
+    temp_eval_model = EvaluateModel(corpus_manager, log_initialization_details=False)
+    temp_eval_model.test_set = filtered_test_set
+    evaluation_metrics, _ = temp_eval_model.evaluate_character_predictions(temp_eval_model.prediction_method)
+
+    # Log the number of tokens evaluated on a separate line
+    logging.info(f"Evaluated {num_analyzed_tokens} tokens not found in training data:")
+
+    # Log the accuracy and validity metrics, each metric on a new line
     for i in range(1, 4):
-        accuracy_top_n = correct_predictions_top_n[i] / total_unique_predictions
-        logging.info(f"TOP{i} ACCURACY: {accuracy_top_n:.2%}")
+        accuracy = evaluation_metrics['accuracy'].get(i, 0.0)
+        validity = evaluation_metrics['validity'].get(i, 0.0)
+        logging.info(f"TOP{i} ACCURACY: {accuracy:.2%} | TOP{i} VALIDITY: {validity:.2%}")
+
+# Helper function to log standard evaluation results
+def log_evaluation_results(evaluation_metrics, corpus_name, prediction_method_name):
+    logging.info(f'Evaluated with: {prediction_method_name}')
+    logging.info(f'Model evaluation completed for: {corpus_name}')
+    for i in range(1, 4):
+        accuracy = evaluation_metrics['accuracy'].get(i, 0.0)
+        validity = evaluation_metrics['validity'].get(i, 0.0)
+        logging.info(f'TOP{i} ACCURACY: {accuracy:.2%} | TOP{i} VALIDITY: {validity:.2%}')
 
 def run(corpus_name, config, split_type):
-    # Use the static method from CorpusManager to format the corpus name
     formatted_corpus_name = CorpusManager.format_corpus_name(corpus_name)
     logging.info(f'Processing {formatted_corpus_name} Corpus with split type {split_type}')
-    logging.info('-' * 40)
-
+    
     corpus_manager = CorpusManager(formatted_corpus_name, config, split_type)
-    CorpusManager.add_to_global_corpus(corpus_manager.corpus)
     eval_model = EvaluateModel(corpus_manager)
     prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
 
-    # Standard evaluation
     evaluation_metrics, predictions = eval_model.evaluate_character_predictions(prediction_method)
+    log_evaluation_results(evaluation_metrics, corpus_name, prediction_method.__name__)
 
-    # Log standard evaluation results
-    logging.info(f'Evaluated with: {prediction_method.__name__}')
-    logging.info(f'Model evaluation completed for: {corpus_name}')
-    for i in range(1, 4):
-        logging.info(f'TOP{i} ACCURACY: {evaluation_metrics["accuracy"][i]:.2%} | TOP{i} VALIDITY: {evaluation_metrics["validity"][i]:.2%}')
+    if split_type == 'B':
+        analyze_test_tokens_not_in_training_performance(corpus_manager, corpus_manager.unique_test_tokens)
 
-    # After the standard evaluation process
-    if split_type == 'B':  # Ensuring this analysis is only performed for Split Type B
-        analyze_test_tokens_not_in_training_performance(corpus_manager.unique_test_tokens, predictions)
-
-    # Export details and summary
     eval_model.export_prediction_details_to_csv(predictions, prediction_method.__name__)
     eval_model.save_summary_stats_txt(evaluation_metrics, predictions, prediction_method.__name__)
     eval_model.save_recall_precision_stats(evaluation_metrics)
 
-    logging.info('-' * 40)
+    logging.info('-' * 45)
 
 def main():
     config = Config()
     config.setup_logging()
     config.create_directories()
 
-    # List of corpora to process
+    # List of corpora to process, excluding mega_corpus
     corpora = ['brown', 'cmudict', 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural']
-    split_types = ['A', 'B', 'Hapax']  # List of split types
+    split_types = ['A', 'B', 'HAPAX']  # List of split types
 
     # Process each corpus with all specified split types
     for corpus_name in corpora:
         for split_type in split_types:
             run(corpus_name, config, split_type)
 
-    # Prepare and evaluate the mega-corpus on selected split types, skipping 'Hapax'
-    mega_corpus_name = 'mega_corpus'
-    # Ensure the mega-corpus text is prepared only once
-    with open(config.corpus_dir / f'{mega_corpus_name}.txt', 'w', encoding='utf-8') as file:
-        file.write('\n'.join(CorpusManager.corpora_tokens))
-    
-    # Define split types for the mega-corpus, excluding 'Hapax'
-    mega_corpus_split_types = ['A', 'B']  # Exclude 'Hapax' for the mega corpus
-
-    # Run evaluations for the mega-corpus on the adjusted list of split types
-    for split_type in mega_corpus_split_types:
-        run(mega_corpus_name, config, split_type)
+# Removed the mega_corpus handling logic from the main function
 
 if __name__ == '__main__':
     main()
-
