@@ -715,3 +715,912 @@ Processing corpus: mega_corpus
 Error processing mega_corpus: 'int' object is not subscriptable
 Processing corpus: reuters
 Error processing reuters: 'int' object is not subscriptable
+2024-02-04 09:54:40,295 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:40,295 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:40,295 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:40,667 - INFO: 
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:54:40,667 - INFO: 
+Similarity Metrics:
+2024-02-04 09:54:40,667 - INFO:    EMD:
+2024-02-04 09:54:40,667 - INFO:       Train-Prediction: N/A
+2024-02-04 09:54:40,667 - INFO:       Train-Test: N/A
+2024-02-04 09:54:40,668 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:54:40,668 - INFO:    Frequency Similarity:
+2024-02-04 09:54:40,668 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:54:40,668 - INFO:       Train-Test: 1.0000
+2024-02-04 09:54:40,668 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:54:40,669 - INFO:    Jaccard Similarity:
+2024-02-04 09:54:40,669 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:40,669 - INFO:       Train-Test: nan
+2024-02-04 09:54:40,669 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:40,669 - INFO:    Cosine Similarity:
+2024-02-04 09:54:40,669 - INFO:       Train-Prediction: 1
+2024-02-04 09:54:40,670 - INFO:       Train-Test: 1
+2024-02-04 09:54:40,670 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:54:40,670 - INFO: 
+Statistical Metrics:
+2024-02-04 09:54:40,670 - INFO:    KL Divergence:
+2024-02-04 09:54:40,670 - INFO:       Train-Prediction: 0.9763
+2024-02-04 09:54:40,671 - INFO:       Train-Test: 0.0000
+2024-02-04 09:54:40,671 - INFO:       Train-Incorrect Prediction: 0.7294
+2024-02-04 09:54:40,671 - INFO: 
+Overlap Metrics:
+2024-02-04 09:54:40,671 - INFO:    Overlap Coefficient:
+2024-02-04 09:54:40,671 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:40,671 - INFO:       Train-Test: 0
+2024-02-04 09:54:40,672 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:40,672 - INFO:    Dice Coefficient:
+2024-02-04 09:54:40,672 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:40,672 - INFO:       Train-Test: 0
+2024-02-04 09:54:40,672 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:40,672 - INFO:    Intersection Count:
+2024-02-04 09:54:40,673 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:40,673 - INFO:       Train-Test: 0
+2024-02-04 09:54:40,673 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:40,673 - INFO: --------------------------------------------------
+2024-02-04 09:54:40,673 - INFO: Successfully processed brown
+2024-02-04 09:54:42,825 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:42,826 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:42,826 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:43,980 - INFO: 
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:54:43,981 - INFO: 
+Similarity Metrics:
+2024-02-04 09:54:43,981 - INFO:    EMD:
+2024-02-04 09:54:43,981 - INFO:       Train-Prediction: N/A
+2024-02-04 09:54:43,981 - INFO:       Train-Test: N/A
+2024-02-04 09:54:43,981 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:54:43,981 - INFO:    Frequency Similarity:
+2024-02-04 09:54:43,981 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:54:43,982 - INFO:       Train-Test: 1.0000
+2024-02-04 09:54:43,982 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:54:43,982 - INFO:    Jaccard Similarity:
+2024-02-04 09:54:43,982 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:43,982 - INFO:       Train-Test: nan
+2024-02-04 09:54:43,983 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:43,983 - INFO:    Cosine Similarity:
+2024-02-04 09:54:43,983 - INFO:       Train-Prediction: 1
+2024-02-04 09:54:43,983 - INFO:       Train-Test: 1
+2024-02-04 09:54:43,983 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:54:43,983 - INFO: 
+Statistical Metrics:
+2024-02-04 09:54:43,984 - INFO:    KL Divergence:
+2024-02-04 09:54:43,984 - INFO:       Train-Prediction: 1.2120
+2024-02-04 09:54:43,984 - INFO:       Train-Test: 0.0000
+2024-02-04 09:54:43,984 - INFO:       Train-Incorrect Prediction: 0.9704
+2024-02-04 09:54:43,984 - INFO: 
+Overlap Metrics:
+2024-02-04 09:54:43,984 - INFO:    Overlap Coefficient:
+2024-02-04 09:54:43,985 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:43,985 - INFO:       Train-Test: 0
+2024-02-04 09:54:43,985 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:43,985 - INFO:    Dice Coefficient:
+2024-02-04 09:54:43,985 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:43,985 - INFO:       Train-Test: 0
+2024-02-04 09:54:43,985 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:43,986 - INFO:    Intersection Count:
+2024-02-04 09:54:43,986 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:43,986 - INFO:       Train-Test: 0
+2024-02-04 09:54:43,986 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:43,986 - INFO: --------------------------------------------------
+2024-02-04 09:54:43,986 - INFO: Successfully processed CLMET3
+2024-02-04 09:54:45,591 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:45,591 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:45,591 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:46,485 - INFO: 
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:54:46,485 - INFO: 
+Similarity Metrics:
+2024-02-04 09:54:46,485 - INFO:    EMD:
+2024-02-04 09:54:46,485 - INFO:       Train-Prediction: N/A
+2024-02-04 09:54:46,485 - INFO:       Train-Test: N/A
+2024-02-04 09:54:46,486 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:54:46,486 - INFO:    Frequency Similarity:
+2024-02-04 09:54:46,486 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:54:46,486 - INFO:       Train-Test: 1.0000
+2024-02-04 09:54:46,486 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:54:46,486 - INFO:    Jaccard Similarity:
+2024-02-04 09:54:46,487 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:46,487 - INFO:       Train-Test: nan
+2024-02-04 09:54:46,487 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:46,487 - INFO:    Cosine Similarity:
+2024-02-04 09:54:46,487 - INFO:       Train-Prediction: 1
+2024-02-04 09:54:46,487 - INFO:       Train-Test: 1
+2024-02-04 09:54:46,487 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:54:46,488 - INFO: 
+Statistical Metrics:
+2024-02-04 09:54:46,488 - INFO:    KL Divergence:
+2024-02-04 09:54:46,488 - INFO:       Train-Prediction: 1.1026
+2024-02-04 09:54:46,488 - INFO:       Train-Test: 0.0000
+2024-02-04 09:54:46,488 - INFO:       Train-Incorrect Prediction: 0.9549
+2024-02-04 09:54:46,489 - INFO: 
+Overlap Metrics:
+2024-02-04 09:54:46,489 - INFO:    Overlap Coefficient:
+2024-02-04 09:54:46,489 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:46,489 - INFO:       Train-Test: 0
+2024-02-04 09:54:46,489 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:46,489 - INFO:    Dice Coefficient:
+2024-02-04 09:54:46,489 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:46,490 - INFO:       Train-Test: 0
+2024-02-04 09:54:46,490 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:46,490 - INFO:    Intersection Count:
+2024-02-04 09:54:46,490 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:46,490 - INFO:       Train-Test: 0
+2024-02-04 09:54:46,490 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:46,491 - INFO: --------------------------------------------------
+2024-02-04 09:54:46,491 - INFO: Successfully processed cmudict
+2024-02-04 09:54:47,132 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:47,133 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:47,133 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:47,502 - INFO: 
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:54:47,502 - INFO: 
+Similarity Metrics:
+2024-02-04 09:54:47,502 - INFO:    EMD:
+2024-02-04 09:54:47,502 - INFO:       Train-Prediction: N/A
+2024-02-04 09:54:47,502 - INFO:       Train-Test: N/A
+2024-02-04 09:54:47,503 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:54:47,503 - INFO:    Frequency Similarity:
+2024-02-04 09:54:47,503 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:54:47,503 - INFO:       Train-Test: 1.0000
+2024-02-04 09:54:47,503 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:54:47,503 - INFO:    Jaccard Similarity:
+2024-02-04 09:54:47,504 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:47,504 - INFO:       Train-Test: nan
+2024-02-04 09:54:47,504 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:47,504 - INFO:    Cosine Similarity:
+2024-02-04 09:54:47,504 - INFO:       Train-Prediction: 1
+2024-02-04 09:54:47,504 - INFO:       Train-Test: 1
+2024-02-04 09:54:47,505 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:54:47,505 - INFO: 
+Statistical Metrics:
+2024-02-04 09:54:47,505 - INFO:    KL Divergence:
+2024-02-04 09:54:47,505 - INFO:       Train-Prediction: 0.9686
+2024-02-04 09:54:47,505 - INFO:       Train-Test: 0.0000
+2024-02-04 09:54:47,506 - INFO:       Train-Incorrect Prediction: 0.7442
+2024-02-04 09:54:47,506 - INFO: 
+Overlap Metrics:
+2024-02-04 09:54:47,506 - INFO:    Overlap Coefficient:
+2024-02-04 09:54:47,506 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:47,506 - INFO:       Train-Test: 0
+2024-02-04 09:54:47,506 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:47,507 - INFO:    Dice Coefficient:
+2024-02-04 09:54:47,507 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:47,507 - INFO:       Train-Test: 0
+2024-02-04 09:54:47,507 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:47,507 - INFO:    Intersection Count:
+2024-02-04 09:54:47,507 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:47,508 - INFO:       Train-Test: 0
+2024-02-04 09:54:47,508 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:47,508 - INFO: --------------------------------------------------
+2024-02-04 09:54:47,508 - INFO: Successfully processed gutenberg
+2024-02-04 09:54:47,670 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:47,671 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:47,671 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:47,784 - INFO: 
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:54:47,785 - INFO: 
+Similarity Metrics:
+2024-02-04 09:54:47,785 - INFO:    EMD:
+2024-02-04 09:54:47,785 - INFO:       Train-Prediction: N/A
+2024-02-04 09:54:47,785 - INFO:       Train-Test: N/A
+2024-02-04 09:54:47,785 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:54:47,785 - INFO:    Frequency Similarity:
+2024-02-04 09:54:47,785 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:54:47,786 - INFO:       Train-Test: 1.0000
+2024-02-04 09:54:47,786 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:54:47,786 - INFO:    Jaccard Similarity:
+2024-02-04 09:54:47,786 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:47,786 - INFO:       Train-Test: nan
+2024-02-04 09:54:47,786 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:47,787 - INFO:    Cosine Similarity:
+2024-02-04 09:54:47,787 - INFO:       Train-Prediction: 1
+2024-02-04 09:54:47,787 - INFO:       Train-Test: 1
+2024-02-04 09:54:47,787 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:54:47,787 - INFO: 
+Statistical Metrics:
+2024-02-04 09:54:47,787 - INFO:    KL Divergence:
+2024-02-04 09:54:47,787 - INFO:       Train-Prediction: 0.7468
+2024-02-04 09:54:47,788 - INFO:       Train-Test: 0.0000
+2024-02-04 09:54:47,788 - INFO:       Train-Incorrect Prediction: 0.4833
+2024-02-04 09:54:47,788 - INFO: 
+Overlap Metrics:
+2024-02-04 09:54:47,788 - INFO:    Overlap Coefficient:
+2024-02-04 09:54:47,788 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:47,788 - INFO:       Train-Test: 0
+2024-02-04 09:54:47,789 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:47,789 - INFO:    Dice Coefficient:
+2024-02-04 09:54:47,789 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:47,789 - INFO:       Train-Test: 0
+2024-02-04 09:54:47,789 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:47,789 - INFO:    Intersection Count:
+2024-02-04 09:54:47,789 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:47,790 - INFO:       Train-Test: 0
+2024-02-04 09:54:47,790 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:47,790 - INFO: --------------------------------------------------
+2024-02-04 09:54:47,790 - INFO: Successfully processed inaugural
+2024-02-04 09:54:50,998 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:50,999 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:50,999 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:52,758 - INFO: 
+--------------------------------------------------
+mega_corpus Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:54:52,758 - INFO: 
+Similarity Metrics:
+2024-02-04 09:54:52,758 - INFO:    EMD:
+2024-02-04 09:54:52,759 - INFO:       Train-Prediction: N/A
+2024-02-04 09:54:52,759 - INFO:       Train-Test: N/A
+2024-02-04 09:54:52,759 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:54:52,759 - INFO:    Frequency Similarity:
+2024-02-04 09:54:52,759 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:54:52,760 - INFO:       Train-Test: 1.0000
+2024-02-04 09:54:52,760 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:54:52,760 - INFO:    Jaccard Similarity:
+2024-02-04 09:54:52,760 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:52,761 - INFO:       Train-Test: nan
+2024-02-04 09:54:52,761 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:52,761 - INFO:    Cosine Similarity:
+2024-02-04 09:54:52,761 - INFO:       Train-Prediction: 1
+2024-02-04 09:54:52,761 - INFO:       Train-Test: 1
+2024-02-04 09:54:52,762 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:54:52,762 - INFO: 
+Statistical Metrics:
+2024-02-04 09:54:52,762 - INFO:    KL Divergence:
+2024-02-04 09:54:52,762 - INFO:       Train-Prediction: 1.2746
+2024-02-04 09:54:52,762 - INFO:       Train-Test: 0.0000
+2024-02-04 09:54:52,762 - INFO:       Train-Incorrect Prediction: 1.0661
+2024-02-04 09:54:52,763 - INFO: 
+Overlap Metrics:
+2024-02-04 09:54:52,763 - INFO:    Overlap Coefficient:
+2024-02-04 09:54:52,763 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:52,763 - INFO:       Train-Test: 0
+2024-02-04 09:54:52,764 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:52,764 - INFO:    Dice Coefficient:
+2024-02-04 09:54:52,764 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:52,764 - INFO:       Train-Test: 0
+2024-02-04 09:54:52,764 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:52,765 - INFO:    Intersection Count:
+2024-02-04 09:54:52,765 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:52,765 - INFO:       Train-Test: 0
+2024-02-04 09:54:52,765 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:52,765 - INFO: 
+Control Analysis for mega_corpus:
+2024-02-04 09:54:52,765 - INFO: --------------------------------------------------
+2024-02-04 09:54:52,766 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:52,766 - INFO: Control Analysis for mega_corpus:
+2024-02-04 09:54:52,766 - ERROR: Error processing mega_corpus: unsupported format string passed to NoneType.__format__
+2024-02-04 09:54:53,232 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:53,232 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:53,232 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:54:53,518 - INFO: 
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:54:53,519 - INFO: 
+Similarity Metrics:
+2024-02-04 09:54:53,519 - INFO:    EMD:
+2024-02-04 09:54:53,519 - INFO:       Train-Prediction: N/A
+2024-02-04 09:54:53,519 - INFO:       Train-Test: N/A
+2024-02-04 09:54:53,519 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:54:53,520 - INFO:    Frequency Similarity:
+2024-02-04 09:54:53,520 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:54:53,520 - INFO:       Train-Test: 1.0000
+2024-02-04 09:54:53,520 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:54:53,520 - INFO:    Jaccard Similarity:
+2024-02-04 09:54:53,521 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:53,521 - INFO:       Train-Test: nan
+2024-02-04 09:54:53,521 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:53,521 - INFO:    Cosine Similarity:
+2024-02-04 09:54:53,521 - INFO:       Train-Prediction: 1
+2024-02-04 09:54:53,521 - INFO:       Train-Test: 1
+2024-02-04 09:54:53,522 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:54:53,522 - INFO: 
+Statistical Metrics:
+2024-02-04 09:54:53,522 - INFO:    KL Divergence:
+2024-02-04 09:54:53,522 - INFO:       Train-Prediction: 0.8649
+2024-02-04 09:54:53,522 - INFO:       Train-Test: 0.0000
+2024-02-04 09:54:53,523 - INFO:       Train-Incorrect Prediction: 0.6685
+2024-02-04 09:54:53,523 - INFO: 
+Overlap Metrics:
+2024-02-04 09:54:53,523 - INFO:    Overlap Coefficient:
+2024-02-04 09:54:53,523 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:53,523 - INFO:       Train-Test: 0
+2024-02-04 09:54:53,523 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:53,523 - INFO:    Dice Coefficient:
+2024-02-04 09:54:53,524 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:54:53,524 - INFO:       Train-Test: 0
+2024-02-04 09:54:53,524 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:54:53,524 - INFO:    Intersection Count:
+2024-02-04 09:54:53,524 - INFO:       Train-Prediction: 0
+2024-02-04 09:54:53,524 - INFO:       Train-Test: 0
+2024-02-04 09:54:53,524 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:54:53,525 - INFO: --------------------------------------------------
+2024-02-04 09:54:53,525 - INFO: Successfully processed reuters
+2024-02-04 09:58:26,680 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:26,680 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:26,681 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:27,081 - INFO: 
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:58:27,081 - INFO: 
+Similarity Metrics:
+2024-02-04 09:58:27,082 - INFO:    EMD:
+2024-02-04 09:58:27,082 - INFO:       Train-Prediction: N/A
+2024-02-04 09:58:27,082 - INFO:       Train-Test: N/A
+2024-02-04 09:58:27,082 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:58:27,082 - INFO:    Frequency Similarity:
+2024-02-04 09:58:27,082 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:58:27,083 - INFO:       Train-Test: 1.0000
+2024-02-04 09:58:27,083 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:58:27,083 - INFO:    Jaccard Similarity:
+2024-02-04 09:58:27,083 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:27,083 - INFO:       Train-Test: nan
+2024-02-04 09:58:27,083 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:27,084 - INFO:    Cosine Similarity:
+2024-02-04 09:58:27,084 - INFO:       Train-Prediction: 1
+2024-02-04 09:58:27,084 - INFO:       Train-Test: 1
+2024-02-04 09:58:27,084 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:58:27,084 - INFO: 
+Statistical Metrics:
+2024-02-04 09:58:27,084 - INFO:    KL Divergence:
+2024-02-04 09:58:27,085 - INFO:       Train-Prediction: 0.9763
+2024-02-04 09:58:27,085 - INFO:       Train-Test: 0.0000
+2024-02-04 09:58:27,085 - INFO:       Train-Incorrect Prediction: 0.7294
+2024-02-04 09:58:27,085 - INFO: 
+Overlap Metrics:
+2024-02-04 09:58:27,085 - INFO:    Overlap Coefficient:
+2024-02-04 09:58:27,085 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:27,086 - INFO:       Train-Test: 0
+2024-02-04 09:58:27,086 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:27,086 - INFO:    Dice Coefficient:
+2024-02-04 09:58:27,086 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:27,086 - INFO:       Train-Test: 0
+2024-02-04 09:58:27,086 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:27,087 - INFO:    Intersection Count:
+2024-02-04 09:58:27,087 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:27,087 - INFO:       Train-Test: 0
+2024-02-04 09:58:27,087 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:27,087 - INFO: --------------------------------------------------
+2024-02-04 09:58:27,087 - INFO: Successfully processed brown
+2024-02-04 09:58:29,409 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:29,410 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:29,410 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:30,631 - INFO: 
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:58:30,631 - INFO: 
+Similarity Metrics:
+2024-02-04 09:58:30,631 - INFO:    EMD:
+2024-02-04 09:58:30,631 - INFO:       Train-Prediction: N/A
+2024-02-04 09:58:30,631 - INFO:       Train-Test: N/A
+2024-02-04 09:58:30,631 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:58:30,632 - INFO:    Frequency Similarity:
+2024-02-04 09:58:30,632 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:58:30,632 - INFO:       Train-Test: 1.0000
+2024-02-04 09:58:30,632 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:58:30,632 - INFO:    Jaccard Similarity:
+2024-02-04 09:58:30,632 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:30,632 - INFO:       Train-Test: nan
+2024-02-04 09:58:30,633 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:30,633 - INFO:    Cosine Similarity:
+2024-02-04 09:58:30,633 - INFO:       Train-Prediction: 1
+2024-02-04 09:58:30,633 - INFO:       Train-Test: 1
+2024-02-04 09:58:30,633 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:58:30,633 - INFO: 
+Statistical Metrics:
+2024-02-04 09:58:30,634 - INFO:    KL Divergence:
+2024-02-04 09:58:30,634 - INFO:       Train-Prediction: 1.2120
+2024-02-04 09:58:30,634 - INFO:       Train-Test: 0.0000
+2024-02-04 09:58:30,634 - INFO:       Train-Incorrect Prediction: 0.9704
+2024-02-04 09:58:30,634 - INFO: 
+Overlap Metrics:
+2024-02-04 09:58:30,634 - INFO:    Overlap Coefficient:
+2024-02-04 09:58:30,634 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:30,635 - INFO:       Train-Test: 0
+2024-02-04 09:58:30,635 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:30,635 - INFO:    Dice Coefficient:
+2024-02-04 09:58:30,635 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:30,635 - INFO:       Train-Test: 0
+2024-02-04 09:58:30,635 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:30,635 - INFO:    Intersection Count:
+2024-02-04 09:58:30,636 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:30,636 - INFO:       Train-Test: 0
+2024-02-04 09:58:30,636 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:30,636 - INFO: --------------------------------------------------
+2024-02-04 09:58:30,636 - INFO: Successfully processed CLMET3
+2024-02-04 09:58:32,352 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:32,353 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:32,353 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:33,300 - INFO: 
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:58:33,300 - INFO: 
+Similarity Metrics:
+2024-02-04 09:58:33,301 - INFO:    EMD:
+2024-02-04 09:58:33,301 - INFO:       Train-Prediction: N/A
+2024-02-04 09:58:33,301 - INFO:       Train-Test: N/A
+2024-02-04 09:58:33,301 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:58:33,301 - INFO:    Frequency Similarity:
+2024-02-04 09:58:33,302 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:58:33,302 - INFO:       Train-Test: 1.0000
+2024-02-04 09:58:33,302 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:58:33,302 - INFO:    Jaccard Similarity:
+2024-02-04 09:58:33,302 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:33,302 - INFO:       Train-Test: nan
+2024-02-04 09:58:33,303 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:33,303 - INFO:    Cosine Similarity:
+2024-02-04 09:58:33,303 - INFO:       Train-Prediction: 1
+2024-02-04 09:58:33,303 - INFO:       Train-Test: 1
+2024-02-04 09:58:33,304 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:58:33,304 - INFO: 
+Statistical Metrics:
+2024-02-04 09:58:33,304 - INFO:    KL Divergence:
+2024-02-04 09:58:33,304 - INFO:       Train-Prediction: 1.1026
+2024-02-04 09:58:33,304 - INFO:       Train-Test: 0.0000
+2024-02-04 09:58:33,305 - INFO:       Train-Incorrect Prediction: 0.9549
+2024-02-04 09:58:33,305 - INFO: 
+Overlap Metrics:
+2024-02-04 09:58:33,305 - INFO:    Overlap Coefficient:
+2024-02-04 09:58:33,305 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:33,305 - INFO:       Train-Test: 0
+2024-02-04 09:58:33,305 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:33,305 - INFO:    Dice Coefficient:
+2024-02-04 09:58:33,305 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:33,306 - INFO:       Train-Test: 0
+2024-02-04 09:58:33,306 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:33,306 - INFO:    Intersection Count:
+2024-02-04 09:58:33,306 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:33,306 - INFO:       Train-Test: 0
+2024-02-04 09:58:33,306 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:33,306 - INFO: --------------------------------------------------
+2024-02-04 09:58:33,306 - INFO: Successfully processed cmudict
+2024-02-04 09:58:33,999 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:34,000 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:34,000 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:34,399 - INFO: 
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:58:34,400 - INFO: 
+Similarity Metrics:
+2024-02-04 09:58:34,400 - INFO:    EMD:
+2024-02-04 09:58:34,400 - INFO:       Train-Prediction: N/A
+2024-02-04 09:58:34,400 - INFO:       Train-Test: N/A
+2024-02-04 09:58:34,400 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:58:34,400 - INFO:    Frequency Similarity:
+2024-02-04 09:58:34,401 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:58:34,401 - INFO:       Train-Test: 1.0000
+2024-02-04 09:58:34,401 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:58:34,401 - INFO:    Jaccard Similarity:
+2024-02-04 09:58:34,401 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:34,401 - INFO:       Train-Test: nan
+2024-02-04 09:58:34,401 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:34,402 - INFO:    Cosine Similarity:
+2024-02-04 09:58:34,402 - INFO:       Train-Prediction: 1
+2024-02-04 09:58:34,402 - INFO:       Train-Test: 1
+2024-02-04 09:58:34,402 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:58:34,402 - INFO: 
+Statistical Metrics:
+2024-02-04 09:58:34,402 - INFO:    KL Divergence:
+2024-02-04 09:58:34,402 - INFO:       Train-Prediction: 0.9686
+2024-02-04 09:58:34,403 - INFO:       Train-Test: 0.0000
+2024-02-04 09:58:34,403 - INFO:       Train-Incorrect Prediction: 0.7442
+2024-02-04 09:58:34,403 - INFO: 
+Overlap Metrics:
+2024-02-04 09:58:34,403 - INFO:    Overlap Coefficient:
+2024-02-04 09:58:34,403 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:34,403 - INFO:       Train-Test: 0
+2024-02-04 09:58:34,404 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:34,404 - INFO:    Dice Coefficient:
+2024-02-04 09:58:34,404 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:34,404 - INFO:       Train-Test: 0
+2024-02-04 09:58:34,404 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:34,404 - INFO:    Intersection Count:
+2024-02-04 09:58:34,404 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:34,405 - INFO:       Train-Test: 0
+2024-02-04 09:58:34,405 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:34,405 - INFO: --------------------------------------------------
+2024-02-04 09:58:34,405 - INFO: Successfully processed gutenberg
+2024-02-04 09:58:34,626 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:34,627 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:34,627 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:34,792 - INFO: 
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:58:34,792 - INFO: 
+Similarity Metrics:
+2024-02-04 09:58:34,792 - INFO:    EMD:
+2024-02-04 09:58:34,792 - INFO:       Train-Prediction: N/A
+2024-02-04 09:58:34,792 - INFO:       Train-Test: N/A
+2024-02-04 09:58:34,793 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:58:34,793 - INFO:    Frequency Similarity:
+2024-02-04 09:58:34,793 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:58:34,793 - INFO:       Train-Test: 1.0000
+2024-02-04 09:58:34,794 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:58:34,794 - INFO:    Jaccard Similarity:
+2024-02-04 09:58:34,794 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:34,794 - INFO:       Train-Test: nan
+2024-02-04 09:58:34,794 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:34,795 - INFO:    Cosine Similarity:
+2024-02-04 09:58:34,795 - INFO:       Train-Prediction: 1
+2024-02-04 09:58:34,795 - INFO:       Train-Test: 1
+2024-02-04 09:58:34,795 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:58:34,795 - INFO: 
+Statistical Metrics:
+2024-02-04 09:58:34,795 - INFO:    KL Divergence:
+2024-02-04 09:58:34,796 - INFO:       Train-Prediction: 0.7468
+2024-02-04 09:58:34,796 - INFO:       Train-Test: 0.0000
+2024-02-04 09:58:34,796 - INFO:       Train-Incorrect Prediction: 0.4833
+2024-02-04 09:58:34,796 - INFO: 
+Overlap Metrics:
+2024-02-04 09:58:34,796 - INFO:    Overlap Coefficient:
+2024-02-04 09:58:34,796 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:34,797 - INFO:       Train-Test: 0
+2024-02-04 09:58:34,797 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:34,797 - INFO:    Dice Coefficient:
+2024-02-04 09:58:34,797 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:34,797 - INFO:       Train-Test: 0
+2024-02-04 09:58:34,797 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:34,798 - INFO:    Intersection Count:
+2024-02-04 09:58:34,798 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:34,798 - INFO:       Train-Test: 0
+2024-02-04 09:58:34,798 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:34,799 - INFO: --------------------------------------------------
+2024-02-04 09:58:34,799 - INFO: Successfully processed inaugural
+2024-02-04 09:58:35,268 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:35,268 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:35,269 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 09:58:35,558 - INFO: 
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+2024-02-04 09:58:35,558 - INFO: 
+Similarity Metrics:
+2024-02-04 09:58:35,559 - INFO:    EMD:
+2024-02-04 09:58:35,559 - INFO:       Train-Prediction: N/A
+2024-02-04 09:58:35,559 - INFO:       Train-Test: N/A
+2024-02-04 09:58:35,559 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 09:58:35,560 - INFO:    Frequency Similarity:
+2024-02-04 09:58:35,560 - INFO:       Train-Prediction: 0.5000
+2024-02-04 09:58:35,560 - INFO:       Train-Test: 1.0000
+2024-02-04 09:58:35,560 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 09:58:35,560 - INFO:    Jaccard Similarity:
+2024-02-04 09:58:35,561 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:35,561 - INFO:       Train-Test: nan
+2024-02-04 09:58:35,561 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:35,561 - INFO:    Cosine Similarity:
+2024-02-04 09:58:35,562 - INFO:       Train-Prediction: 1
+2024-02-04 09:58:35,562 - INFO:       Train-Test: 1
+2024-02-04 09:58:35,562 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 09:58:35,562 - INFO: 
+Statistical Metrics:
+2024-02-04 09:58:35,562 - INFO:    KL Divergence:
+2024-02-04 09:58:35,562 - INFO:       Train-Prediction: 0.8649
+2024-02-04 09:58:35,563 - INFO:       Train-Test: 0.0000
+2024-02-04 09:58:35,563 - INFO:       Train-Incorrect Prediction: 0.6685
+2024-02-04 09:58:35,563 - INFO: 
+Overlap Metrics:
+2024-02-04 09:58:35,563 - INFO:    Overlap Coefficient:
+2024-02-04 09:58:35,563 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:35,563 - INFO:       Train-Test: 0
+2024-02-04 09:58:35,563 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:35,564 - INFO:    Dice Coefficient:
+2024-02-04 09:58:35,564 - INFO:       Train-Prediction: 0.0000
+2024-02-04 09:58:35,564 - INFO:       Train-Test: 0
+2024-02-04 09:58:35,564 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 09:58:35,564 - INFO:    Intersection Count:
+2024-02-04 09:58:35,565 - INFO:       Train-Prediction: 0
+2024-02-04 09:58:35,565 - INFO:       Train-Test: 0
+2024-02-04 09:58:35,565 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 09:58:35,565 - INFO: --------------------------------------------------
+2024-02-04 09:58:35,565 - INFO: Successfully processed reuters
+2024-02-04 10:10:00,375 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:00,375 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:00,375 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:00,776 - INFO: 
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+2024-02-04 10:10:00,776 - INFO: 
+Similarity Metrics:
+2024-02-04 10:10:00,777 - INFO:    EMD:
+2024-02-04 10:10:00,777 - INFO:       Train-Prediction: N/A
+2024-02-04 10:10:00,777 - INFO:       Train-Test: N/A
+2024-02-04 10:10:00,778 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 10:10:00,778 - INFO:    Frequency Similarity:
+2024-02-04 10:10:00,778 - INFO:       Train-Prediction: 0.5000
+2024-02-04 10:10:00,778 - INFO:       Train-Test: 1.0000
+2024-02-04 10:10:00,778 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 10:10:00,778 - INFO:    Jaccard Similarity:
+2024-02-04 10:10:00,779 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:00,779 - INFO:       Train-Test: nan
+2024-02-04 10:10:00,779 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:00,779 - INFO:    Cosine Similarity:
+2024-02-04 10:10:00,779 - INFO:       Train-Prediction: 1
+2024-02-04 10:10:00,779 - INFO:       Train-Test: 1
+2024-02-04 10:10:00,780 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 10:10:00,780 - INFO: 
+Statistical Metrics:
+2024-02-04 10:10:00,780 - INFO:    KL Divergence:
+2024-02-04 10:10:00,780 - INFO:       Train-Prediction: 0.9763
+2024-02-04 10:10:00,780 - INFO:       Train-Test: 0.0000
+2024-02-04 10:10:00,780 - INFO:       Train-Incorrect Prediction: 0.7294
+2024-02-04 10:10:00,780 - INFO: 
+Overlap Metrics:
+2024-02-04 10:10:00,781 - INFO:    Overlap Coefficient:
+2024-02-04 10:10:00,781 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:00,781 - INFO:       Train-Test: 0
+2024-02-04 10:10:00,781 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:00,781 - INFO:    Dice Coefficient:
+2024-02-04 10:10:00,781 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:00,782 - INFO:       Train-Test: 0
+2024-02-04 10:10:00,782 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:00,782 - INFO:    Intersection Count:
+2024-02-04 10:10:00,782 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:00,782 - INFO:       Train-Test: 0
+2024-02-04 10:10:00,782 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:00,783 - INFO: --------------------------------------------------
+2024-02-04 10:10:00,783 - INFO: Successfully processed brown
+2024-02-04 10:10:03,075 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:03,075 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:03,075 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:04,275 - INFO: 
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+2024-02-04 10:10:04,275 - INFO: 
+Similarity Metrics:
+2024-02-04 10:10:04,275 - INFO:    EMD:
+2024-02-04 10:10:04,275 - INFO:       Train-Prediction: N/A
+2024-02-04 10:10:04,275 - INFO:       Train-Test: N/A
+2024-02-04 10:10:04,275 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 10:10:04,276 - INFO:    Frequency Similarity:
+2024-02-04 10:10:04,276 - INFO:       Train-Prediction: 0.5000
+2024-02-04 10:10:04,276 - INFO:       Train-Test: 1.0000
+2024-02-04 10:10:04,276 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 10:10:04,276 - INFO:    Jaccard Similarity:
+2024-02-04 10:10:04,277 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:04,277 - INFO:       Train-Test: nan
+2024-02-04 10:10:04,277 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:04,277 - INFO:    Cosine Similarity:
+2024-02-04 10:10:04,278 - INFO:       Train-Prediction: 1
+2024-02-04 10:10:04,278 - INFO:       Train-Test: 1
+2024-02-04 10:10:04,278 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 10:10:04,278 - INFO: 
+Statistical Metrics:
+2024-02-04 10:10:04,278 - INFO:    KL Divergence:
+2024-02-04 10:10:04,279 - INFO:       Train-Prediction: 1.2120
+2024-02-04 10:10:04,279 - INFO:       Train-Test: 0.0000
+2024-02-04 10:10:04,279 - INFO:       Train-Incorrect Prediction: 0.9704
+2024-02-04 10:10:04,279 - INFO: 
+Overlap Metrics:
+2024-02-04 10:10:04,279 - INFO:    Overlap Coefficient:
+2024-02-04 10:10:04,279 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:04,279 - INFO:       Train-Test: 0
+2024-02-04 10:10:04,280 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:04,280 - INFO:    Dice Coefficient:
+2024-02-04 10:10:04,280 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:04,280 - INFO:       Train-Test: 0
+2024-02-04 10:10:04,280 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:04,280 - INFO:    Intersection Count:
+2024-02-04 10:10:04,280 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:04,281 - INFO:       Train-Test: 0
+2024-02-04 10:10:04,281 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:04,281 - INFO: --------------------------------------------------
+2024-02-04 10:10:04,281 - INFO: Successfully processed CLMET3
+2024-02-04 10:10:05,980 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:05,981 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:05,981 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:06,940 - INFO: 
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+2024-02-04 10:10:06,940 - INFO: 
+Similarity Metrics:
+2024-02-04 10:10:06,940 - INFO:    EMD:
+2024-02-04 10:10:06,940 - INFO:       Train-Prediction: N/A
+2024-02-04 10:10:06,940 - INFO:       Train-Test: N/A
+2024-02-04 10:10:06,940 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 10:10:06,940 - INFO:    Frequency Similarity:
+2024-02-04 10:10:06,941 - INFO:       Train-Prediction: 0.5000
+2024-02-04 10:10:06,941 - INFO:       Train-Test: 1.0000
+2024-02-04 10:10:06,941 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 10:10:06,941 - INFO:    Jaccard Similarity:
+2024-02-04 10:10:06,941 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:06,941 - INFO:       Train-Test: nan
+2024-02-04 10:10:06,941 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:06,942 - INFO:    Cosine Similarity:
+2024-02-04 10:10:06,942 - INFO:       Train-Prediction: 1
+2024-02-04 10:10:06,942 - INFO:       Train-Test: 1
+2024-02-04 10:10:06,942 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 10:10:06,942 - INFO: 
+Statistical Metrics:
+2024-02-04 10:10:06,942 - INFO:    KL Divergence:
+2024-02-04 10:10:06,943 - INFO:       Train-Prediction: 1.1026
+2024-02-04 10:10:06,943 - INFO:       Train-Test: 0.0000
+2024-02-04 10:10:06,943 - INFO:       Train-Incorrect Prediction: 0.9549
+2024-02-04 10:10:06,943 - INFO: 
+Overlap Metrics:
+2024-02-04 10:10:06,943 - INFO:    Overlap Coefficient:
+2024-02-04 10:10:06,944 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:06,944 - INFO:       Train-Test: 0
+2024-02-04 10:10:06,944 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:06,944 - INFO:    Dice Coefficient:
+2024-02-04 10:10:06,944 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:06,945 - INFO:       Train-Test: 0
+2024-02-04 10:10:06,945 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:06,945 - INFO:    Intersection Count:
+2024-02-04 10:10:06,945 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:06,945 - INFO:       Train-Test: 0
+2024-02-04 10:10:06,945 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:06,946 - INFO: --------------------------------------------------
+2024-02-04 10:10:06,946 - INFO: Successfully processed cmudict
+2024-02-04 10:10:07,631 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:07,631 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:07,631 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:08,015 - INFO: 
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+2024-02-04 10:10:08,015 - INFO: 
+Similarity Metrics:
+2024-02-04 10:10:08,015 - INFO:    EMD:
+2024-02-04 10:10:08,015 - INFO:       Train-Prediction: N/A
+2024-02-04 10:10:08,015 - INFO:       Train-Test: N/A
+2024-02-04 10:10:08,015 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 10:10:08,016 - INFO:    Frequency Similarity:
+2024-02-04 10:10:08,016 - INFO:       Train-Prediction: 0.5000
+2024-02-04 10:10:08,016 - INFO:       Train-Test: 1.0000
+2024-02-04 10:10:08,016 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 10:10:08,016 - INFO:    Jaccard Similarity:
+2024-02-04 10:10:08,016 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:08,017 - INFO:       Train-Test: nan
+2024-02-04 10:10:08,017 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:08,017 - INFO:    Cosine Similarity:
+2024-02-04 10:10:08,017 - INFO:       Train-Prediction: 1
+2024-02-04 10:10:08,017 - INFO:       Train-Test: 1
+2024-02-04 10:10:08,018 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 10:10:08,018 - INFO: 
+Statistical Metrics:
+2024-02-04 10:10:08,018 - INFO:    KL Divergence:
+2024-02-04 10:10:08,018 - INFO:       Train-Prediction: 0.9686
+2024-02-04 10:10:08,018 - INFO:       Train-Test: 0.0000
+2024-02-04 10:10:08,018 - INFO:       Train-Incorrect Prediction: 0.7442
+2024-02-04 10:10:08,018 - INFO: 
+Overlap Metrics:
+2024-02-04 10:10:08,019 - INFO:    Overlap Coefficient:
+2024-02-04 10:10:08,019 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:08,019 - INFO:       Train-Test: 0
+2024-02-04 10:10:08,019 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:08,019 - INFO:    Dice Coefficient:
+2024-02-04 10:10:08,019 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:08,019 - INFO:       Train-Test: 0
+2024-02-04 10:10:08,020 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:08,020 - INFO:    Intersection Count:
+2024-02-04 10:10:08,020 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:08,020 - INFO:       Train-Test: 0
+2024-02-04 10:10:08,020 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:08,020 - INFO: --------------------------------------------------
+2024-02-04 10:10:08,020 - INFO: Successfully processed gutenberg
+2024-02-04 10:10:08,192 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:08,192 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:08,192 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:08,308 - INFO: 
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+2024-02-04 10:10:08,308 - INFO: 
+Similarity Metrics:
+2024-02-04 10:10:08,308 - INFO:    EMD:
+2024-02-04 10:10:08,308 - INFO:       Train-Prediction: N/A
+2024-02-04 10:10:08,308 - INFO:       Train-Test: N/A
+2024-02-04 10:10:08,309 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 10:10:08,309 - INFO:    Frequency Similarity:
+2024-02-04 10:10:08,309 - INFO:       Train-Prediction: 0.5000
+2024-02-04 10:10:08,309 - INFO:       Train-Test: 1.0000
+2024-02-04 10:10:08,309 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 10:10:08,310 - INFO:    Jaccard Similarity:
+2024-02-04 10:10:08,310 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:08,311 - INFO:       Train-Test: nan
+2024-02-04 10:10:08,311 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:08,311 - INFO:    Cosine Similarity:
+2024-02-04 10:10:08,311 - INFO:       Train-Prediction: 1
+2024-02-04 10:10:08,311 - INFO:       Train-Test: 1
+2024-02-04 10:10:08,312 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 10:10:08,312 - INFO: 
+Statistical Metrics:
+2024-02-04 10:10:08,312 - INFO:    KL Divergence:
+2024-02-04 10:10:08,312 - INFO:       Train-Prediction: 0.7468
+2024-02-04 10:10:08,312 - INFO:       Train-Test: 0.0000
+2024-02-04 10:10:08,312 - INFO:       Train-Incorrect Prediction: 0.4833
+2024-02-04 10:10:08,313 - INFO: 
+Overlap Metrics:
+2024-02-04 10:10:08,313 - INFO:    Overlap Coefficient:
+2024-02-04 10:10:08,313 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:08,313 - INFO:       Train-Test: 0
+2024-02-04 10:10:08,313 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:08,313 - INFO:    Dice Coefficient:
+2024-02-04 10:10:08,314 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:08,314 - INFO:       Train-Test: 0
+2024-02-04 10:10:08,314 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:08,314 - INFO:    Intersection Count:
+2024-02-04 10:10:08,314 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:08,314 - INFO:       Train-Test: 0
+2024-02-04 10:10:08,315 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:08,315 - INFO: --------------------------------------------------
+2024-02-04 10:10:08,315 - INFO: Successfully processed inaugural
+2024-02-04 10:10:08,763 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:08,764 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:08,764 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-04 10:10:09,047 - INFO: 
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+2024-02-04 10:10:09,047 - INFO: 
+Similarity Metrics:
+2024-02-04 10:10:09,047 - INFO:    EMD:
+2024-02-04 10:10:09,047 - INFO:       Train-Prediction: N/A
+2024-02-04 10:10:09,048 - INFO:       Train-Test: N/A
+2024-02-04 10:10:09,048 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-04 10:10:09,048 - INFO:    Frequency Similarity:
+2024-02-04 10:10:09,048 - INFO:       Train-Prediction: 0.5000
+2024-02-04 10:10:09,048 - INFO:       Train-Test: 1.0000
+2024-02-04 10:10:09,048 - INFO:       Train-Incorrect Prediction: 0.5000
+2024-02-04 10:10:09,049 - INFO:    Jaccard Similarity:
+2024-02-04 10:10:09,049 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:09,049 - INFO:       Train-Test: nan
+2024-02-04 10:10:09,049 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:09,049 - INFO:    Cosine Similarity:
+2024-02-04 10:10:09,049 - INFO:       Train-Prediction: 1
+2024-02-04 10:10:09,050 - INFO:       Train-Test: 1
+2024-02-04 10:10:09,050 - INFO:       Train-Incorrect Prediction: 1
+2024-02-04 10:10:09,050 - INFO: 
+Statistical Metrics:
+2024-02-04 10:10:09,050 - INFO:    KL Divergence:
+2024-02-04 10:10:09,050 - INFO:       Train-Prediction: 0.8649
+2024-02-04 10:10:09,050 - INFO:       Train-Test: 0.0000
+2024-02-04 10:10:09,051 - INFO:       Train-Incorrect Prediction: 0.6685
+2024-02-04 10:10:09,051 - INFO: 
+Overlap Metrics:
+2024-02-04 10:10:09,051 - INFO:    Overlap Coefficient:
+2024-02-04 10:10:09,051 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:09,051 - INFO:       Train-Test: 0
+2024-02-04 10:10:09,051 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:09,052 - INFO:    Dice Coefficient:
+2024-02-04 10:10:09,052 - INFO:       Train-Prediction: 0.0000
+2024-02-04 10:10:09,052 - INFO:       Train-Test: 0
+2024-02-04 10:10:09,052 - INFO:       Train-Incorrect Prediction: 0.0000
+2024-02-04 10:10:09,052 - INFO:    Intersection Count:
+2024-02-04 10:10:09,052 - INFO:       Train-Prediction: 0
+2024-02-04 10:10:09,052 - INFO:       Train-Test: 0
+2024-02-04 10:10:09,053 - INFO:       Train-Incorrect Prediction: 0
+2024-02-04 10:10:09,053 - INFO: --------------------------------------------------
+2024-02-04 10:10:09,053 - INFO: Successfully processed reuters
+2024-02-04 10:42:06,803 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-04 10:42:07,542 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-04 10:42:08,088 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-04 10:42:08,307 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-04 10:42:08,378 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-04 10:42:08,538 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-04 10:42:30,956 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-04 10:42:31,721 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-04 10:42:32,306 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-04 10:42:32,534 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-04 10:42:32,591 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-04 10:42:32,752 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()

@@ -3,7 +3,6 @@ from pathlib import Path
 
 from evaluation_class import EvaluateModel
 from corpus_class import CorpusManager
-from predictions_class import Predictions
 
 class Config:
     # Configuration class for setting up directories and default parameters
