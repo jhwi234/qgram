@@ -108,7 +108,7 @@ class CorpusManager:
         parts = corpus_name.replace('.txt', '').split('_')
         return parts[0] if len(parts) > 1 and parts[0] == parts[1] else corpus_name.replace('.txt', '')
 
-    def __init__(self, corpus_name, config, split_type='A', debug=False):
+    def __init__(self, corpus_name, config, split_type='A', debug=True):
         self.corpus_name = self.format_corpus_name(corpus_name)
         self.config = config
         self.split_type = split_type
@@ -118,6 +118,7 @@ class CorpusManager:
         self.load_corpus()
         self.train_set = [] # Not a set in the python sense allows for duplicates
         self.test_set = [] # Not a set in the python sense allows for duplicates
+        self.unique_test_tokens = set()
         self.model = {}
         self.all_words = set()
         self.prepare_datasets()
@@ -156,8 +157,12 @@ class CorpusManager:
         # Choose the method to split the corpus based on the specified split type
         if self.split_type == 'A':
             self._split_type_a()
-        else:
+        elif self.split_type == 'B':
             self._split_type_b()
+        elif self.split_type == 'Hapax':  # New split type for hapax legomena
+            self._split_hapax()
+        else:
+            raise ValueError(f"Unknown split type: {self.split_type}")
 
         # Update all_words set
         self.all_words = set(self.train_set)
@@ -167,6 +172,37 @@ class CorpusManager:
         formatted_train_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_train_set.txt'
         self.generate_formatted_corpus(self.train_set, formatted_train_set_path)
         self.generate_models_from_corpus(formatted_train_set_path)
+
+    def _split_hapax(self):
+        """
+        Split the corpus into training and testing sets based on hapax legomena.
+        Hapax legomena are used as the test set, and all other tokens as the training set.
+        """
+        # Identify hapax legomena (words occurring exactly once in the corpus)
+        hapax_legomena = {word for word, count in self.corpus.items() if count == 1}
+        
+        # Initialize a set to track used word-letter combinations in test set
+        used_combinations = set()
+        
+        for word, count in self.corpus.items():
+            # Hapax legomena become part of the test set
+            if word in hapax_legomena:
+                for _ in range(count):  # Handle the case where a hapax legomenon appears more than once due to preprocessing
+                    modified_word, missing_letter, _ = self.replace_random_letter(word, used_combinations)
+                    self.test_set.append((modified_word, missing_letter, word))
+                    used_combinations.add((word, missing_letter))
+            else:
+                # All other words are added to the training set
+                self.train_set.extend([word] * count)
+
+        # Generate the formatted training list path and corresponding models
+        formatted_train_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_train_set_hapax.txt'
+        self.generate_formatted_corpus(self.train_set, formatted_train_set_path)
+        self.generate_models_from_corpus(formatted_train_set_path)
+
+        # Optionally log the size of the hapax legomena set
+        if self.debug:
+            logging.info(f"Identified {len(hapax_legomena)} unique hapax legomena for testing.")
 
     def _split_type_a(self):
         """
@@ -207,34 +243,53 @@ class CorpusManager:
     def _split_type_b(self):
         """
         Split Type B: Randomly shuffles and divides the entire corpus into training and test lists.
-        Allows the same word tokens to appear in both training and testing data, maintaining word frequency balance.
-        Ensures no duplicate word-letter combinations in the test set.
+        This split allows the same word tokens to appear in both training and testing data, 
+        thereby maintaining word frequency balance across them. It also ensures that there 
+        are no duplicate word-letter combinations in the test set, which could skew model evaluation.
         """
-        # Flatten the corpus into a list of word tokens
+        # Flatten the corpus into a list of word tokens, preserving their frequency
         all_word_tokens = []
         for word, count in self.corpus.items():
             all_word_tokens.extend([word] * count)
         self.rng.shuffle(all_word_tokens)
 
-        # Determine the split point for training and test sets
+        # Determine the split point for training and test sets based on the configured split ratio
         split_index = int(len(all_word_tokens) * self.config.split_config)
         train_tokens = all_word_tokens[:split_index]
         test_tokens = all_word_tokens[split_index:]
 
-        # Assign tokens to the training list
+        # Note: Converting train_tokens to a set (training_set_words) is solely for the purpose
+        # of efficiently identifying unique test tokens that do not appear in the training set.
+        # This conversion does not impact the frequency of tokens in the training dataset,
+        # as the training set is populated directly from train_tokens, preserving original frequencies.
+        training_set_words = set(train_tokens)
+
+        # Populate the training list, maintaining the token frequencies
         self.train_set.extend(train_tokens)
 
-        # Initialize a set to track used word-letter combinations in test set
+        # Track used word-letter combinations in the test set to avoid duplicates
         used_combinations = set()
+        
+        # Collect tokens unique to the test set for additional analysis
+        unique_test_tokens = set()
+
         for word in test_tokens:
             modified_word, missing_letter, _ = self.replace_random_letter(word, used_combinations)
             self.test_set.append((modified_word, missing_letter, word))
             used_combinations.add((word, missing_letter))
+            
+            # If the word from test tokens is not found in the training set, consider it unique
+            if word not in training_set_words:
+                unique_test_tokens.add(word)
 
-        # Save lists to files if debug mode is active
+        # Store unique test tokens for later analysis
+        self.unique_test_tokens = unique_test_tokens
+
+        # Optionally log and save the identified unique test tokens
         if self.debug:
             self.save_list_to_file(self.train_set, f'{self.corpus_name}_train_list_b.txt')
             self.save_list_to_file(self.test_set, f'{self.corpus_name}_test_list_b.txt')
+            logging.info(f"Identified {len(unique_test_tokens)} unique test tokens not present in training data.")
 
     def generate_formatted_corpus(self, data_set, formatted_corpus_path) -> Path:
         # Prepare a corpus file formatted for KenLM training, with each word on a new line
@@ -315,38 +370,57 @@ class CorpusManager:
         with file_path.open('w', encoding='utf-8', buffering=8192) as file:  # 8192 bytes buffer size
             file.write(aggregated_data_str)
 
+def analyze_test_tokens_not_in_training_performance(test_tokens, predictions):
+    # Filter predictions for test tokens not in training
+    unique_predictions = [(mod_word, miss_letter, orig_word, pred, rank) for mod_word, miss_letter, orig_word, pred, rank in predictions if orig_word in test_tokens]
+    
+    total_unique_predictions = len(unique_predictions)
+    if total_unique_predictions == 0:
+        logging.info("No test tokens found in predictions.")
+        return
+
+    # Initialize counters for correct predictions within top N accuracy
+    correct_predictions_top_n = {1: 0, 2: 0, 3: 0}
+
+    for _, miss_letter, _, pred, _ in unique_predictions:
+        for n in range(1, 4):
+            # Check if the correct letter is within the top N predictions
+            if any(miss_letter == p[0] for p in pred[:n]):
+                correct_predictions_top_n[n] += 1
+
+    # Calculate and log accuracies for top 1, 2, and 3 predictions
+    logging.info(f"Model evaluation completed for test tokens not in training:")
+    for i in range(1, 4):
+        accuracy_top_n = correct_predictions_top_n[i] / total_unique_predictions
+        logging.info(f"TOP{i} ACCURACY: {accuracy_top_n:.2%}")
+
 def run(corpus_name, config, split_type):
     # Use the static method from CorpusManager to format the corpus name
     formatted_corpus_name = CorpusManager.format_corpus_name(corpus_name)
     logging.info(f'Processing {formatted_corpus_name} Corpus with split type {split_type}')
     logging.info('-' * 40)
 
-    # Initialize CorpusManager with the formatted corpus name, configuration settings, and split type
     corpus_manager = CorpusManager(formatted_corpus_name, config, split_type)
-
-    # Add unique words from the current corpus to the global corpus
     CorpusManager.add_to_global_corpus(corpus_manager.corpus)
-
-    # Create an EvaluateModel instance, passing the CorpusManager instance
     eval_model = EvaluateModel(corpus_manager)
-
-    # Retrieve the prediction method based on the configuration
     prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
 
-    # Evaluate character predictions using the selected prediction method
+    # Standard evaluation
     evaluation_metrics, predictions = eval_model.evaluate_character_predictions(prediction_method)
 
-    # Log the results of the evaluation for accuracy and validity
+    # Log standard evaluation results
     logging.info(f'Evaluated with: {prediction_method.__name__}')
     logging.info(f'Model evaluation completed for: {corpus_name}')
     for i in range(1, 4):
         logging.info(f'TOP{i} ACCURACY: {evaluation_metrics["accuracy"][i]:.2%} | TOP{i} VALIDITY: {evaluation_metrics["validity"][i]:.2%}')
 
-    # Export the prediction details and summary statistics to CSV and text files
+    # After the standard evaluation process
+    if split_type == 'B':  # Ensuring this analysis is only performed for Split Type B
+        analyze_test_tokens_not_in_training_performance(corpus_manager.unique_test_tokens, predictions)
+
+    # Export details and summary
     eval_model.export_prediction_details_to_csv(predictions, prediction_method.__name__)
     eval_model.save_summary_stats_txt(evaluation_metrics, predictions, prediction_method.__name__)
-
-    # Save recall and precision statistics
     eval_model.save_recall_precision_stats(evaluation_metrics)
 
     logging.info('-' * 40)
@@ -356,17 +430,28 @@ def main():
     config.setup_logging()
     config.create_directories()
 
-    # Process each corpus with both split types A and B
+    # List of corpora to process
     corpora = ['brown', 'cmudict', 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural']
+    split_types = ['A', 'B', 'Hapax']  # List of split types
+
+    # Process each corpus with all specified split types
     for corpus_name in corpora:
-        for split_type in ['A', 'B']:
+        for split_type in split_types:
             run(corpus_name, config, split_type)
 
-    # Create and evaluate the mega-corpus
+    # Prepare and evaluate the mega-corpus on selected split types, skipping 'Hapax'
     mega_corpus_name = 'mega_corpus'
+    # Ensure the mega-corpus text is prepared only once
     with open(config.corpus_dir / f'{mega_corpus_name}.txt', 'w', encoding='utf-8') as file:
         file.write('\n'.join(CorpusManager.corpora_tokens))
-    run(mega_corpus_name, config, 'A')  # You can change to 'B' or loop for both types
+    
+    # Define split types for the mega-corpus, excluding 'Hapax'
+    mega_corpus_split_types = ['A', 'B']  # Exclude 'Hapax' for the mega corpus
+
+    # Run evaluations for the mega-corpus on the adjusted list of split types
+    for split_type in mega_corpus_split_types:
+        run(mega_corpus_name, config, split_type)
 
 if __name__ == '__main__':
     main()
+
