@@ -23,30 +23,37 @@ class Letters(Enum):
 
 # Function to build language models with KenLM for specified q-gram sizes
 def build_kenlm_model(corpus_name, q, corpus_path, model_directory) -> tuple[int, str]:
+    """
+    Builds KenLM language models for specified q-gram sizes.
+    Generates an ARPA file and then converts it to a binary format for efficiency.
+    """
     arpa_file = model_directory / f"{corpus_name}_{q}gram.arpa"
     binary_file = model_directory / f"{corpus_name}_{q}gram.klm"
 
+    # Attempt to build the ARPA model file
+    if not run_command(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
+                       "lmplz failed to generate ARPA model"):
+        return q, None  # Early return on failure
+
+    # Attempt to convert the ARPA model to binary format
+    if not run_command(['build_binary', '-s', str(arpa_file), str(binary_file)],
+                       "build_binary failed to convert ARPA model to binary format"):
+        return q, None  # Early return on failure
+
+    # If both commands succeed, no need to log success explicitly here
+    return q, str(binary_file)  # Ensure the path is returned as a string for compatibility
+
+def run_command(command, error_message):
+    """
+    Executes a command as a subprocess and logs any errors encountered.
+    Returns True if the command executes successfully, or False if an error occurs.
+    """
     try:
-        # Build ARPA file and convert it to binary format for efficient usage
-        with subprocess.Popen(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)], 
-                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE) as process:
-            _, stderr = process.communicate()
-            if process.returncode != 0:
-                raise subprocess.SubprocessError(f"lmplz failed: {stderr.decode()}")
-
-        with subprocess.Popen(['build_binary', '-s', str(arpa_file), str(binary_file)], 
-                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE) as process:
-            _, stderr = process.communicate()
-            if process.returncode != 0:
-                raise subprocess.SubprocessError(f"build_binary failed: {stderr.decode()}")
-
-    except subprocess.SubprocessError as e:
-        logging.error(f"Error in building KenLM model for {corpus_name} with q={q}: {e}")
-        return q, None
-
-    # Return q-gram size and path to the binary model file
-    return q, str(binary_file)
-
+        result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        logging.error(f"{error_message}: {e.stderr.decode()}")
+        return False
 class CorpusManager:
     # Regex pattern for extracting words, including hyphenated words, in various scripts.
     # \b indicates word boundaries.
@@ -165,7 +172,7 @@ class CorpusManager:
                 # Generate and load KenLM models for each q-gram size
                 _, binary_file = build_kenlm_model(self.corpus_name, q, corpus_path, model_directory)
                 if binary_file:
-                    self.model[q] = kenlm.Model(binary_file)
+                    self.model[q] = kenlm.Model(str(binary_file))
                     model_loaded = True
 
         if model_loaded:
