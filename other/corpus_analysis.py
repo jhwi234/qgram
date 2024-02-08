@@ -1,15 +1,15 @@
 # Standard library imports
 import os
-import string
+from typing import Dict, List, Set
 import math
 from collections import Counter
-import regex as re
+import regex as reg
 import sys
 
 # Third-party imports
 import nltk
-from nltk.corpus import PlaintextCorpusReader, stopwords
-from nltk.tokenize import word_tokenize
+from nltk.corpus import PlaintextCorpusReader, LazyCorpusLoader, stopwords
+from nltk.tokenize import word_tokenize, RegexpTokenizer
 import numpy as np
 from scipy.optimize import minimize
 from scipy.optimize import curve_fit
@@ -25,283 +25,212 @@ class CorpusLoader:
     Load a corpus from NLTK or a local file/directory, optimized for performance.
     """
     def __init__(self, corpus_source, allow_download=True, custom_download_dir=None):
-        # Source of the corpus (either a local path or an NLTK corpus name)
         self.corpus_source = corpus_source
-        # Flag to allow automatic download from NLTK if the corpus isn't available locally
         self.allow_download = allow_download
-        # Custom directory for downloading corpora (if needed)
-        self.custom_download_dir = custom_download_dir
-        # Cache for loaded corpus to avoid reloading
+        # Use the first path in nltk.data.path as the default download directory if custom_download_dir is not provided.
+        self.custom_download_dir = custom_download_dir or nltk.data.path[0]  
         self.corpus_cache = None
 
     def _download_corpus(self):
-        """Download the corpus from NLTK."""
-        # Append custom download directory to NLTK's data path if provided
-        if self.custom_download_dir:
-            nltk.data.path.append(self.custom_download_dir)
-        # Download corpus using NLTK's download utility
-        nltk.download(self.corpus_source, download_dir=self.custom_download_dir, quiet=True)
+        if self.allow_download and not self.is_corpus_available():
+            # Attempt to download the corpus to the specified custom directory or to the default NLTK data directory.
+            nltk.download(self.corpus_source, download_dir=self.custom_download_dir)
 
     def _load_corpus(self):
-        """Load the corpus into memory."""
-        # Handle loading from a local file or directory
-        if os.path.isfile(self.corpus_source) or os.path.isdir(self.corpus_source):
-            corpus_reader = PlaintextCorpusReader(self.corpus_source, '.*')
+        if os.path.exists(self.corpus_source):
+            # Load the corpus from a local directory or file.
+            corpus_reader = PlaintextCorpusReader(root=self.corpus_source, fileids='.*')
         else:
-            # Access corpus from NLTK if it's a named dataset
-            corpus_reader = getattr(nltk.corpus, self.corpus_source)
-        # Read all tokens from the corpus
-        return [token for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
+            # Lazy load the corpus from NLTK if it's a named dataset.
+            # This approach avoids loading the entire corpus into memory at once.
+            corpus_reader = LazyCorpusLoader(self.corpus_source, PlaintextCorpusReader, r'.*')
+            if self.allow_download:
+                self._download_corpus()  # Ensure the corpus is downloaded if not available locally.
+        return corpus_reader
 
     def load_corpus(self):
-        """Get the corpus, either from cache or by loading it."""
-        # Return cached corpus if available
-        if self.corpus_cache is not None:
-            return self.corpus_cache
-
-        # Download corpus if not locally available and downloading is allowed
-        if not self.is_corpus_available() and self.allow_download:
-            self._download_corpus()
-
-        # Load corpus into cache and return
-        self.corpus_cache = self._load_corpus()
-        return self.corpus_cache
+        if not self.corpus_cache:
+            self.corpus_cache = self._load_corpus()
+        # Access corpus content directly. LazyCorpusLoader will handle loading as needed.
+        return list(self.corpus_cache.words())
 
     def is_corpus_available(self):
-        """Check if the corpus is available locally or through NLTK."""
         try:
-            # Check if the corpus can be found by NLTK
+            # Check if the corpus can be found locally or within NLTK's available corpora.
             nltk.data.find(self.corpus_source)
             return True
         except LookupError:
             return False
 class Tokenizer:
     """
-    Tokenize text into individual words.
+    Tokenize text into individual words, with options for removing stopwords and punctuation.
     """
-    def __init__(self, remove_stopwords=False, remove_punctuation=False, use_nltk_tokenizer=True, stopwords_language='english'):
+    def __init__(self, remove_stopwords=False, remove_punctuation=False, stopwords_language='english'):
         # Configuration options for tokenization
         self.remove_stopwords = remove_stopwords
         self.remove_punctuation = remove_punctuation
-        self.use_nltk_tokenizer = use_nltk_tokenizer
-        self.stopwords_language = stopwords_language
-        self.custom_regex = None
-        # Set to store unwanted tokens (stopwords, punctuation) for removal
-        self._unwanted_tokens = set()
-        # Ensure necessary NLTK resources are available
-        self._ensure_nltk_resources()
-        # Load stopwords and punctuation into the set
-        self._load_unwanted_tokens()
-
-    def _ensure_nltk_resources(self):
-        """Ensure that NLTK resources are available."""
-        if self.remove_stopwords:
-            # Download NLTK stopwords if they are not already available
-            try:
-                nltk.data.find(f'corpora/stopwords/{self.stopwords_language}')
-            except LookupError:
-                nltk.download('stopwords', quiet=True)
-
-    def _load_unwanted_tokens(self):
-        """Load stopwords and punctuation sets for efficient access."""
-        if self.remove_stopwords:
-            # Update the set with stopwords for the specified language
-            self._unwanted_tokens.update(stopwords.words(self.stopwords_language))
-        if self.remove_punctuation:
-            # Update the set with string punctuation characters
-            self._unwanted_tokens.update(string.punctuation)
-
-    def set_custom_regex(self, pattern):
-        """Set a custom regex pattern for tokenization with caching."""
-        # Compile regex pattern for custom tokenization
-        try:
-            self.custom_regex = re.compile(pattern)
-        except re.error as e:
-            raise ValueError(f"Invalid regex pattern: {e}")
-
-    def _remove_unwanted_tokens(self, tokens) -> list:
-        """Remove unwanted tokens (stopwords, punctuation) from a list of tokens."""
-        # Filter out tokens present in the unwanted tokens set
-        return [token for token in tokens if token not in self._unwanted_tokens and not token.startswith('``')]
-    
-    def tokenize(self, text, lowercase=False) -> list:
-        """Tokenize text into individual words based on the selected method."""
-        if isinstance(text, list):
-            # If input is a list, join it into a single string
-            text = ' '.join(text)
-
-        if lowercase:
-            # Convert text to lowercase if specified
-            text = text.lower()
-
-        # Perform tokenization based on the selected method
-        if self.custom_regex:
-            # Tokenization using the custom regex pattern
-            tokens = self.custom_regex.findall(text)
-        elif self.use_nltk_tokenizer:
-            # Tokenization using NLTK's word tokenizer
-            tokens = word_tokenize(text)
+        
+        # Initialize the set of stopwords if needed
+        if remove_stopwords:
+            nltk.download('stopwords', quiet=True)  # Ensure stopwords are downloaded
+            self.stopwords_set = set(stopwords.words(stopwords_language))
         else:
-            # Basic whitespace tokenization
-            tokens = text.split()
+            self.stopwords_set = set()
+        
+        # Select tokenizer method based on the need to remove punctuation
+        if remove_punctuation:
+            # Use RegexpTokenizer to exclude punctuation during tokenization
+            self.tokenizer = RegexpTokenizer(r'\w+')
+        else:
+            # Use NLTK's default word tokenizer, which retains punctuation
+            self.tokenizer = word_tokenize
 
-        # Remove unwanted tokens from the result
-        return self._remove_unwanted_tokens(tokens)
-
+    def tokenize(self, text, lowercase=False):
+        """
+        Tokenizes the text into words, optionally removes stopwords and/or punctuation, and optionally converts to lowercase.
+        
+        Parameters:
+        - text: The text to be tokenized.
+        - lowercase: Whether to convert the text to lowercase before tokenization.
+        
+        Returns:
+        - A list of tokenized words.
+        """
+        # Optionally convert text to lowercase before tokenization
+        text = text.lower() if lowercase else text
+        
+        # Tokenize the text
+        tokens = self.tokenizer(text)
+        
+        # Optionally remove stopwords
+        if self.remove_stopwords:
+            tokens = [token for token in tokens if token not in self.stopwords_set]
+        
+        return tokens
 class CorpusTools:
     """
-    Provides basic corpus analysis tools like frequency distribution and querying capabilities.
+    Provides basic corpus analysis tools like frequency distribution and querying capabilities, optimized with NumPy.
     """
 
-    def __init__(self, tokens, shuffle_tokens=False):
+    def __init__(self, tokens: List[str], shuffle_tokens: bool = False):
         """
-        Initialize the CorpusTools object with a list of tokens.
-        
-        :param tokens: List of tokens (words) in the corpus.
-        :param shuffle_tokens: Boolean indicating whether to shuffle the tokens. Useful for unbiased analysis.
+        Initialize the CorpusTools object with a list of tokens, optionally shuffling them for unbiased analysis.
+
+        :param tokens: A list of tokens (words) in the corpus.
+        :param shuffle_tokens: Whether to shuffle the tokens. Defaults to False.
         """
-        # Validate that all elements in tokens are strings
         if not all(isinstance(token, str) for token in tokens):
             raise ValueError("All tokens must be strings.")
 
-        # Shuffle the tokens if required
         if shuffle_tokens:
             np.random.shuffle(tokens)
 
-        # Store tokens and calculate frequency distribution
-        self.tokens = tokens
+        self.tokens = np.array(tokens)
         self.frequency = Counter(tokens)
-        self._total_token_count = sum(self.frequency.values())
-
-        # Initialize token details with frequency and rank
-        self.token_details = {token: {'frequency': freq, 'rank': rank}
-                              for rank, (token, freq) in enumerate(self.frequency.most_common(), 1)}
+        self.token_frequencies = np.array(list(self.frequency.values()))
+        self.tokens_unique = np.array(list(self.frequency.keys()))
+        indices_sorted = np.argsort(self.token_frequencies)[::-1]
+        self.tokens_sorted = self.tokens_unique[indices_sorted]
+        self.token_frequencies_sorted = self.token_frequencies[indices_sorted]
+        self._total_token_count = np.sum(self.token_frequencies)
 
     @property
     def total_token_count(self) -> int:
-        """
-        Return the total number of tokens in the corpus.
-        """
+        """Returns the total number of tokens in the corpus."""
         return self._total_token_count
 
-    def find_median_token(self) -> dict:
+    def find_median_token(self) -> Dict[str, int]:
         """
-        Find the median token based on frequency. 
-        The median token is the token in the middle of the sorted frequency distribution.
+        Finds the median token based on frequency, which divides the corpus into two equal halves.
 
-        :return: Dictionary with the median token and its frequency.
+        :return: A dictionary with the median token and its frequency.
         """
-        median_index = self._total_token_count / 2
-        cumulative = 0
-        # Iterate over tokens in order of decreasing frequency
-        for token, freq in self.frequency.most_common():
-            cumulative += freq
-            # Return the token once the cumulative count crosses the median index
-            if cumulative >= median_index:
-                return {'token': token, 'frequency': freq}
+        cumulative = np.cumsum(self.token_frequencies_sorted)
+        median_index = np.searchsorted(cumulative, self._total_token_count / 2, side='right')
+        return {'token': self.tokens_sorted[median_index], 'frequency': self.token_frequencies_sorted[median_index]}
 
     def mean_token_frequency(self) -> float:
         """
-        Calculate the mean frequency of tokens in the corpus.
+        Calculates the mean frequency of tokens in the corpus.
 
-        :return: Float representing the mean token frequency.
+        :return: The mean token frequency as a float.
         """
-        return self.total_token_count / len(self.token_details)
+        return np.mean(self.token_frequencies)
 
-    def query_by_token(self, token) -> dict:
+    def query_by_token(self, token: str) -> Dict[str, int]:
         """
-        Retrieve frequency and rank details for a specific token.
+        Retrieves frequency and rank details for a specific token.
 
-        :param token: Token to query.
-        :return: Dictionary with token details (frequency and rank).
+        :param token: The token to query.
+        :return: A dictionary with token details (frequency and rank).
         :raises ValueError: If the token is not found in the corpus.
         """
         token = token.lower()
-        details = self.token_details.get(token)
-        if details:
-            return {'token': token, **details}
-        else:
+        index = np.where(self.tokens_unique == token)[0]
+        if len(index) == 0:
             raise ValueError(f"Token '{token}' not found in the corpus.")
+        index = index[0]
+        return {'token': token, 'frequency': self.frequency[token], 'rank': np.searchsorted(self.tokens_sorted, token, sorter=np.argsort(self.tokens_sorted)) + 1}
 
-    def query_by_rank(self, rank) -> dict:
+    def query_by_rank(self, rank: int) -> Dict[str, int]:
         """
-        Retrieve token details for a specific rank in the frequency distribution.
+        Retrieves token details for a specific rank in the frequency distribution.
 
-        :param rank: Rank to query.
-        :return: Dictionary with token details for the given rank.
+        :param rank: The rank to query.
+        :return: A dictionary with token details for the given rank.
         :raises ValueError: If the rank is out of range.
         """
-        # Validate rank range
-        if rank < 1 or rank > len(self.token_details):
+        if rank < 1 or rank > len(self.tokens_unique):
             raise ValueError("Rank is out of range.")
-        
-        # Find the token with the specified rank
-        token = next((t for t, d in self.token_details.items() if d['rank'] == rank), None)
-        if token:
-            return {'token': token, 'rank': rank, **self.token_details[token]}
-        else:
-            raise ValueError(f"Rank {rank} is out of range.")
+        token = self.tokens_sorted[rank - 1]
+        frequency = self.token_frequencies_sorted[rank - 1]
+        return {'token': token, 'rank': rank, 'frequency': frequency}
 
-    def cumulative_frequency_analysis(self, lower_percent=0, upper_percent=100) -> list:
+    def cumulative_frequency_analysis(self, lower_percent: float = 0, upper_percent: float = 100) -> List[Dict[str, int]]:
         """
-        Analyze tokens within a specific cumulative frequency range. 
-        Useful for understanding the distribution of common vs. rare tokens.
+        Analyzes tokens within a specific cumulative frequency range.
 
         :param lower_percent: Lower bound of the cumulative frequency range (in percentage).
         :param upper_percent: Upper bound of the cumulative frequency range (in percentage).
-        :return: List of dictionaries with token details in the specified range.
+        :return: A list of dictionaries with token details in the specified range.
         :raises ValueError: If the provided percentages are out of bounds.
         """
-        # Validate percentage inputs
-        if not 0 <= lower_percent <= 100 or not 0 <= upper_percent <= 100:
-            raise ValueError("Percentages must be between 0 and 100.")
+        cumulative = np.cumsum(self.token_frequencies_sorted) / self._total_token_count * 100
+        indices = np.where((cumulative >= lower_percent) & (cumulative <= upper_percent))[0]
+        return [{'token': self.tokens_sorted[i], 'frequency': self.token_frequencies_sorted[i]} for i in indices]
 
-        # Calculate the numeric thresholds based on percentages
-        lower_threshold = self._total_token_count * (lower_percent / 100)
-        upper_threshold = self._total_token_count * (upper_percent / 100)
-
-        # Extract tokens within the specified frequency range
-        return [{'token': token, **details}
-                for token, details in self.token_details.items()
-                if lower_threshold <= details['frequency'] <= upper_threshold]
-
-    def list_tokens_in_rank_range(self, start_rank, end_rank) -> list:
+    def list_tokens_in_rank_range(self, start_rank: int, end_rank: int) -> List[Dict[str, int]]:
         """
-        List tokens within a specific rank range. 
-        Useful for examining the most/least frequent subsets of tokens.
+        Lists tokens within a specific rank range.
 
         :param start_rank: Starting rank of the range.
         :param end_rank: Ending rank of the range.
-        :return: List of dictionaries with token details within the specified rank range.
+        :return: A list of dictionaries with token details within the specified rank range.
         :raises ValueError: If the rank range is out of valid bounds.
         """
-        # Validate rank range inputs
-        if not (1 <= start_rank <= end_rank <= len(self.token_details)):
+        if not (1 <= start_rank <= end_rank <= len(self.tokens_unique)):
             raise ValueError("Rank range is out of valid bounds.")
+        return [{'token': self.tokens_sorted[i], 'frequency': self.token_frequencies_sorted[i]} for i in range(start_rank - 1, end_rank)]
 
-        # Extract tokens within the specified rank range
-        return [{'token': token, **details}
-                for token, details in self.token_details.items()
-                if start_rank <= details['rank'] <= end_rank]
-    
-    def x_legomena(self, x) -> set:
+    def x_legomena(self, x: int) -> Set[str]:
         """
-        List tokens that occur exactly x times in the corpus.
-        Useful for finding specific frequency occurrences like hapax legomena.
+        Lists tokens that occur exactly x times in the corpus.
 
-        :param x: Number of occurrences to filter tokens by.
-        :return: Set of tokens occurring exactly x times.
+        :param x: The number of occurrences to filter tokens by.
+        :return: A set of tokens occurring exactly x times.
         :raises ValueError: If x is not a positive integer.
         """
         if not isinstance(x, int) or x < 1:
             raise ValueError("x must be a positive integer.")
-        return {token for token, details in self.token_details.items() if details['frequency'] == x}
+        return {token for token, freq in zip(self.tokens_unique, self.token_frequencies) if freq == x}
 
-    def vocabulary(self) -> set:
+    def vocabulary(self) -> Set[str]:
         """
-        Return the set of distinct tokens in the corpus.
+        Returns the set of distinct tokens in the corpus.
+
+        :return: A set of distinct tokens.
         """
-        return set(self.frequency.keys())
+        return set(self.tokens_unique)
 
 class AdvancedTools(CorpusTools):
     """
