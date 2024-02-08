@@ -32045,3 +32045,585 @@ No such file or directory while opening /home/tc/qgram/qgram/data/outputs/sets/b
 2024-02-05 09:48:25,791 - TOP2 ACCURACY: 80.17% | TOP2 VALIDITY: 84.23%
 2024-02-05 09:48:25,792 - TOP3 ACCURACY: 86.06% | TOP3 VALIDITY: 89.19%
 2024-02-05 09:48:25,891 - ----------------------------------------
+2024-02-08 14:49:26,872 - Processing brown Corpus with split type A
+2024-02-08 14:49:39,069 - Model for 6-gram loaded from brown
+2024-02-08 14:49:39,125 - Language Model for brown initialized with:
+2024-02-08 14:49:39,125 - Seed: 42
+2024-02-08 14:49:39,126 - Q-gram Range: [6, 6]
+2024-02-08 14:49:39,126 - Train-Test Split Configuration: 0.5
+2024-02-08 14:49:39,126 - Training Set Size: 371038
+2024-02-08 14:49:39,127 - Testing Set Size: 436032
+2024-02-08 14:49:39,127 - Vowel Replacement Ratio: 0.2
+2024-02-08 14:49:39,127 - Consonant Replacement Ratio: 0.8
+2024-02-08 14:49:39,127 - Unique Character Count: 26
+2024-02-08 14:49:39,128 - Minimum Word Length: 3
+2024-02-08 14:50:40,092 - Evaluated with: context_sensitive
+2024-02-08 14:50:40,094 - Model evaluation completed for: brown
+2024-02-08 14:50:40,096 - TOP1 ACCURACY: 48.74% | TOP1 VALIDITY: 81.05%
+2024-02-08 14:50:40,099 - TOP2 ACCURACY: 66.89% | TOP2 VALIDITY: 93.35%
+2024-02-08 14:50:40,099 - TOP3 ACCURACY: 74.43% | TOP3 VALIDITY: 95.56%
+2024-02-08 14:50:59,735 - ---------------------------------------------
+2024-02-08 14:51:00,314 - Processing brown Corpus with split type B
+2024-02-08 14:51:29,016 - Model for 6-gram loaded from brown
+2024-02-08 14:51:29,144 - Language Model for brown initialized with:
+2024-02-08 14:51:29,144 - Seed: 42
+2024-02-08 14:51:29,145 - Q-gram Range: [6, 6]
+2024-02-08 14:51:29,145 - Train-Test Split Configuration: 0.5
+2024-02-08 14:51:29,145 - Training Set Size: 403535
+2024-02-08 14:51:29,145 - Testing Set Size: 403535
+2024-02-08 14:51:29,146 - Vowel Replacement Ratio: 0.2
+2024-02-08 14:51:29,146 - Consonant Replacement Ratio: 0.8
+2024-02-08 14:51:29,146 - Unique Character Count: 26
+2024-02-08 14:51:29,147 - Minimum Word Length: 3
+2024-02-08 14:52:51,673 - Evaluated with: context_sensitive
+2024-02-08 14:52:51,673 - Model evaluation completed for: brown
+2024-02-08 14:52:51,673 - TOP1 ACCURACY: 91.39% | TOP1 VALIDITY: 98.77%
+2024-02-08 14:52:51,674 - TOP2 ACCURACY: 97.33% | TOP2 VALIDITY: 99.39%
+2024-02-08 14:52:51,674 - TOP3 ACCURACY: 98.65% | TOP3 VALIDITY: 99.58%
+2024-02-08 14:52:54,269 - Evaluated 13313 tokens not found in training data:
+2024-02-08 14:52:54,269 - TOP1 ACCURACY: 61.50% | TOP1 VALIDITY: 71.94%
+2024-02-08 14:52:54,269 - TOP2 ACCURACY: 74.68% | TOP2 VALIDITY: 82.69%
+2024-02-08 14:52:54,269 - TOP3 ACCURACY: 81.12% | TOP3 VALIDITY: 87.49%
+2024-02-08 14:53:09,762 - ---------------------------------------------
+2024-02-08 14:53:10,270 - Processing brown Corpus with split type HAPAX
+2024-02-08 14:53:23,794 - Model for 6-gram loaded from brown
+2024-02-08 14:53:23,795 - Identified 15764 unique hapax legomena for testing.
+2024-02-08 14:53:25,231 - Language Model for brown initialized with:
+2024-02-08 14:53:25,231 - Seed: 42
+2024-02-08 14:53:25,231 - Q-gram Range: [6, 6]
+2024-02-08 14:53:25,232 - Train-Test Split Configuration: 0.5
+2024-02-08 14:53:25,232 - Training Set Size: 791306
+2024-02-08 14:53:25,235 - Testing Set Size: 15764
+2024-02-08 14:53:25,239 - Vowel Replacement Ratio: 0.2
+2024-02-08 14:53:25,240 - Consonant Replacement Ratio: 0.8
+2024-02-08 14:53:25,240 - Unique Character Count: 26
+2024-02-08 14:53:25,240 - Minimum Word Length: 3
+2024-02-08 14:53:30,017 - Evaluated with: context_sensitive
+2024-02-08 14:53:30,018 - Model evaluation completed for: brown
+2024-02-08 14:53:30,020 - TOP1 ACCURACY: 57.18% | TOP1 VALIDITY: 65.26%
+2024-02-08 14:53:30,020 - TOP2 ACCURACY: 70.21% | TOP2 VALIDITY: 76.78%
+2024-02-08 14:53:30,020 - TOP3 ACCURACY: 77.71% | TOP3 VALIDITY: 83.08%
+2024-02-08 14:53:30,590 - ---------------------------------------------
+2024-02-08 14:53:30,630 - Processing cmudict Corpus with split type A
+2024-02-08 14:53:38,883 - Model for 6-gram loaded from cmudict
+2024-02-08 14:53:38,997 - Language Model for cmudict initialized with:
+2024-02-08 14:53:38,997 - Seed: 42
+2024-02-08 14:53:38,997 - Q-gram Range: [6, 6]
+2024-02-08 14:53:38,997 - Train-Test Split Configuration: 0.5
+2024-02-08 14:53:38,997 - Training Set Size: 66817
+2024-02-08 14:53:38,997 - Testing Set Size: 66857
+2024-02-08 14:53:38,998 - Vowel Replacement Ratio: 0.2
+2024-02-08 14:53:38,998 - Consonant Replacement Ratio: 0.8
+2024-02-08 14:53:39,000 - Unique Character Count: 26
+2024-02-08 14:53:39,000 - Minimum Word Length: 3
+2024-02-08 14:53:58,763 - Evaluated with: context_sensitive
+2024-02-08 14:53:58,763 - Model evaluation completed for: cmudict
+2024-02-08 14:53:58,763 - TOP1 ACCURACY: 54.30% | TOP1 VALIDITY: 71.13%
+2024-02-08 14:53:58,763 - TOP2 ACCURACY: 68.40% | TOP2 VALIDITY: 82.46%
+2024-02-08 14:53:58,763 - TOP3 ACCURACY: 76.46% | TOP3 VALIDITY: 87.68%
+2024-02-08 14:54:01,671 - ---------------------------------------------
+2024-02-08 14:54:01,756 - Processing cmudict Corpus with split type B
+2024-02-08 14:54:10,712 - Model for 6-gram loaded from cmudict
+2024-02-08 14:54:10,805 - Language Model for cmudict initialized with:
+2024-02-08 14:54:10,806 - Seed: 42
+2024-02-08 14:54:10,806 - Q-gram Range: [6, 6]
+2024-02-08 14:54:10,806 - Train-Test Split Configuration: 0.5
+2024-02-08 14:54:10,806 - Training Set Size: 66837
+2024-02-08 14:54:10,806 - Testing Set Size: 66837
+2024-02-08 14:54:10,806 - Vowel Replacement Ratio: 0.2
+2024-02-08 14:54:10,806 - Consonant Replacement Ratio: 0.8
+2024-02-08 14:54:10,806 - Unique Character Count: 26
+2024-02-08 14:54:10,807 - Minimum Word Length: 3
+2024-02-08 14:54:26,781 - Evaluated with: context_sensitive
+2024-02-08 14:54:26,781 - Model evaluation completed for: cmudict
+2024-02-08 14:54:26,781 - TOP1 ACCURACY: 58.12% | TOP1 VALIDITY: 74.44%
+2024-02-08 14:54:26,781 - TOP2 ACCURACY: 71.56% | TOP2 VALIDITY: 84.65%
+2024-02-08 14:54:26,781 - TOP3 ACCURACY: 79.12% | TOP3 VALIDITY: 89.44%
+2024-02-08 14:54:38,571 - Evaluated 57350 tokens not found in training data:
+2024-02-08 14:54:38,581 - TOP1 ACCURACY: 53.67% | TOP1 VALIDITY: 70.78%
+2024-02-08 14:54:38,581 - TOP2 ACCURACY: 67.96% | TOP2 VALIDITY: 82.24%
+2024-02-08 14:54:38,581 - TOP3 ACCURACY: 76.31% | TOP3 VALIDITY: 87.75%
+2024-02-08 14:54:41,126 - ---------------------------------------------
+2024-02-08 14:54:41,284 - Processing cmudict Corpus with split type HAPAX
+2024-02-08 14:54:49,700 - Model for 6-gram loaded from cmudict
+2024-02-08 14:54:49,700 - Identified 100755 unique hapax legomena for testing.
+2024-02-08 14:54:50,123 - Language Model for cmudict initialized with:
+2024-02-08 14:54:50,124 - Seed: 42
+2024-02-08 14:54:50,124 - Q-gram Range: [6, 6]
+2024-02-08 14:54:50,124 - Train-Test Split Configuration: 0.5
+2024-02-08 14:54:50,124 - Training Set Size: 32919
+2024-02-08 14:54:50,124 - Testing Set Size: 100755
+2024-02-08 14:54:50,124 - Vowel Replacement Ratio: 0.2
+2024-02-08 14:54:50,124 - Consonant Replacement Ratio: 0.8
+2024-02-08 14:54:50,124 - Unique Character Count: 26
+2024-02-08 14:54:50,124 - Minimum Word Length: 3
+2024-02-08 14:55:16,074 - Evaluated with: context_sensitive
+2024-02-08 14:55:16,074 - Model evaluation completed for: cmudict
+2024-02-08 14:55:16,075 - TOP1 ACCURACY: 41.86% | TOP1 VALIDITY: 54.17%
+2024-02-08 14:55:16,075 - TOP2 ACCURACY: 56.73% | TOP2 VALIDITY: 68.68%
+2024-02-08 14:55:16,075 - TOP3 ACCURACY: 65.92% | TOP3 VALIDITY: 76.65%
+2024-02-08 14:55:20,061 - ---------------------------------------------
+2024-02-08 14:55:20,176 - Processing CLMET3 Corpus with split type A
+2024-02-08 14:55:29,311 - Model for 6-gram loaded from CLMET3
+2024-02-08 14:55:29,458 - Language Model for CLMET3 initialized with:
+2024-02-08 14:55:29,458 - Seed: 42
+2024-02-08 14:55:29,458 - Q-gram Range: [6, 6]
+2024-02-08 14:55:29,459 - Train-Test Split Configuration: 0.5
+2024-02-08 14:55:29,459 - Training Set Size: 123271
+2024-02-08 14:55:29,459 - Testing Set Size: 124881
+2024-02-08 14:55:29,459 - Vowel Replacement Ratio: 0.2
+2024-02-08 14:55:29,459 - Consonant Replacement Ratio: 0.8
+2024-02-08 14:55:29,460 - Unique Character Count: 28
+2024-02-08 14:55:29,460 - Minimum Word Length: 3
+2024-02-08 14:55:51,652 - Evaluated with: context_sensitive
+2024-02-08 14:55:51,653 - Model evaluation completed for: CLMET3.txt
+2024-02-08 14:55:51,653 - TOP1 ACCURACY: 56.80% | TOP1 VALIDITY: 80.59%
+2024-02-08 14:55:51,653 - TOP2 ACCURACY: 71.14% | TOP2 VALIDITY: 88.81%
+2024-02-08 14:55:51,653 - TOP3 ACCURACY: 79.10% | TOP3 VALIDITY: 92.32%
+2024-02-08 14:55:55,152 - ---------------------------------------------
+2024-02-08 14:55:55,291 - Processing CLMET3 Corpus with split type B
+2024-02-08 14:56:01,651 - Model for 6-gram loaded from CLMET3
+2024-02-08 14:56:01,728 - Language Model for CLMET3 initialized with:
+2024-02-08 14:56:01,728 - Seed: 42
+2024-02-08 14:56:01,728 - Q-gram Range: [6, 6]
+2024-02-08 14:56:01,729 - Train-Test Split Configuration: 0.5
+2024-02-08 14:56:01,729 - Training Set Size: 124076
+2024-02-08 14:56:01,730 - Testing Set Size: 124076
+2024-02-08 14:56:01,730 - Vowel Replacement Ratio: 0.2
+2024-02-08 14:56:01,731 - Consonant Replacement Ratio: 0.8
+2024-02-08 14:56:01,731 - Unique Character Count: 28
+2024-02-08 14:56:01,732 - Minimum Word Length: 3
+2024-02-08 14:56:23,841 - Evaluated with: context_sensitive
+2024-02-08 14:56:23,843 - Model evaluation completed for: CLMET3.txt
+2024-02-08 14:56:23,843 - TOP1 ACCURACY: 69.53% | TOP1 VALIDITY: 83.04%
+2024-02-08 14:56:23,844 - TOP2 ACCURACY: 81.15% | TOP2 VALIDITY: 90.05%
+2024-02-08 14:56:23,844 - TOP3 ACCURACY: 86.70% | TOP3 VALIDITY: 93.09%
+2024-02-08 14:56:36,997 - Evaluated 71512 tokens not found in training data:
+2024-02-08 14:56:36,998 - TOP1 ACCURACY: 58.74% | TOP1 VALIDITY: 71.51%
+2024-02-08 14:56:36,998 - TOP2 ACCURACY: 72.14% | TOP2 VALIDITY: 82.88%
+2024-02-08 14:56:36,998 - TOP3 ACCURACY: 79.47% | TOP3 VALIDITY: 88.04%
+2024-02-08 14:56:41,271 - ---------------------------------------------
+2024-02-08 14:56:41,712 - Processing CLMET3 Corpus with split type HAPAX
+2024-02-08 14:56:49,617 - Model for 6-gram loaded from CLMET3
+2024-02-08 14:56:49,617 - Identified 128545 unique hapax legomena for testing.
+2024-02-08 14:56:50,517 - Language Model for CLMET3 initialized with:
+2024-02-08 14:56:50,521 - Seed: 42
+2024-02-08 14:56:50,522 - Q-gram Range: [6, 6]
+2024-02-08 14:56:50,522 - Train-Test Split Configuration: 0.5
+2024-02-08 14:56:50,523 - Training Set Size: 119607
+2024-02-08 14:56:50,523 - Testing Set Size: 128545
+2024-02-08 14:56:50,524 - Vowel Replacement Ratio: 0.2
+2024-02-08 14:56:50,524 - Consonant Replacement Ratio: 0.8
+2024-02-08 14:56:50,524 - Unique Character Count: 28
+2024-02-08 14:56:50,525 - Minimum Word Length: 3
+2024-02-08 14:57:27,916 - Evaluated with: context_sensitive
+2024-02-08 14:57:27,918 - Model evaluation completed for: CLMET3.txt
+2024-02-08 14:57:27,918 - TOP1 ACCURACY: 47.85% | TOP1 VALIDITY: 57.44%
+2024-02-08 14:57:27,919 - TOP2 ACCURACY: 62.18% | TOP2 VALIDITY: 70.79%
+2024-02-08 14:57:27,919 - TOP3 ACCURACY: 70.74% | TOP3 VALIDITY: 78.18%
+2024-02-08 14:57:33,871 - ---------------------------------------------
+2024-02-08 14:57:34,048 - Processing reuters Corpus with split type A
+2024-02-08 14:58:18,092 - Model for 6-gram loaded from reuters
+2024-02-08 14:58:18,142 - Language Model for reuters initialized with:
+2024-02-08 14:58:18,142 - Seed: 42
+2024-02-08 14:58:18,143 - Q-gram Range: [6, 6]
+2024-02-08 14:58:18,143 - Train-Test Split Configuration: 0.5
+2024-02-08 14:58:18,145 - Training Set Size: 631415
+2024-02-08 14:58:18,145 - Testing Set Size: 434787
+2024-02-08 14:58:18,145 - Vowel Replacement Ratio: 0.2
+2024-02-08 14:58:18,146 - Consonant Replacement Ratio: 0.8
+2024-02-08 14:58:18,146 - Unique Character Count: 27
+2024-02-08 14:58:18,146 - Minimum Word Length: 3
+2024-02-08 14:59:28,949 - Evaluated with: context_sensitive
+2024-02-08 14:59:28,949 - Model evaluation completed for: reuters
+2024-02-08 14:59:28,950 - TOP1 ACCURACY: 56.63% | TOP1 VALIDITY: 82.92%
+2024-02-08 14:59:28,950 - TOP2 ACCURACY: 67.21% | TOP2 VALIDITY: 88.95%
+2024-02-08 14:59:28,951 - TOP3 ACCURACY: 75.98% | TOP3 VALIDITY: 92.28%
+2024-02-08 14:59:40,462 - ---------------------------------------------
+2024-02-08 14:59:40,691 - Processing reuters Corpus with split type B
+2024-02-08 15:00:04,571 - Model for 6-gram loaded from reuters
+2024-02-08 15:00:04,605 - Language Model for reuters initialized with:
+2024-02-08 15:00:04,605 - Seed: 42
+2024-02-08 15:00:04,605 - Q-gram Range: [6, 6]
+2024-02-08 15:00:04,605 - Train-Test Split Configuration: 0.5
+2024-02-08 15:00:04,605 - Training Set Size: 533101
+2024-02-08 15:00:04,605 - Testing Set Size: 533101
+2024-02-08 15:00:04,605 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:00:04,605 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:00:04,606 - Unique Character Count: 27
+2024-02-08 15:00:04,606 - Minimum Word Length: 3
+2024-02-08 15:02:16,446 - Evaluated with: context_sensitive
+2024-02-08 15:02:16,446 - Model evaluation completed for: reuters
+2024-02-08 15:02:16,446 - TOP1 ACCURACY: 94.55% | TOP1 VALIDITY: 99.21%
+2024-02-08 15:02:16,446 - TOP2 ACCURACY: 98.23% | TOP2 VALIDITY: 99.53%
+2024-02-08 15:02:16,447 - TOP3 ACCURACY: 98.99% | TOP3 VALIDITY: 99.64%
+2024-02-08 15:02:19,101 - Evaluated 9028 tokens not found in training data:
+2024-02-08 15:02:19,102 - TOP1 ACCURACY: 46.02% | TOP1 VALIDITY: 63.13%
+2024-02-08 15:02:19,102 - TOP2 ACCURACY: 57.34% | TOP2 VALIDITY: 73.38%
+2024-02-08 15:02:19,102 - TOP3 ACCURACY: 64.38% | TOP3 VALIDITY: 79.03%
+2024-02-08 15:02:39,651 - ---------------------------------------------
+2024-02-08 15:02:40,327 - Processing reuters Corpus with split type HAPAX
+2024-02-08 15:02:54,934 - Model for 6-gram loaded from reuters
+2024-02-08 15:02:54,935 - Identified 10481 unique hapax legomena for testing.
+2024-02-08 15:02:56,205 - Language Model for reuters initialized with:
+2024-02-08 15:02:56,205 - Seed: 42
+2024-02-08 15:02:56,205 - Q-gram Range: [6, 6]
+2024-02-08 15:02:56,205 - Train-Test Split Configuration: 0.5
+2024-02-08 15:02:56,205 - Training Set Size: 1055721
+2024-02-08 15:02:56,205 - Testing Set Size: 10481
+2024-02-08 15:02:56,205 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:02:56,205 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:02:56,206 - Unique Character Count: 27
+2024-02-08 15:02:56,206 - Minimum Word Length: 3
+2024-02-08 15:03:00,266 - Evaluated with: context_sensitive
+2024-02-08 15:03:00,268 - Model evaluation completed for: reuters
+2024-02-08 15:03:00,274 - TOP1 ACCURACY: 43.90% | TOP1 VALIDITY: 59.37%
+2024-02-08 15:03:00,275 - TOP2 ACCURACY: 54.84% | TOP2 VALIDITY: 69.43%
+2024-02-08 15:03:00,275 - TOP3 ACCURACY: 62.07% | TOP3 VALIDITY: 75.59%
+2024-02-08 15:03:00,729 - ---------------------------------------------
+2024-02-08 15:03:00,778 - Processing gutenberg Corpus with split type A
+2024-02-08 15:03:34,341 - Model for 6-gram loaded from gutenberg
+2024-02-08 15:03:34,369 - Language Model for gutenberg initialized with:
+2024-02-08 15:03:34,369 - Seed: 42
+2024-02-08 15:03:34,370 - Q-gram Range: [6, 6]
+2024-02-08 15:03:34,370 - Train-Test Split Configuration: 0.5
+2024-02-08 15:03:34,370 - Training Set Size: 836886
+2024-02-08 15:03:34,370 - Testing Set Size: 856081
+2024-02-08 15:03:34,370 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:03:34,370 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:03:34,370 - Unique Character Count: 30
+2024-02-08 15:03:34,370 - Minimum Word Length: 3
+2024-02-08 15:07:02,307 - Evaluated with: context_sensitive
+2024-02-08 15:07:02,307 - Model evaluation completed for: gutenberg
+2024-02-08 15:07:02,308 - TOP1 ACCURACY: 41.58% | TOP1 VALIDITY: 89.97%
+2024-02-08 15:07:02,308 - TOP2 ACCURACY: 53.24% | TOP2 VALIDITY: 95.48%
+2024-02-08 15:07:02,308 - TOP3 ACCURACY: 69.56% | TOP3 VALIDITY: 97.26%
+2024-02-08 15:07:31,039 - ---------------------------------------------
+2024-02-08 15:07:31,753 - Processing gutenberg Corpus with split type B
+2024-02-08 15:08:11,054 - Model for 6-gram loaded from gutenberg
+2024-02-08 15:08:11,135 - Language Model for gutenberg initialized with:
+2024-02-08 15:08:11,135 - Seed: 42
+2024-02-08 15:08:11,139 - Q-gram Range: [6, 6]
+2024-02-08 15:08:11,140 - Train-Test Split Configuration: 0.5
+2024-02-08 15:08:11,140 - Training Set Size: 846483
+2024-02-08 15:08:11,140 - Testing Set Size: 846484
+2024-02-08 15:08:11,140 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:08:11,140 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:08:11,141 - Unique Character Count: 30
+2024-02-08 15:08:11,141 - Minimum Word Length: 3
+2024-02-08 15:11:45,280 - Evaluated with: context_sensitive
+2024-02-08 15:11:45,282 - Model evaluation completed for: gutenberg
+2024-02-08 15:11:45,282 - TOP1 ACCURACY: 91.19% | TOP1 VALIDITY: 99.40%
+2024-02-08 15:11:45,282 - TOP2 ACCURACY: 97.57% | TOP2 VALIDITY: 99.74%
+2024-02-08 15:11:45,283 - TOP3 ACCURACY: 98.95% | TOP3 VALIDITY: 99.83%
+2024-02-08 15:11:48,940 - Evaluated 12622 tokens not found in training data:
+2024-02-08 15:11:48,940 - TOP1 ACCURACY: 61.57% | TOP1 VALIDITY: 73.32%
+2024-02-08 15:11:48,941 - TOP2 ACCURACY: 75.36% | TOP2 VALIDITY: 84.11%
+2024-02-08 15:11:48,941 - TOP3 ACCURACY: 82.48% | TOP3 VALIDITY: 89.09%
+2024-02-08 15:12:23,306 - ---------------------------------------------
+2024-02-08 15:12:24,101 - Processing gutenberg Corpus with split type HAPAX
+2024-02-08 15:12:34,333 - Model for 6-gram loaded from gutenberg
+2024-02-08 15:12:34,334 - Identified 14967 unique hapax legomena for testing.
+2024-02-08 15:12:35,453 - Language Model for gutenberg initialized with:
+2024-02-08 15:12:35,454 - Seed: 42
+2024-02-08 15:12:35,454 - Q-gram Range: [6, 6]
+2024-02-08 15:12:35,454 - Train-Test Split Configuration: 0.5
+2024-02-08 15:12:35,454 - Training Set Size: 1678000
+2024-02-08 15:12:35,454 - Testing Set Size: 14967
+2024-02-08 15:12:35,455 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:12:35,455 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:12:35,455 - Unique Character Count: 30
+2024-02-08 15:12:35,455 - Minimum Word Length: 3
+2024-02-08 15:12:38,217 - Evaluated with: context_sensitive
+2024-02-08 15:12:38,218 - Model evaluation completed for: gutenberg
+2024-02-08 15:12:38,219 - TOP1 ACCURACY: 58.60% | TOP1 VALIDITY: 68.28%
+2024-02-08 15:12:38,219 - TOP2 ACCURACY: 72.35% | TOP2 VALIDITY: 79.74%
+2024-02-08 15:12:38,220 - TOP3 ACCURACY: 79.40% | TOP3 VALIDITY: 85.25%
+2024-02-08 15:12:38,715 - ---------------------------------------------
+2024-02-08 15:12:38,757 - Processing inaugural Corpus with split type A
+2024-02-08 15:12:41,649 - Model for 6-gram loaded from inaugural
+2024-02-08 15:12:41,661 - Language Model for inaugural initialized with:
+2024-02-08 15:12:41,663 - Seed: 42
+2024-02-08 15:12:41,664 - Q-gram Range: [6, 6]
+2024-02-08 15:12:41,665 - Train-Test Split Configuration: 0.5
+2024-02-08 15:12:41,665 - Training Set Size: 65336
+2024-02-08 15:12:41,665 - Testing Set Size: 41744
+2024-02-08 15:12:41,666 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:12:41,666 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:12:41,666 - Unique Character Count: 27
+2024-02-08 15:12:41,666 - Minimum Word Length: 3
+2024-02-08 15:12:48,349 - Evaluated with: context_sensitive
+2024-02-08 15:12:48,350 - Model evaluation completed for: inaugural
+2024-02-08 15:12:48,350 - TOP1 ACCURACY: 57.16% | TOP1 VALIDITY: 73.26%
+2024-02-08 15:12:48,350 - TOP2 ACCURACY: 70.18% | TOP2 VALIDITY: 84.84%
+2024-02-08 15:12:48,350 - TOP3 ACCURACY: 82.95% | TOP3 VALIDITY: 90.07%
+2024-02-08 15:12:49,425 - ---------------------------------------------
+2024-02-08 15:12:49,447 - Processing inaugural Corpus with split type B
+2024-02-08 15:12:52,188 - Model for 6-gram loaded from inaugural
+2024-02-08 15:12:52,202 - Language Model for inaugural initialized with:
+2024-02-08 15:12:52,204 - Seed: 42
+2024-02-08 15:12:52,205 - Q-gram Range: [6, 6]
+2024-02-08 15:12:52,206 - Train-Test Split Configuration: 0.5
+2024-02-08 15:12:52,207 - Training Set Size: 53540
+2024-02-08 15:12:52,208 - Testing Set Size: 53540
+2024-02-08 15:12:52,210 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:12:52,211 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:12:52,212 - Unique Character Count: 27
+2024-02-08 15:12:52,213 - Minimum Word Length: 3
+2024-02-08 15:13:00,470 - Evaluated with: context_sensitive
+2024-02-08 15:13:00,470 - Model evaluation completed for: inaugural
+2024-02-08 15:13:00,471 - TOP1 ACCURACY: 94.87% | TOP1 VALIDITY: 98.57%
+2024-02-08 15:13:00,471 - TOP2 ACCURACY: 98.41% | TOP2 VALIDITY: 99.20%
+2024-02-08 15:13:00,473 - TOP3 ACCURACY: 99.16% | TOP3 VALIDITY: 99.46%
+2024-02-08 15:13:00,955 - Evaluated 3093 tokens not found in training data:
+2024-02-08 15:13:00,956 - TOP1 ACCURACY: 71.77% | TOP1 VALIDITY: 77.56%
+2024-02-08 15:13:00,956 - TOP2 ACCURACY: 82.83% | TOP2 VALIDITY: 86.58%
+2024-02-08 15:13:00,956 - TOP3 ACCURACY: 87.91% | TOP3 VALIDITY: 90.69%
+2024-02-08 15:13:02,526 - ---------------------------------------------
+2024-02-08 15:13:02,558 - Processing inaugural Corpus with split type HAPAX
+2024-02-08 15:13:04,229 - Model for 6-gram loaded from inaugural
+2024-02-08 15:13:04,229 - Identified 3758 unique hapax legomena for testing.
+2024-02-08 15:13:04,326 - Language Model for inaugural initialized with:
+2024-02-08 15:13:04,326 - Seed: 42
+2024-02-08 15:13:04,327 - Q-gram Range: [6, 6]
+2024-02-08 15:13:04,327 - Train-Test Split Configuration: 0.5
+2024-02-08 15:13:04,328 - Training Set Size: 103322
+2024-02-08 15:13:04,328 - Testing Set Size: 3758
+2024-02-08 15:13:04,328 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:13:04,328 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:13:04,328 - Unique Character Count: 27
+2024-02-08 15:13:04,328 - Minimum Word Length: 3
+2024-02-08 15:13:05,010 - Evaluated with: context_sensitive
+2024-02-08 15:13:05,011 - Model evaluation completed for: inaugural
+2024-02-08 15:13:05,012 - TOP1 ACCURACY: 65.17% | TOP1 VALIDITY: 70.30%
+2024-02-08 15:13:05,012 - TOP2 ACCURACY: 77.70% | TOP2 VALIDITY: 81.43%
+2024-02-08 15:13:05,013 - TOP3 ACCURACY: 84.01% | TOP3 VALIDITY: 86.93%
+2024-02-08 15:13:05,122 - ---------------------------------------------
+2024-02-08 15:38:12,559 - Processing cmudict Corpus
+2024-02-08 15:38:12,559 - ---------------------------------------------
+2024-02-08 15:38:19,421 - Model for 6-gram loaded from cmudict
+2024-02-08 15:38:19,552 - Language Model for cmudict initialized with:
+2024-02-08 15:38:19,553 - Seed: 42
+2024-02-08 15:38:19,553 - Q-gram Range: [6, 6]
+2024-02-08 15:38:19,553 - Train-Test Split Configuration: 0.5
+2024-02-08 15:38:19,553 - Training Set Size: 57745
+2024-02-08 15:38:19,553 - Testing Set Size: 57746
+2024-02-08 15:38:19,554 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:38:19,554 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:38:19,554 - Unique Character Count: 26
+2024-02-08 15:38:19,554 - Minimum Word Length: 3
+2024-02-08 15:38:31,740 - Evaluated with: context_sensitive
+2024-02-08 15:38:31,741 - Model evaluation completed for: cmudict
+2024-02-08 15:38:31,742 - TOP1 ACCURACY: 53.18% | TOP1 VALIDITY: 69.83%
+2024-02-08 15:38:31,743 - TOP2 ACCURACY: 67.67% | TOP2 VALIDITY: 81.82%
+2024-02-08 15:38:31,743 - TOP3 ACCURACY: 75.88% | TOP3 VALIDITY: 87.34%
+2024-02-08 15:38:33,881 - ---------------------------------------------
+2024-02-08 15:38:33,957 - Processing brown Corpus
+2024-02-08 15:38:33,957 - ---------------------------------------------
+2024-02-08 15:38:43,856 - Model for 6-gram loaded from brown
+2024-02-08 15:38:43,884 - Language Model for brown initialized with:
+2024-02-08 15:38:43,884 - Seed: 42
+2024-02-08 15:38:43,885 - Q-gram Range: [6, 6]
+2024-02-08 15:38:43,885 - Train-Test Split Configuration: 0.5
+2024-02-08 15:38:43,885 - Training Set Size: 20604
+2024-02-08 15:38:43,885 - Testing Set Size: 20604
+2024-02-08 15:38:43,885 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:38:43,885 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:38:43,885 - Unique Character Count: 26
+2024-02-08 15:38:43,885 - Minimum Word Length: 3
+2024-02-08 15:38:48,880 - Evaluated with: context_sensitive
+2024-02-08 15:38:48,880 - Model evaluation completed for: brown
+2024-02-08 15:38:48,880 - TOP1 ACCURACY: 62.05% | TOP1 VALIDITY: 72.21%
+2024-02-08 15:38:48,880 - TOP2 ACCURACY: 75.05% | TOP2 VALIDITY: 83.08%
+2024-02-08 15:38:48,880 - TOP3 ACCURACY: 81.90% | TOP3 VALIDITY: 88.14%
+2024-02-08 15:38:49,586 - ---------------------------------------------
+2024-02-08 15:38:49,628 - Processing CLMET3 Corpus
+2024-02-08 15:38:49,628 - ---------------------------------------------
+2024-02-08 15:38:55,743 - Model for 6-gram loaded from CLMET3
+2024-02-08 15:38:55,928 - Language Model for CLMET3 initialized with:
+2024-02-08 15:38:55,929 - Seed: 42
+2024-02-08 15:38:55,929 - Q-gram Range: [6, 6]
+2024-02-08 15:38:55,929 - Train-Test Split Configuration: 0.5
+2024-02-08 15:38:55,930 - Training Set Size: 74239
+2024-02-08 15:38:55,930 - Testing Set Size: 74239
+2024-02-08 15:38:55,930 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:38:55,931 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:38:55,931 - Unique Character Count: 28
+2024-02-08 15:38:55,931 - Minimum Word Length: 3
+2024-02-08 15:39:12,550 - Evaluated with: context_sensitive
+2024-02-08 15:39:12,552 - Model evaluation completed for: CLMET3.txt
+2024-02-08 15:39:12,561 - TOP1 ACCURACY: 58.52% | TOP1 VALIDITY: 71.93%
+2024-02-08 15:39:12,561 - TOP2 ACCURACY: 71.80% | TOP2 VALIDITY: 82.92%
+2024-02-08 15:39:12,562 - TOP3 ACCURACY: 79.04% | TOP3 VALIDITY: 88.03%
+2024-02-08 15:39:14,962 - ---------------------------------------------
+2024-02-08 15:39:15,145 - Processing reuters Corpus
+2024-02-08 15:39:15,156 - ---------------------------------------------
+2024-02-08 15:39:25,686 - Model for 6-gram loaded from reuters
+2024-02-08 15:39:25,741 - Language Model for reuters initialized with:
+2024-02-08 15:39:25,741 - Seed: 42
+2024-02-08 15:39:25,741 - Q-gram Range: [6, 6]
+2024-02-08 15:39:25,741 - Train-Test Split Configuration: 0.5
+2024-02-08 15:39:25,741 - Training Set Size: 14411
+2024-02-08 15:39:25,741 - Testing Set Size: 14412
+2024-02-08 15:39:25,741 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:39:25,742 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:39:25,742 - Unique Character Count: 27
+2024-02-08 15:39:25,742 - Minimum Word Length: 3
+2024-02-08 15:39:28,879 - Evaluated with: context_sensitive
+2024-02-08 15:39:28,880 - Model evaluation completed for: reuters
+2024-02-08 15:39:28,880 - TOP1 ACCURACY: 49.65% | TOP1 VALIDITY: 62.99%
+2024-02-08 15:39:28,880 - TOP2 ACCURACY: 61.89% | TOP2 VALIDITY: 75.16%
+2024-02-08 15:39:28,881 - TOP3 ACCURACY: 68.85% | TOP3 VALIDITY: 81.23%
+2024-02-08 15:39:29,306 - ---------------------------------------------
+2024-02-08 15:39:29,332 - Processing gutenberg Corpus
+2024-02-08 15:39:29,341 - ---------------------------------------------
+2024-02-08 15:39:39,694 - Model for 6-gram loaded from gutenberg
+2024-02-08 15:39:39,789 - Language Model for gutenberg initialized with:
+2024-02-08 15:39:39,790 - Seed: 42
+2024-02-08 15:39:39,790 - Q-gram Range: [6, 6]
+2024-02-08 15:39:39,790 - Train-Test Split Configuration: 0.5
+2024-02-08 15:39:39,790 - Training Set Size: 20664
+2024-02-08 15:39:39,790 - Testing Set Size: 20665
+2024-02-08 15:39:39,790 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:39:39,790 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:39:39,790 - Unique Character Count: 30
+2024-02-08 15:39:39,790 - Minimum Word Length: 3
+2024-02-08 15:39:44,760 - Evaluated with: context_sensitive
+2024-02-08 15:39:44,760 - Model evaluation completed for: gutenberg
+2024-02-08 15:39:44,760 - TOP1 ACCURACY: 62.08% | TOP1 VALIDITY: 74.21%
+2024-02-08 15:39:44,760 - TOP2 ACCURACY: 76.10% | TOP2 VALIDITY: 85.35%
+2024-02-08 15:39:44,760 - TOP3 ACCURACY: 82.97% | TOP3 VALIDITY: 90.01%
+2024-02-08 15:39:45,405 - ---------------------------------------------
+2024-02-08 15:39:45,446 - Processing inaugural Corpus
+2024-02-08 15:39:45,446 - ---------------------------------------------
+2024-02-08 15:39:47,597 - Model for 6-gram loaded from inaugural
+2024-02-08 15:39:47,615 - Language Model for inaugural initialized with:
+2024-02-08 15:39:47,616 - Seed: 42
+2024-02-08 15:39:47,616 - Q-gram Range: [6, 6]
+2024-02-08 15:39:47,616 - Train-Test Split Configuration: 0.5
+2024-02-08 15:39:47,616 - Training Set Size: 4577
+2024-02-08 15:39:47,617 - Testing Set Size: 4578
+2024-02-08 15:39:47,617 - Vowel Replacement Ratio: 0.2
+2024-02-08 15:39:47,617 - Consonant Replacement Ratio: 0.8
+2024-02-08 15:39:47,617 - Unique Character Count: 27
+2024-02-08 15:39:47,618 - Minimum Word Length: 3
+2024-02-08 15:39:48,649 - Evaluated with: context_sensitive
+2024-02-08 15:39:48,650 - Model evaluation completed for: inaugural
+2024-02-08 15:39:48,650 - TOP1 ACCURACY: 69.33% | TOP1 VALIDITY: 75.14%
+2024-02-08 15:39:48,650 - TOP2 ACCURACY: 81.87% | TOP2 VALIDITY: 86.28%
+2024-02-08 15:39:48,650 - TOP3 ACCURACY: 87.66% | TOP3 VALIDITY: 90.72%
+2024-02-08 15:39:48,758 - ---------------------------------------------
+2024-02-08 16:11:11,493 - Processing cmudict Corpus
+2024-02-08 16:11:11,494 - ---------------------------------------------
+2024-02-08 16:11:16,579 - Model for 6-gram loaded from cmudict
+2024-02-08 16:11:16,718 - Language Model for cmudict initialized with:
+2024-02-08 16:11:16,718 - Seed: 42
+2024-02-08 16:11:16,718 - Q-gram Range: [6, 6]
+2024-02-08 16:11:16,719 - Train-Test Split Configuration: 0.5
+2024-02-08 16:11:16,719 - Training Set Size: 57745
+2024-02-08 16:11:16,719 - Testing Set Size: 57746
+2024-02-08 16:11:16,720 - Vowel Replacement Ratio: 0.2
+2024-02-08 16:11:16,720 - Consonant Replacement Ratio: 0.8
+2024-02-08 16:11:16,720 - Unique Character Count: 26
+2024-02-08 16:11:16,720 - Minimum Word Length: 3
+2024-02-08 16:11:24,324 - Evaluated with: context_sensitive
+2024-02-08 16:11:24,325 - Model evaluation completed for: cmudict
+2024-02-08 16:11:24,325 - TOP1 ACCURACY: 53.43% | TOP1 VALIDITY: 70.17%
+2024-02-08 16:11:24,326 - TOP2 ACCURACY: 67.69% | TOP2 VALIDITY: 81.88%
+2024-02-08 16:11:24,326 - TOP3 ACCURACY: 76.07% | TOP3 VALIDITY: 87.41%
+2024-02-08 16:11:25,902 - ---------------------------------------------
+2024-02-08 16:11:25,973 - Processing brown Corpus
+2024-02-08 16:11:25,973 - ---------------------------------------------
+2024-02-08 16:11:34,234 - Model for 6-gram loaded from brown
+2024-02-08 16:11:34,285 - Language Model for brown initialized with:
+2024-02-08 16:11:34,286 - Seed: 42
+2024-02-08 16:11:34,286 - Q-gram Range: [6, 6]
+2024-02-08 16:11:34,286 - Train-Test Split Configuration: 0.5
+2024-02-08 16:11:34,286 - Training Set Size: 20604
+2024-02-08 16:11:34,286 - Testing Set Size: 20604
+2024-02-08 16:11:34,286 - Vowel Replacement Ratio: 0.2
+2024-02-08 16:11:34,286 - Consonant Replacement Ratio: 0.8
+2024-02-08 16:11:34,286 - Unique Character Count: 26
+2024-02-08 16:11:34,286 - Minimum Word Length: 3
+2024-02-08 16:11:38,711 - Evaluated with: context_sensitive
+2024-02-08 16:11:38,711 - Model evaluation completed for: brown
+2024-02-08 16:11:38,711 - TOP1 ACCURACY: 62.27% | TOP1 VALIDITY: 72.57%
+2024-02-08 16:11:38,711 - TOP2 ACCURACY: 75.01% | TOP2 VALIDITY: 83.33%
+2024-02-08 16:11:38,711 - TOP3 ACCURACY: 81.64% | TOP3 VALIDITY: 88.06%
+2024-02-08 16:11:39,830 - ---------------------------------------------
+2024-02-08 16:11:39,866 - Processing CLMET3 Corpus
+2024-02-08 16:11:39,867 - ---------------------------------------------
+2024-02-08 16:11:45,841 - Model for 6-gram loaded from CLMET3
+2024-02-08 16:11:46,029 - Language Model for CLMET3 initialized with:
+2024-02-08 16:11:46,030 - Seed: 42
+2024-02-08 16:11:46,030 - Q-gram Range: [6, 6]
+2024-02-08 16:11:46,030 - Train-Test Split Configuration: 0.5
+2024-02-08 16:11:46,030 - Training Set Size: 74239
+2024-02-08 16:11:46,030 - Testing Set Size: 74239
+2024-02-08 16:11:46,030 - Vowel Replacement Ratio: 0.2
+2024-02-08 16:11:46,030 - Consonant Replacement Ratio: 0.8
+2024-02-08 16:11:46,031 - Unique Character Count: 28
+2024-02-08 16:11:46,031 - Minimum Word Length: 3
+2024-02-08 16:12:01,550 - Evaluated with: context_sensitive
+2024-02-08 16:12:01,551 - Model evaluation completed for: CLMET3.txt
+2024-02-08 16:12:01,552 - TOP1 ACCURACY: 58.33% | TOP1 VALIDITY: 71.51%
+2024-02-08 16:12:01,552 - TOP2 ACCURACY: 71.82% | TOP2 VALIDITY: 82.68%
+2024-02-08 16:12:01,552 - TOP3 ACCURACY: 79.33% | TOP3 VALIDITY: 87.99%
+2024-02-08 16:12:04,252 - ---------------------------------------------
+2024-02-08 16:12:04,400 - Processing reuters Corpus
+2024-02-08 16:12:04,401 - ---------------------------------------------
+2024-02-08 16:12:13,762 - Model for 6-gram loaded from reuters
+2024-02-08 16:12:13,847 - Language Model for reuters initialized with:
+2024-02-08 16:12:13,847 - Seed: 42
+2024-02-08 16:12:13,848 - Q-gram Range: [6, 6]
+2024-02-08 16:12:13,848 - Train-Test Split Configuration: 0.5
+2024-02-08 16:12:13,849 - Training Set Size: 14411
+2024-02-08 16:12:13,849 - Testing Set Size: 14412
+2024-02-08 16:12:13,849 - Vowel Replacement Ratio: 0.2
+2024-02-08 16:12:13,850 - Consonant Replacement Ratio: 0.8
+2024-02-08 16:12:13,850 - Unique Character Count: 27
+2024-02-08 16:12:13,863 - Minimum Word Length: 3
+2024-02-08 16:12:16,146 - Evaluated with: context_sensitive
+2024-02-08 16:12:16,147 - Model evaluation completed for: reuters
+2024-02-08 16:12:16,147 - TOP1 ACCURACY: 50.22% | TOP1 VALIDITY: 64.78%
+2024-02-08 16:12:16,148 - TOP2 ACCURACY: 62.08% | TOP2 VALIDITY: 75.97%
+2024-02-08 16:12:16,148 - TOP3 ACCURACY: 69.02% | TOP3 VALIDITY: 81.68%
+2024-02-08 16:12:16,486 - ---------------------------------------------
+2024-02-08 16:12:16,506 - Processing gutenberg Corpus
+2024-02-08 16:12:16,506 - ---------------------------------------------
+2024-02-08 16:12:25,652 - Model for 6-gram loaded from gutenberg
+2024-02-08 16:12:25,748 - Language Model for gutenberg initialized with:
+2024-02-08 16:12:25,751 - Seed: 42
+2024-02-08 16:12:25,751 - Q-gram Range: [6, 6]
+2024-02-08 16:12:25,752 - Train-Test Split Configuration: 0.5
+2024-02-08 16:12:25,752 - Training Set Size: 20664
+2024-02-08 16:12:25,752 - Testing Set Size: 20665
+2024-02-08 16:12:25,752 - Vowel Replacement Ratio: 0.2
+2024-02-08 16:12:25,752 - Consonant Replacement Ratio: 0.8
+2024-02-08 16:12:25,752 - Unique Character Count: 30
+2024-02-08 16:12:25,752 - Minimum Word Length: 3
+2024-02-08 16:12:30,719 - Evaluated with: context_sensitive
+2024-02-08 16:12:30,719 - Model evaluation completed for: gutenberg
+2024-02-08 16:12:30,720 - TOP1 ACCURACY: 61.56% | TOP1 VALIDITY: 73.44%
+2024-02-08 16:12:30,720 - TOP2 ACCURACY: 75.58% | TOP2 VALIDITY: 84.64%
+2024-02-08 16:12:30,720 - TOP3 ACCURACY: 82.66% | TOP3 VALIDITY: 89.57%
+2024-02-08 16:12:31,369 - ---------------------------------------------
+2024-02-08 16:12:31,401 - Processing inaugural Corpus
+2024-02-08 16:12:31,401 - ---------------------------------------------
+2024-02-08 16:12:33,364 - Model for 6-gram loaded from inaugural
+2024-02-08 16:12:33,373 - Language Model for inaugural initialized with:
+2024-02-08 16:12:33,374 - Seed: 42
+2024-02-08 16:12:33,374 - Q-gram Range: [6, 6]
+2024-02-08 16:12:33,375 - Train-Test Split Configuration: 0.5
+2024-02-08 16:12:33,375 - Training Set Size: 4577
+2024-02-08 16:12:33,375 - Testing Set Size: 4578
+2024-02-08 16:12:33,376 - Vowel Replacement Ratio: 0.2
+2024-02-08 16:12:33,376 - Consonant Replacement Ratio: 0.8
+2024-02-08 16:12:33,377 - Unique Character Count: 27
+2024-02-08 16:12:33,377 - Minimum Word Length: 3
+2024-02-08 16:12:34,738 - Evaluated with: context_sensitive
+2024-02-08 16:12:34,740 - Model evaluation completed for: inaugural
+2024-02-08 16:12:34,742 - TOP1 ACCURACY: 70.07% | TOP1 VALIDITY: 75.82%
+2024-02-08 16:12:34,743 - TOP2 ACCURACY: 81.45% | TOP2 VALIDITY: 85.78%
+2024-02-08 16:12:34,744 - TOP3 ACCURACY: 87.24% | TOP3 VALIDITY: 90.50%
+2024-02-08 16:12:34,930 - ---------------------------------------------

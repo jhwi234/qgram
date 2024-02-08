@@ -376,26 +376,37 @@ class CorpusManager:
             file.write(aggregated_data_str)
 
 def analyze_test_tokens_not_in_training_performance(corpus_manager, test_tokens):
+    # Filter the test set to only include tokens (words) that are unique to the test set and not found in the training set.
+    # This is done by checking if the original word ('orig_word') is in the list of unique test tokens ('test_tokens').
     filtered_test_set = [
         (mod_word, miss_letter, orig_word) 
         for mod_word, miss_letter, orig_word in corpus_manager.test_set 
         if orig_word in test_tokens
     ]
 
+    # Count the number of tokens in the filtered test set.
     num_analyzed_tokens = len(filtered_test_set)
 
+    # If there are no tokens in the filtered test set, log this information and return the count.
     if num_analyzed_tokens == 0:
         logging.info("Evaluation: No test tokens found in predictions for analysis.")
         return num_analyzed_tokens
 
+    # Initialize an evaluation model with the filtered test set.
+    # This model uses the same corpus manager but only considers the tokens not seen during training.
     temp_eval_model = EvaluateModel(corpus_manager, log_initialization_details=False)
     temp_eval_model.test_set = filtered_test_set
+
+    # Evaluate the model's predictions on the filtered test set.
+    # This evaluates how well the model predicts missing letters in words it hasn't been trained on.
     evaluation_metrics, _ = temp_eval_model.evaluate_character_predictions(temp_eval_model.prediction_method)
 
-    # Log the number of tokens evaluated on a separate line
+    # Log the total number of tokens evaluated.
     logging.info(f"Evaluated {num_analyzed_tokens} tokens not found in training data:")
 
-    # Log the accuracy and validity metrics, each metric on a new line
+    # Log the accuracy and validity of predictions for the top 1, 2, and 3 guesses.
+    # Accuracy measures how often the model's top guesses were correct,
+    # and validity measures how often the model's guesses were valid words.
     for i in range(1, 4):
         accuracy = evaluation_metrics['accuracy'].get(i, 0.0)
         validity = evaluation_metrics['validity'].get(i, 0.0)
