@@ -85,6 +85,6 @@ def analyze_corpus(corpus_name, plots_to_generate=None, enable_profiling=False):
 
 # Example usage
 corpora = ['brown', 'reuters', 'webtext', 'inaugural', 'nps_chat', 'shakespeare', 'state_union', 'gutenberg']
-plots_required = ["zipf", "heaps", "zipf_mandelbrot"]
+plots_required = ["zipf"]
 for corpus in corpora:
     analyze_corpus(corpus, plots_to_generate=plots_required, enable_profiling=False)

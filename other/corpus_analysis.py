@@ -452,7 +452,7 @@ class AdvancedTools(CorpusTools):
         frequencies = np.array([freq for _, freq in self.frequency.most_common()])
 
         # Set up grid search for initial alpha guesses
-        alpha_guesses = np.linspace(0.5, 1.25, num=1000)  # Adjust the range and number of points as needed
+        alpha_guesses = np.linspace(0.5, 1.25, num=10000)  # Adjust the range and number of points as needed
         best_alpha = None
         min_error = float('inf')
 
