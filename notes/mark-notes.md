@@ -18,3 +18,5 @@ of the top three qgrams, find which morphemes are driving the popularity of the 
 
 `the quick brown fox jumps over the lazy dog`
 `the fat old cat jumps over the cozy chair`
+
+if my training data only included moprhphemes bound and the testing data only included free content root morphemes could I still predict the missing letters in the testing data? if it the derivational and inflectional morphomogy driving all of this?
