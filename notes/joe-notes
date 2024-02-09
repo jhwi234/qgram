@@ -1,22 +1,24 @@
+Joe Notes 2024-02-02
+
 Task 1:
 For the Split type B do an after the fact analysis seeing which words weren't in the trinaing set and see how well it did for predicting the missing letter in them. Split type B was the version of the code were the frequcny of each token was maintained in the testing and training but the out of vocabulary nature of the training and test split wasn't maintained. So both training and testing tokens can contain the same word types. So what we're looking for is just finding out of the tokens that did uniquely occur in the testing set how well did the model perform on them. 
-
 
 Task 2:
 Exclude hapax legomena (words occurring only once within the dataset) from the training dataset, and instead, train the model on the remaining data. Following training, evaluate the model's performance on the hapax legomena. This approach mirrors Task 1 but with a distinct separation: the training data excludes hapaxes, which are then used as the testing data. The goal is to determine the model's proficiency in predicting missing letters in words that are hapax legomena, thus providing insight into its ability to handle rare or unique words.
 
 Task 3:
 
-Goal is to measure the informational content of the entire word list by calculating the entropy of each letter in every word. This involves estimating the uncertainty associated with each letter's occurrence in different contexts, such as when a letter is missing from a word. The process can be broken down into several steps:
+Measure the informational content of the entire word list by calculating the entropy of each letter in every word. This involves estimating the uncertainty associated with each letter's occurrence in different contexts, such as when a letter is missing from a word. The process can be broken down into several steps:
 
-Start by assigning a probability to every alphabet letter based on how often it appears in the language. This initial step helps us estimate how likely each letter is to occur in any given position.
+Start by assigning a probability to every alphabet letter based on how often it appears in the language. Maximum entropy because of maximum uncertainity. This initial step helps us estimate how likely each letter is to occur in any given position.
 
 Refine these probabilities with qgram analysis, which considers the specific letters surrounding a missing letter to improve our prediction accuracy. This process narrows down the most likely letters by comparing broader frequencybased estimates to those informed by immediate letter context, thus aiming to reduce our prediction's entropy or uncertainty.
 
 Calculate entropy in two ways:
+First, by assuming each letter is equally likely (uniform probability), representing the highest entropy scenario or the maximum uncertainty.
 
-First, using the letter frequencies (unigram probabilities) to see how much uncertainty there is without considering the surrounding letters.
-Second, by assuming each letter is equally likely (uniform probability), representing the highest entropy scenario or the maximum uncertainty.
+Second, using the letter frequencies (unigram probabilities) to see how much uncertainty there is without considering the surrounding letters.
+
 Assess the information gain by comparing the entropy from our unigram model to that of the uniform probability model. The difference tells us how much more accurate our predictions are when using the qgram model over a random guess.
 
 Finally, average the entropy across all words for each letter in different contexts to determine the overall informativeness of the qgram models. This means calculating the entropy for each scenario where a letter is missing, then averaging these values to get a sense of how well the qgram models perform across the entire corpus.
@@ -48,3 +50,98 @@ The process can be broken down into several steps:
  5. Average Entropy Across Words
  Objective: Evaluate the overall performance and informativeness of qgram models across the corpus by calculating the average entropy for each letter in different contexts.
  Methodology: Aggregate and average the entropies calculated for each context (\(P(l | \text{"context"})\)), providing a comprehensive measure of how informative and effective the qgram models are in reducing uncertainty across all words.
+
+
+We need to get the entropy for the position of each letter in the word. We can do this by getting the entropy for each letter in each word and in order to charactrerize how informative these qgram modles are and then do this for each word in the corpus and then average.
+
+D = {Pli|cj for i through 27}
+where i is the letter position in the word and j is the letter in the alphabet
+
+  W O R D
+a  
+b 
+c
+d
+
+For all 26 letters get the probablity of that letter for each position in the word. 
+
+Then we can get the entropy for each letter in each position in the word and then average them to get the overall information metric for the entire word list of the corpus.
+
+So run the qgram model on the entire word list and then get the entropy for each letter in each word and then average them to get the overall information metric for the entire word list of the corpus.
+
+Average entropy for the entire word list will equal the
+
+We will need to use natural log exponentiation for the entropy calculation.
+
+```r
+exp(5)
+```
+
+def get_log_prob(word = "w_rd"):
+  logprobs = []
+  for l in "abcdef...":
+    ngramprobs.append(ngramprobs(1, word))
+  return logprobs
+
+  def get_entropy(logprobs):
+    logprobs_array = np.array(logprobs)
+    probs = np.exp(logprobs_array)
+    entropy = -np.sum(probs * logprobs_array)
+    return entropy
+
+  def get_entropy(logprobs):
+    logprobs_array = np.array(logprobs)
+    H = -np.sum(np.exp(logprobs_array) * logprobs_array)
+
+entropies = []
+for word in words:
+  for position, char in enumerate(word):
+    blanked_word = word[:position] + "_" + word[position + 1:]
+    blanked_word[position] = "_"
+
+    logprobs = get_log_prob(blanked_word)
+    entropy = get_entropy(logprobs)
+    entropies.append(entropy)
+
+average_entropy = np.mean(entropies)
+
+Joe Notes 2024-02-09
+
+focusing on word length
+
+ word, original, predicted df 
+
+ df |>
+  mutate(
+    len = nchar(word),
+    correct = ifelse(original == predicted) * 1 else 0
+
+  )
+
+  group_by(len) |>
+  summarize(
+    n = n(),
+    correct = sum(correct),
+    accuracy = correct / n
+  )
+
+  # logistic regression
+  glm(correct ~ log(len), data = df, family = "binomial") |>
+
+
+  # look at letter position: first, last, middle
+  df |>
+  mutate(
+    first = substr(word, 1, 1),
+    last = substr(word, nchar(word), nchar(word)),
+    middle = substr(word, floor(nchar(word) / 2), floor(nchar(word) / 2) + 1)
+  ) |>
+
+  ## let's see if there are any patterns in the confidence metrics
+  ## look at the log probablity of top1 accurate vs top2 in accruacy and see the drop off between them
+  ## subtract the top1 from the top2 log probability and see if there is a pattern
+  ## 0 and 1 are the bar graphs andf 
+
+  ## how differenet are the log proabablitieis in R
+  geom_col |>
+  

@@ -165,7 +165,7 @@ class CorpusManager:
             self._split_type_a()
         elif self.split_type == 'B':
             self._split_type_b()
-        elif self.split_type == 'HAPAX':  # New split type for hapax legomena
+        elif self.split_type == 'HAPAX':
             self._split_hapax()
         else:
             raise ValueError(f"Unknown split type: {self.split_type}")
