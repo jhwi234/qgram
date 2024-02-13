@@ -106,7 +106,7 @@ ciphers-copy/
 *_models/
 data/models/
 data/outputs/
-entropy_models/
+entropy_model/
 
 # Specific file types
 *.klm
