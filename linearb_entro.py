@@ -26,7 +26,7 @@ def run_command(command, error_message):
         return False
 
 def build_kenlm_model(corpus_path, model_directory, q_gram):
-    corpus_name = corpus_path.stem  # Use the stem of the corpus file path as the model name
+    corpus_name = corpus_path.stem
     arpa_file = model_directory / f"{corpus_name}_{q_gram}gram.arpa"
     binary_file = model_directory / f"{corpus_name}_{q_gram}gram.klm"
     if run_command(['lmplz', '--discount_fallback', '-o', str(q_gram), '--text', str(corpus_path), '--arpa', str(arpa_file)],
@@ -39,7 +39,6 @@ def build_kenlm_model(corpus_path, model_directory, q_gram):
 def load_and_format_corpus(csv_path):
     """Load and format the Linear B corpus from a CSV file for KenLM."""
     df = pd.read_csv(csv_path)
-    # Clean and lower-case words, removing non-alphabetic characters
     formatted_words = df['word'].apply(lambda x: regex.sub(r'\P{L}+', '', x).lower())
     formatted_corpus_path = csv_path.with_suffix('.formatted.txt')
     formatted_words.to_csv(formatted_corpus_path, index=False, header=False)
@@ -60,7 +59,6 @@ def main():
     model_path = build_kenlm_model(formatted_corpus_path, MODEL_DIR, Q_GRAM)
     if model_path:
         logging.info(f"KenLM model built at {model_path}")
-        # Load formatted words for entropy calculation
         words = pd.read_csv(formatted_corpus_path, header=None).iloc[:, 0].tolist()
         average_entropy = calculate_entropy(model_path, words)
         logging.info(f'Average entropy: {average_entropy}')
