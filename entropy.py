@@ -6,7 +6,6 @@ from pathlib import Path
 import nltk
 from typing import Set
 import re
-from concurrent.futures import ProcessPoolExecutor
 
 
 # Precompile the regex to remove non-alphabetic characters
@@ -82,6 +81,7 @@ def generate_formatted_corpus(data_set, formatted_corpus_path):
     # Write the formatted text to the file
     with formatted_corpus_path.open('w', encoding='utf-8') as f:
         f.write('\n'.join(formatted_text))
+
 
 def calculate_entropy(model, words):
     """Calculate the average entropy for a list of words, reflecting the concept of conditional probability and position-specific entropy."""
