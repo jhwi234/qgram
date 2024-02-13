@@ -106,10 +106,12 @@ ciphers-copy/
 *_models/
 data/models/
 data/outputs/
+entropy_models/
 
 # Specific file types
 *.klm
 *.png
+*.arpa
 
 # mypy cache
 .mypy_cache/
