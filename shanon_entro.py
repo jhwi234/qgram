@@ -4,7 +4,7 @@ from collections import Counter
 import subprocess
 from pathlib import Path
 import kenlm
-import re
+import regex as reg
 
 def ensure_directory_exists(directory_path):
     Path(directory_path).mkdir(parents=True, exist_ok=True)
@@ -16,7 +16,7 @@ def prepare_text_for_kenlm(words, corpus_name, corpora_dir="entropy_corpora"):
     ensure_directory_exists(corpora_dir)  # Ensure the directory exists
     file_path = Path(corpora_dir) / f"{corpus_name}_formatted_corpus.txt"  # Name files based on corpus name
     
-    cleaned_words = [re.sub(r'[^a-zA-Z]', '', word) for word in words if len(re.sub(r'[^a-zA-Z]', '', word)) >= 3]
+    cleaned_words = [reg.sub(r'[^a-zA-Z]', '', word) for word in words if len(reg.sub(r'[^a-zA-Z]', '', word)) >= 3]
     formatted_text = '\n'.join([' '.join(word) for word in cleaned_words])
     
     with file_path.open('w', encoding='utf-8') as f:
