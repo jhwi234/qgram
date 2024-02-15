@@ -1,23 +1,20 @@
-# Standard library imports
+import math
 import shutil
 import string
-import math
-from collections import Counter
-import regex as reg
-import sys
 import subprocess
+import sys
 import tempfile
+from collections import Counter
 from pathlib import Path
 
-# Third-party imports
+import kenlm
+import matplotlib.pyplot as plt
 import nltk
+import numpy as np
+import regex as reg
 from nltk.corpus import PlaintextCorpusReader, stopwords
 from nltk.tokenize import word_tokenize
-import numpy as np
-from scipy.optimize import minimize
-from scipy.optimize import curve_fit
-import matplotlib.pyplot as plt
-import kenlm
+from scipy.optimize import curve_fit, minimize
 
 # Directory for plots
 plots_dir = Path('plots')

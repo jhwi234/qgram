@@ -1,11 +1,12 @@
-import nltk
-import math
-from collections import Counter
-import subprocess
-from pathlib import Path
-import kenlm
-import regex as reg
 import logging
+import math
+import subprocess
+from collections import Counter
+from pathlib import Path
+
+import kenlm
+import nltk
+import regex as reg
 
 # Configuration
 Q_GRAMS = 8
