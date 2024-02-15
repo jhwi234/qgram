@@ -47,7 +47,7 @@ def train_kenlm_model(text, n, model_name, model_dir):
 
 def calculate_entropy_kenlm(model, text):
     log_prob = model.score(text, bos=False, eos=False) / math.log(2)
-    num_grams = len(text.split()) + 1 - Q_GRAMS
+    num_grams = len(text.split()) - Q_GRAMS
     return -log_prob / num_grams
 
 def process_corpora(corpus):
@@ -73,8 +73,8 @@ def process_corpora(corpus):
 
         # Use logging.info for cleaner output
         logging.info(f"\nCorpus: {corpus_name}")
-        logging.info(f"Vocabulary Size: {len(set(words))}")
-        logging.info(f"Word Tokens: {len(words)}")
+        logging.info(f"Token Count: {len(words)}")
+        logging.info(f"Vocab Count: {len(set(words))}")
         logging.info(f"Alphabet Size: {len(alphabet)}")
         logging.info(f"Zero-order approximation (H0): {H0:.2f}")
         logging.info(f'First-order approximation (H1): {H1:.2f}')

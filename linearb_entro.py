@@ -54,10 +54,10 @@ def load_and_format_corpus(csv_path):
     return formatted_corpus_path, unique_words
 
 def calculate_entropy_kenlm(model, lines):
-    prepared_text = ' '.join(lines)  # Treat the entire corpus as a block
+    prepared_text = ' '.join(lines)
     log_prob = model.score(prepared_text, bos=False, eos=False)
-    log_prob /= math.log(2)  # Correct conversion factor
-    num_grams = len(prepared_text.split()) + 1 - Q_GRAM  # +1 for EOS token
+    log_prob /= math.log(2)
+    num_grams = len(prepared_text.split()) - Q_GRAM
     return -log_prob / num_grams
 
 def calculate_redundancy(H, H_max):
@@ -78,7 +78,7 @@ def process_linearb_corpus(corpus_path, q_gram):
         redundancy = calculate_redundancy(H3_kenlm, H0)
         
         logging.info(f"Linear B Corpus")
-        logging.info(f"Vocabulary Size: {unique_words}")
+        logging.info(f"Vocab Count: {unique_words}")
         logging.info(f'Alphabet Size: {len(letter_freq):,}')
         logging.info(f"Zero-order approximation (H0): {H0:.2f}")
         logging.info(f"First-order approximation (H1): {H1:.2f}")
