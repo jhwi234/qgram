@@ -1,8 +1,9 @@
-import logging
 import cProfile
-import pstats
 import io
-from corpus_analysis import CorpusTools, AdvancedTools, CorpusPlots, Tokenizer, CorpusLoader, EntropyCalculator
+import logging
+import pstats
+
+from corpus_analysis import AdvancedTools, CorpusLoader, CorpusPlots, CorpusTools, EntropyCalculator, Tokenizer
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
