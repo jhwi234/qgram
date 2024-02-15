@@ -19,7 +19,6 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 def run_command(command, error_message):
     try:
         subprocess.run(command, shell=True, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        logging.info("Command executed successfully.")
     except subprocess.CalledProcessError as e:
         logging.error(f"{error_message}: {e.stderr.decode()} (Exit code: {e.returncode})")
         return False
@@ -32,7 +31,6 @@ def build_kenlm_model(corpus_path, model_directory, q_gram):
     
     if run_command(f"lmplz -o {q_gram} --text {corpus_path} --arpa {arpa_file}", "Failed to generate ARPA model") and \
        run_command(f"build_binary {arpa_file} {binary_file}", "Failed to convert ARPA model to binary format"):
-        logging.info(f"Model built successfully: {binary_file}")
         return binary_file
 
 def load_and_format_corpus(csv_path):
@@ -57,7 +55,7 @@ def load_and_format_corpus(csv_path):
 
 def calculate_entropy_kenlm(model, lines):
     prepared_text = ' '.join(lines)  # Treat the entire corpus as a block
-    log_prob = model.score(prepared_text, bos=True, eos=True)
+    log_prob = model.score(prepared_text, bos=False, eos=False)
     log_prob /= math.log(2)  # Correct conversion factor
     num_grams = len(prepared_text.split()) + 1 - Q_GRAM  # +1 for EOS token
     return -log_prob / num_grams
@@ -73,19 +71,15 @@ def process_linearb_corpus(corpus_path, q_gram):
         model = kenlm.Model(str(model_path))
         lines = Path(formatted_corpus_path).read_text(encoding='utf-8').split('\n')
         H0 = math.log2(len(set(''.join(lines).replace(' ', ''))))
-        
         letter_freq = Counter(''.join(lines).replace(' ', ''))
         total_letters = sum(letter_freq.values())
         H1 = -sum((freq / total_letters) * math.log2(freq / total_letters) for freq in letter_freq.values())
-
-        # Adjust calculate_entropy_kenlm to handle list of lines correctly
         H3_kenlm = calculate_entropy_kenlm(model, lines)
-        
         redundancy = calculate_redundancy(H3_kenlm, H0)
         
         logging.info(f"Linear B Corpus")
-        logging.info(f"Vocabulary size (distinct word tokens): {unique_words}")
-        logging.info(f'Count of alphabet: {len(letter_freq):,}')
+        logging.info(f"Vocabulary Size: {unique_words}")
+        logging.info(f'Alphabet Size: {len(letter_freq):,}')
         logging.info(f"Zero-order approximation (H0): {H0:.2f}")
         logging.info(f"First-order approximation (H1): {H1:.2f}")
         logging.info(f"Third-order approximation (H3): {H3_kenlm:.2f}")
