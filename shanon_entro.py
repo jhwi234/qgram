@@ -45,9 +45,11 @@ def train_kenlm_model(text, n, model_name, model_dir):
 
     return str(model_path)
 
-def calculate_entropy_kenlm(model, text):
-    log_prob = model.score(text, bos=False, eos=False) / math.log(2)
-    num_grams = len(text.split()) - Q_GRAMS
+def calculate_entropy_kenlm(model, lines):
+    prepared_text = ' '.join(lines)
+    log_prob = model.score(prepared_text, bos=False, eos=False)
+    log_prob /= math.log(2)
+    num_grams = len(prepared_text.split()) - Q_GRAMS
     return -log_prob / num_grams
 
 def process_corpora(corpus):

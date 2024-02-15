@@ -10,7 +10,7 @@ import subprocess
 # Configuration
 CORPUS_PATH = Path.cwd() / "data/corpora/Linear_B_Lexicon.csv"
 MODEL_DIR = Path.cwd() / "entropy_model"
-Q_GRAM = 4  # KenLM model n-gram level
+Q_GRAMS = 4  # KenLM model n-gram level
 
 # Setup
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
@@ -57,7 +57,7 @@ def calculate_entropy_kenlm(model, lines):
     prepared_text = ' '.join(lines)
     log_prob = model.score(prepared_text, bos=False, eos=False)
     log_prob /= math.log(2)
-    num_grams = len(prepared_text.split()) - Q_GRAM
+    num_grams = len(prepared_text.split()) - Q_GRAMS
     return -log_prob / num_grams
 
 def calculate_redundancy(H, H_max):
@@ -85,6 +85,5 @@ def process_linearb_corpus(corpus_path, q_gram):
         logging.info(f"Third-order approximation (H3): {H3_kenlm:.2f}")
         logging.info(f"Redundancy: {redundancy:.2f}%")
 
-
 if __name__ == '__main__':
-    process_linearb_corpus(CORPUS_PATH, Q_GRAM)
+    process_linearb_corpus(CORPUS_PATH, Q_GRAMS)
