@@ -1,10 +1,13 @@
 # Standard library imports
-import os
+import shutil
 import string
 import math
 from collections import Counter
-import regex as re
+import regex as reg
 import sys
+import subprocess
+import tempfile
+from pathlib import Path
 
 # Third-party imports
 import nltk
@@ -14,10 +17,11 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
+import kenlm
 
 # Directory for plots
-plots_dir = 'plots'
-os.makedirs(plots_dir, exist_ok=True)
+plots_dir = Path('plots')
+plots_dir.mkdir(exist_ok=True)
 
 class CorpusLoader:
     """
@@ -43,12 +47,15 @@ class CorpusLoader:
 
     def _load_corpus(self):
         """Load the corpus into memory."""
-        # Handle loading from a local file or directory
-        if os.path.isfile(self.corpus_source) or os.path.isdir(self.corpus_source):
-            corpus_reader = PlaintextCorpusReader(self.corpus_source, '.*')
+        corpus_source_path = Path(self.corpus_source)
+        
+        # Handle loading from a local file or directory using pathlib
+        if corpus_source_path.is_file() or corpus_source_path.is_dir():
+            corpus_reader = PlaintextCorpusReader(str(corpus_source_path), '.*')
         else:
             # Access corpus from NLTK if it's a named dataset
             corpus_reader = getattr(nltk.corpus, self.corpus_source)
+        
         # Read all tokens from the corpus
         return [token for fileid in corpus_reader.fileids() for token in corpus_reader.words(fileid)]
 
@@ -114,8 +121,8 @@ class Tokenizer:
         """Set a custom regex pattern for tokenization with caching."""
         # Compile regex pattern for custom tokenization
         try:
-            self.custom_regex = re.compile(pattern)
-        except re.error as e:
+            self.custom_regex = reg.compile(pattern)
+        except reg.error as e:
             raise ValueError(f"Invalid regex pattern: {e}")
 
     def _remove_unwanted_tokens(self, tokens) -> list:
@@ -519,6 +526,65 @@ class AdvancedTools(CorpusTools):
             if verbose:
                 print("Optimization did not converge.")
             raise ValueError("Optimization did not converge")
+        
+
+class EntropyCalculator(CorpusTools):
+    def __init__(self, tokens, q_grams=3):
+        # Preprocess tokens similarly to the original method
+        cleaned_tokens = [' '.join(reg.sub(r'[^a-zA-Z]', '', token).lower()) for token in tokens if len(token) >= 3]
+        super().__init__(cleaned_tokens)
+        self.q_grams = q_grams
+
+    def calculate_H0(self):
+        # Assuming alphabet consists of only letters, case ignored
+        alphabet = set(''.join(self.tokens).replace(' ', ''))
+        alphabet_size = len(alphabet)
+        return math.log2(alphabet_size)
+
+    def calculate_H1(self):
+        """Calculate the first-order entropy (H1)."""
+        letter_freq = Counter(''.join(self.tokens).replace(' ', ''))
+        total_letters = sum(letter_freq.values())
+        return -sum((freq / total_letters) * math.log2(freq / total_letters) for freq in letter_freq.values())
+
+    def train_kenlm_model(self, text):
+        """Train a KenLM model with the given text and return the model path, without immediate cleanup."""
+        tempdir_path = Path(tempfile.mkdtemp())  # Create temporary directory
+        text_file_path = tempdir_path / "corpus.txt"
+        
+        with text_file_path.open('w') as text_file:
+            text_file.write('\n'.join(self.tokens))
+        
+        model_file_path = tempdir_path / "model.klm"
+        arpa_file_path = tempdir_path / "model.arpa"
+        
+        # Run lmplz with output redirected to DEVNULL to suppress terminal output
+        subprocess.run(f"lmplz -o {self.q_grams} --discount_fallback < {text_file_path} > {arpa_file_path}", shell=True, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        # Run build_binary with output redirected to DEVNULL
+        subprocess.run(f"build_binary {arpa_file_path} {model_file_path}", shell=True, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        # Return both model file path and temp directory to manage cleanup later
+        return model_file_path, tempdir_path
+
+    def calculate_H3_kenlm(self):
+        model_path, tempdir_path = self.train_kenlm_model(' '.join(self.tokens))
+        model = kenlm.Model(str(model_path))
+        
+        prepared_text = ' '.join(self.tokens)
+        log_prob = model.score(prepared_text, bos=False, eos=False) / math.log(2)
+        num_tokens = len(prepared_text.split()) - self.q_grams + 1
+        H3 = -log_prob / num_tokens
+        
+        # Cleanup: Now remove the temporary directory after the model has been loaded
+        shutil.rmtree(tempdir_path)
+        
+        return H3
+
+    def calculate_redundancy(self, H3, H0):
+        """Calculate redundancy based on H3 and H0."""
+        return (1 - H3 / H0) * 100
+
 class CorpusPlots:
     def __init__(self, analyzer, corpus_name, plots_dir='plots'):
         """
@@ -562,7 +628,7 @@ class CorpusPlots:
         plt.yscale('log')
         plt.legend()
         plt.grid(True)
-        plt.savefig(os.path.join(self.plots_dir, f'zipfs_alpha_fit_{self.corpus_name}.png'))
+        plt.savefig(self.plots_dir / f'zipfs_alpha_fit_{self.corpus_name}.png')
         plt.close()
 
     def plot_heaps_law(self):
@@ -600,7 +666,7 @@ class CorpusPlots:
         plt.title(f"Heap's Law Analysis for {self.corpus_name} Corpus")
         plt.legend()
         plt.grid(True)
-        plt.savefig(os.path.join(self.plots_dir, f'heaps_law_{self.corpus_name}.png'))
+        plt.savefig(self.plots_dir / f'heaps_law_{self.corpus_name}.png')
         plt.close()
 
     def plot_zipf_mandelbrot_fit(self):
@@ -643,5 +709,5 @@ class CorpusPlots:
         plt.yscale('log')
         plt.legend()
         plt.grid(True)
-        plt.savefig(os.path.join(self.plots_dir, f'zipf_mandelbrot_fit_{self.corpus_name}.png'))
+        plt.savefig(self.plots_dir / f'zipfs_mandelbrot_fit_{self.corpus_name}.png')
         plt.close()
