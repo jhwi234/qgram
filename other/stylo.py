@@ -1,7 +1,7 @@
 from collections import Counter
 from scipy.stats import chisquare
 import numpy as np
-from corpus_analysis import BasicCorpusAnalyzer, Tokenizer, CorpusLoader
+from corpus_analysis import CorpusTools, Tokenizer, CorpusLoader
 
 def mendenhall_curves(tokens):
     """
@@ -51,7 +51,7 @@ def main():
             raise RuntimeError("Failed to tokenize the corpus.")
 
         # Corpus analysis
-        analyzer = BasicCorpusAnalyzer(tokens)
+        analyzer = CorpusTools(tokens)
         mendenhall_result = mendenhall_curves(tokens)
         print("Mendenhall's Characteristic Curves:", mendenhall_result)
 

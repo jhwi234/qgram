@@ -66,24 +66,33 @@ class EditDistance:
 
     def hamming_distance(self, s1, s2) -> int:
         """Hamming distance calculation."""
+        # Type checks ensure that function inputs are as expected.
         if not isinstance(s1, str) or not isinstance(s2, str):
             raise TypeError("Inputs must be strings")
+        # Check for equal lengths to ensure valid Hamming distance calculation.
         if len(s1) != len(s2):
             raise ValueError(f"Hamming distance requires equal length strings. Lengths provided: {len(s1)} and {len(s2)}")
+        # Early exit if both strings are identical.
+        if s1 == s2:
+            return 0
+        # Calculate and return the Hamming distance.
         return sum(c1 != c2 for c1, c2 in zip(s1, s2))
 
     def jaro_distance(self, s1, s2) -> float:
         """Jaro distance calculation."""
-        if s1 == s2: return 1.0  # Quick return for identical strings
-        if not s1 or not s2: return 0.0  # Handle empty strings
+        # Early returns for special cases.
+        if s1 == s2: return 1.0  # Identical strings.
+        if not s1 or not s2: return 0.0  # Empty strings.
 
         len_s1, len_s2 = len(s1), len(s2)
         match_distance = (max(len_s1, len_s2) // 2) - 1
 
+        # Initialize match tracking.
         s1_matches = np.zeros(len_s1, dtype=bool)
         s2_matches = np.zeros(len_s2, dtype=bool)
-        matches = 0
+        matches = 0  # Total matches.
 
+        # Find matches within match distance.
         for i, c1 in enumerate(s1):
             start, end = max(0, i - match_distance), min(i + match_distance + 1, len_s2)
             for j, c2 in enumerate(s2[start:end], start):
@@ -92,10 +101,14 @@ class EditDistance:
                     matches += 1
                     break
 
-        if not matches: return 0.0
+        if not matches: return 0.0  # No matches found.
 
+        # Calculate transpositions.
         transpositions = sum(s1[i] != s2[j] for i, j in zip(np.where(s1_matches)[0], np.where(s2_matches)[0]))
+
+        # Calculate and return Jaro distance.
         return ((matches / len_s1) + (matches / len_s2) + ((matches - transpositions / 2) / matches)) / 3.0
+
 
     def jaro_winkler_distance(self, s1, s2, p=0.1, max_prefix=4) -> float:
         """Jaro-Winkler distance calculation."""

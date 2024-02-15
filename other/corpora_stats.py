@@ -1,10 +1,12 @@
-import nltk
-from nltk.corpus import brown, gutenberg, reuters, webtext, inaugural
-import numpy as np
-import logging
 import argparse
+import logging
 import multiprocessing
+
+import nltk
+import numpy as np
+from nltk.corpus import brown, gutenberg, inaugural, reuters, webtext
 import tabulate
+
 
 def download_corpus(corpus_name):
     """Downloads the specified NLTK corpus if not already present."""

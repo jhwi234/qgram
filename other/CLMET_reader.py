@@ -1,20 +1,19 @@
-import os
-import glob
+from pathlib import Path
 from TextProcessor import TextProcessor
 
 def main():
     text_processor = TextProcessor()
-    directory_path = os.path.abspath("Historical English corpora/clmet/txt")
-    text_files = glob.glob(os.path.join(directory_path, '*.txt'))
+    directory_path = Path("Historical English corpora/clmet/txt").resolve()
+    text_files = list(directory_path.glob('*.txt'))
     print(f"Found {len(text_files)} files to process.")
 
     all_tokens = set()
     all_tokens_list = []  # List to store all tokens including duplicates
 
     for i, file_path in enumerate(text_files, 1):
-        print(f"Processing file {i}/{len(text_files)}: {os.path.basename(file_path)}")
+        print(f"Processing file {i}/{len(text_files)}: {file_path.name}")
         try:
-            tokens = text_processor.process_file(file_path)
+            tokens = text_processor.process_file(str(file_path))
             all_tokens.update(tokens)  # Update the set with new tokens
             all_tokens_list.extend(tokens)  # Extend the list with new tokens
         except Exception as e:
