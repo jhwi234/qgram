@@ -82,7 +82,7 @@ def process_linearb_corpus(corpus_path, q_gram):
         logging.info(f'Alphabet Size: {len(letter_freq):,}')
         logging.info(f"Zero-order approximation (H0): {H0:.2f}")
         logging.info(f"First-order approximation (H1): {H1:.2f}")
-        logging.info(f"Third-order approximation (H3): {H3_kenlm:.2f}")
+        logging.info(f"Third-order approximation (H3) of {Q_GRAMS}-grams: {H3_kenlm:.2f}")
         logging.info(f"Redundancy: {redundancy:.2f}%")
 
 if __name__ == '__main__':
