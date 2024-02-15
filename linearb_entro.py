@@ -1,11 +1,12 @@
+import logging
 import math
+import subprocess
 from collections import Counter
 from pathlib import Path
+
+import kenlm
 import pandas as pd
 import regex
-import kenlm
-import logging
-import subprocess
 
 # Configuration
 CORPUS_PATH = Path.cwd() / "data/corpora/Linear_B_Lexicon.csv"

@@ -8,7 +8,7 @@ import regex as reg
 import logging
 
 # Configuration
-Q_GRAMS = 6
+Q_GRAMS = 8
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 def ensure_directory_exists(directory_path):

@@ -529,9 +529,9 @@ class AdvancedTools(CorpusTools):
         
 
 class EntropyCalculator(CorpusTools):
-    def __init__(self, tokens, q_grams=3):
+    def __init__(self, tokens, q_grams=8):
         # Preprocess tokens similarly to the original method
-        cleaned_tokens = [' '.join(reg.sub(r'[^a-zA-Z]', '', token).lower()) for token in tokens if len(token) >= 3]
+        cleaned_tokens = [' '.join(reg.sub(r'[^a-zA-Z]', '', token).lower()) for token in tokens if len(token) >= 2]
         super().__init__(cleaned_tokens)
         self.q_grams = q_grams
 
