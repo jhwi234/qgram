@@ -11,7 +11,7 @@ import regex
 # Configuration
 CORPUS_PATH = Path.cwd() / "data/corpora/Linear_B_Lexicon.csv"
 MODEL_DIR = Path.cwd() / "entropy_model"
-Q_GRAMS = 4  # KenLM model n-gram level
+Q_GRAMS = 5  # KenLM model n-gram level
 
 # Setup
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
