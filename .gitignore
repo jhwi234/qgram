@@ -108,11 +108,15 @@ data/models/
 data/outputs/
 entropy_model/
 entropy_corpora/
+downloads/
 
 # Specific file types
 *.klm
 *.png
 *.arpa
+
+# Specific files
+chechen.py
 
 # mypy cache
 .mypy_cache/
