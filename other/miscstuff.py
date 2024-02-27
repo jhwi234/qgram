@@ -49,7 +49,7 @@ def analyze_corpus(corpus_name: str, corpus_words: Iterable[str]):
     print_frequencies(f"Token Letter Percentages in {corpus_name} Corpus", token_percentage)
     print_frequencies(f"Type Letter Percentages in {corpus_name} Corpus", type_percentage)
 
-    print(f"\nUnique Word Count in {corpus_name} Corpus: {len(set(words))}")
+    print(f"\nDistinct Word Types in {corpus_name} Corpus: {len(set(words))}")
 
     # Conditional check to only run this for the Brown corpus
     if corpus_name == "Brown":

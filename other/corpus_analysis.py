@@ -523,7 +523,6 @@ class AdvancedTools(CorpusTools):
             if verbose:
                 print("Optimization did not converge.")
             raise ValueError("Optimization did not converge")
-        
 
 class EntropyCalculator(CorpusTools):
     def __init__(self, tokens, q_grams=8):
