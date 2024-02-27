@@ -1780,3 +1780,1059 @@ Overlap Metrics:
 2024-02-27 10:51:31,512 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
 2024-02-27 10:51:31,812 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
 2024-02-27 10:51:32,487 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:58:19,133 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:58:22,073 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:58:24,152 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:58:24,961 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:58:25,256 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:58:25,874 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:03:31,065 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:03:34,219 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:03:36,347 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:03:37,201 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:03:37,587 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:03:38,344 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:04:59,462 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:05:02,671 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:05:04,734 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:05:05,614 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:05:05,849 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:05:06,493 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:06:51,904 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:06:55,154 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:06:57,427 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:06:58,358 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:06:58,605 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:06:59,429 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:14:37,272 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:14:40,457 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:14:42,644 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:14:43,477 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:14:43,712 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:14:44,389 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:20:44,033 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:20:47,928 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:20:50,653 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:20:51,566 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:20:52,086 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:20:53,279 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:25:57,900 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:26:01,071 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:26:03,299 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:26:04,190 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:26:04,592 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:26:05,294 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:29:24,279 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:29:27,908 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:29:30,409 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:29:31,422 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:29:31,692 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:29:32,562 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 11:32:18,942 - ERROR: Error processing brown: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:32:22,573 - ERROR: Error processing CLMET3: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:32:24,798 - ERROR: Error processing cmudict: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:32:25,792 - ERROR: Error processing gutenberg: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:32:26,160 - ERROR: Error processing inaugural: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:32:26,919 - ERROR: Error processing reuters: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:33:46,466 - ERROR: Error processing brown: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:33:49,927 - ERROR: Error processing CLMET3: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:33:52,562 - ERROR: Error processing cmudict: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:33:53,542 - ERROR: Error processing gutenberg: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:33:53,795 - ERROR: Error processing inaugural: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:33:54,762 - ERROR: Error processing reuters: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:35:16,838 - ERROR: Error processing brown: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:35:20,360 - ERROR: Error processing CLMET3: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:35:22,479 - ERROR: Error processing cmudict: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:35:23,566 - ERROR: Error processing gutenberg: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:35:23,829 - ERROR: Error processing inaugural: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:35:24,442 - ERROR: Error processing reuters: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:45:21,500 - ERROR: Error processing brown: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:45:24,459 - ERROR: Error processing CLMET3: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:45:27,434 - ERROR: Error processing cmudict: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:45:28,305 - ERROR: Error processing gutenberg: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:45:28,663 - ERROR: Error processing inaugural: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:45:29,542 - ERROR: Error processing reuters: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:49:40,866 - ERROR: Error processing brown: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:49:44,503 - ERROR: Error processing CLMET3: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:49:46,916 - ERROR: Error processing cmudict: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:49:48,072 - ERROR: Error processing gutenberg: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:49:48,342 - ERROR: Error processing inaugural: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:49:49,312 - ERROR: Error processing reuters: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:50:09,498 - ERROR: Error processing brown: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:50:13,869 - ERROR: Error processing CLMET3: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:50:16,266 - ERROR: Error processing cmudict: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:50:17,261 - ERROR: Error processing gutenberg: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:50:17,459 - ERROR: Error processing inaugural: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:50:18,348 - ERROR: Error processing reuters: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 11:50:37,661 - ERROR: Error processing brown: 'dict' object has no attribute 'sum'
+2024-02-27 11:50:41,562 - ERROR: Error processing CLMET3: 'dict' object has no attribute 'sum'
+2024-02-27 11:50:44,167 - ERROR: Error processing cmudict: 'dict' object has no attribute 'sum'
+2024-02-27 11:50:45,174 - ERROR: Error processing gutenberg: 'dict' object has no attribute 'sum'
+2024-02-27 11:50:45,459 - ERROR: Error processing inaugural: 'dict' object has no attribute 'sum'
+2024-02-27 11:50:46,167 - ERROR: Error processing reuters: 'dict' object has no attribute 'sum'
+2024-02-27 11:54:32,724 - ERROR: Error processing brown: operands could not be broadcast together with shapes (97919,) (98777,) 
+2024-02-27 11:54:36,610 - ERROR: Error processing CLMET3: operands could not be broadcast together with shapes (268935,) (267378,) 
+2024-02-27 11:54:39,200 - ERROR: Error processing cmudict: operands could not be broadcast together with shapes (215508,) (214990,) 
+2024-02-27 11:54:40,249 - ERROR: Error processing gutenberg: operands could not be broadcast together with shapes (92677,) (91499,) 
+2024-02-27 11:54:40,507 - ERROR: Error processing inaugural: operands could not be broadcast together with shapes (28088,) (28967,) 
+2024-02-27 11:54:41,285 - ERROR: Error processing reuters: operands could not be broadcast together with shapes (72344,) (71530,) 
+2024-02-27 11:56:16,129 - ERROR: Error processing brown: operands could not be broadcast together with shapes (97919,) (98777,) 
+2024-02-27 11:56:19,966 - ERROR: Error processing CLMET3: operands could not be broadcast together with shapes (268935,) (267378,) 
+2024-02-27 11:56:22,732 - ERROR: Error processing cmudict: operands could not be broadcast together with shapes (215508,) (214990,) 
+2024-02-27 11:56:23,794 - ERROR: Error processing gutenberg: operands could not be broadcast together with shapes (92677,) (91499,) 
+2024-02-27 11:56:24,069 - ERROR: Error processing inaugural: operands could not be broadcast together with shapes (28088,) (28967,) 
+2024-02-27 11:56:24,822 - ERROR: Error processing reuters: operands could not be broadcast together with shapes (72344,) (71530,) 
+2024-02-27 11:58:16,412 - INFO: Q-grams union size: 144138
+2024-02-27 11:58:16,412 - INFO: Train vector size: 144138, Test vector size: 144138, Prediction vector size: 144138, Incorrect prediction vector size: 144138
+2024-02-27 11:58:16,514 - ERROR: Error processing brown: 'numpy.ndarray' object has no attribute 'values'
+2024-02-27 11:58:19,620 - INFO: Q-grams union size: 391109
+2024-02-27 11:58:19,620 - INFO: Train vector size: 391109, Test vector size: 391109, Prediction vector size: 391109, Incorrect prediction vector size: 391109
+2024-02-27 11:58:19,954 - ERROR: Error processing CLMET3: 'numpy.ndarray' object has no attribute 'values'
+2024-02-27 11:58:22,157 - INFO: Q-grams union size: 316893
+2024-02-27 11:58:22,158 - INFO: Train vector size: 316893, Test vector size: 316893, Prediction vector size: 316893, Incorrect prediction vector size: 316893
+2024-02-27 11:58:22,358 - ERROR: Error processing cmudict: 'numpy.ndarray' object has no attribute 'values'
+2024-02-27 11:58:23,316 - INFO: Q-grams union size: 132664
+2024-02-27 11:58:23,317 - INFO: Train vector size: 132664, Test vector size: 132664, Prediction vector size: 132664, Incorrect prediction vector size: 132664
+2024-02-27 11:58:23,408 - ERROR: Error processing gutenberg: 'numpy.ndarray' object has no attribute 'values'
+2024-02-27 11:58:23,642 - INFO: Q-grams union size: 41226
+2024-02-27 11:58:23,642 - INFO: Train vector size: 41226, Test vector size: 41226, Prediction vector size: 41226, Incorrect prediction vector size: 41226
+2024-02-27 11:58:23,678 - ERROR: Error processing inaugural: 'numpy.ndarray' object has no attribute 'values'
+2024-02-27 11:58:24,376 - INFO: Q-grams union size: 110392
+2024-02-27 11:58:24,377 - INFO: Train vector size: 110392, Test vector size: 110392, Prediction vector size: 110392, Incorrect prediction vector size: 110392
+2024-02-27 11:58:24,448 - ERROR: Error processing reuters: 'numpy.ndarray' object has no attribute 'values'
+2024-02-27 11:59:27,178 - INFO: Q-grams union size: 144138
+2024-02-27 11:59:27,179 - INFO: Train vector size: 144138, Test vector size: 144138, Prediction vector size: 144138, Incorrect prediction vector size: 144138
+2024-02-27 11:59:27,305 - ERROR: Error processing brown: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 11:59:30,432 - INFO: Q-grams union size: 391109
+2024-02-27 11:59:30,432 - INFO: Train vector size: 391109, Test vector size: 391109, Prediction vector size: 391109, Incorrect prediction vector size: 391109
+2024-02-27 11:59:30,846 - ERROR: Error processing CLMET3: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 11:59:33,152 - INFO: Q-grams union size: 316893
+2024-02-27 11:59:33,152 - INFO: Train vector size: 316893, Test vector size: 316893, Prediction vector size: 316893, Incorrect prediction vector size: 316893
+2024-02-27 11:59:33,371 - ERROR: Error processing cmudict: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 11:59:34,324 - INFO: Q-grams union size: 132664
+2024-02-27 11:59:34,325 - INFO: Train vector size: 132664, Test vector size: 132664, Prediction vector size: 132664, Incorrect prediction vector size: 132664
+2024-02-27 11:59:34,429 - ERROR: Error processing gutenberg: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 11:59:34,682 - INFO: Q-grams union size: 41226
+2024-02-27 11:59:34,683 - INFO: Train vector size: 41226, Test vector size: 41226, Prediction vector size: 41226, Incorrect prediction vector size: 41226
+2024-02-27 11:59:34,743 - ERROR: Error processing inaugural: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 11:59:35,515 - INFO: Q-grams union size: 110392
+2024-02-27 11:59:35,515 - INFO: Train vector size: 110392, Test vector size: 110392, Prediction vector size: 110392, Incorrect prediction vector size: 110392
+2024-02-27 11:59:35,602 - ERROR: Error processing reuters: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 12:00:52,147 - INFO: Q-grams union size: 144138
+2024-02-27 12:00:52,147 - INFO: Train vector size: 144138, Test vector size: 144138, Prediction vector size: 144138, Incorrect prediction vector size: 144138
+2024-02-27 12:00:52,261 - INFO: 
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:00:52,261 - INFO: 
+Similarity Metrics:
+2024-02-27 12:00:52,261 - INFO:    EMD:
+2024-02-27 12:00:52,261 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:52,261 - INFO:       Train-Test: N/A
+2024-02-27 12:00:52,261 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:52,261 - INFO:    Frequency Similarity:
+2024-02-27 12:00:52,261 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:52,262 - INFO:       Train-Test: N/A
+2024-02-27 12:00:52,262 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:52,262 - INFO:    Jaccard Similarity:
+2024-02-27 12:00:52,262 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:52,262 - INFO:       Train-Test: N/A
+2024-02-27 12:00:52,262 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:52,262 - INFO:    Cosine Similarity:
+2024-02-27 12:00:52,262 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:52,262 - INFO:       Train-Test: N/A
+2024-02-27 12:00:52,262 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:52,262 - INFO: 
+Statistical Metrics:
+2024-02-27 12:00:52,262 - INFO:    KL Divergence:
+2024-02-27 12:00:52,262 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:52,262 - INFO:       Train-Test: N/A
+2024-02-27 12:00:52,262 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:52,263 - INFO: 
+Overlap Metrics:
+2024-02-27 12:00:52,263 - INFO:    Overlap Coefficient:
+2024-02-27 12:00:52,263 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:52,263 - INFO:       Train-Test: N/A
+2024-02-27 12:00:52,263 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:52,263 - INFO:    Dice Coefficient:
+2024-02-27 12:00:52,263 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:52,263 - INFO:       Train-Test: N/A
+2024-02-27 12:00:52,263 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:52,263 - INFO:    Intersection Count:
+2024-02-27 12:00:52,263 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:52,263 - INFO:       Train-Test: N/A
+2024-02-27 12:00:52,263 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:52,263 - INFO: Successfully processed brown
+2024-02-27 12:00:55,515 - INFO: Q-grams union size: 391109
+2024-02-27 12:00:55,516 - INFO: Train vector size: 391109, Test vector size: 391109, Prediction vector size: 391109, Incorrect prediction vector size: 391109
+2024-02-27 12:00:55,889 - INFO: 
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:00:55,889 - INFO: 
+Similarity Metrics:
+2024-02-27 12:00:55,889 - INFO:    EMD:
+2024-02-27 12:00:55,890 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:55,890 - INFO:       Train-Test: N/A
+2024-02-27 12:00:55,890 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:55,891 - INFO:    Frequency Similarity:
+2024-02-27 12:00:55,891 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:55,892 - INFO:       Train-Test: N/A
+2024-02-27 12:00:55,901 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:55,901 - INFO:    Jaccard Similarity:
+2024-02-27 12:00:55,902 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:55,902 - INFO:       Train-Test: N/A
+2024-02-27 12:00:55,902 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:55,902 - INFO:    Cosine Similarity:
+2024-02-27 12:00:55,902 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:55,902 - INFO:       Train-Test: N/A
+2024-02-27 12:00:55,902 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:55,902 - INFO: 
+Statistical Metrics:
+2024-02-27 12:00:55,902 - INFO:    KL Divergence:
+2024-02-27 12:00:55,903 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:55,903 - INFO:       Train-Test: N/A
+2024-02-27 12:00:55,903 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:55,903 - INFO: 
+Overlap Metrics:
+2024-02-27 12:00:55,903 - INFO:    Overlap Coefficient:
+2024-02-27 12:00:55,903 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:55,903 - INFO:       Train-Test: N/A
+2024-02-27 12:00:55,903 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:55,903 - INFO:    Dice Coefficient:
+2024-02-27 12:00:55,903 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:55,903 - INFO:       Train-Test: N/A
+2024-02-27 12:00:55,903 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:55,903 - INFO:    Intersection Count:
+2024-02-27 12:00:55,903 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:55,904 - INFO:       Train-Test: N/A
+2024-02-27 12:00:55,904 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:55,904 - INFO: Successfully processed CLMET3
+2024-02-27 12:00:58,160 - INFO: Q-grams union size: 316893
+2024-02-27 12:00:58,160 - INFO: Train vector size: 316893, Test vector size: 316893, Prediction vector size: 316893, Incorrect prediction vector size: 316893
+2024-02-27 12:00:58,359 - INFO: 
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:00:58,359 - INFO: 
+Similarity Metrics:
+2024-02-27 12:00:58,359 - INFO:    EMD:
+2024-02-27 12:00:58,359 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:58,359 - INFO:       Train-Test: N/A
+2024-02-27 12:00:58,360 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:58,360 - INFO:    Frequency Similarity:
+2024-02-27 12:00:58,360 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:58,360 - INFO:       Train-Test: N/A
+2024-02-27 12:00:58,360 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:58,360 - INFO:    Jaccard Similarity:
+2024-02-27 12:00:58,360 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:58,360 - INFO:       Train-Test: N/A
+2024-02-27 12:00:58,360 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:58,360 - INFO:    Cosine Similarity:
+2024-02-27 12:00:58,360 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:58,360 - INFO:       Train-Test: N/A
+2024-02-27 12:00:58,360 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:58,360 - INFO: 
+Statistical Metrics:
+2024-02-27 12:00:58,361 - INFO:    KL Divergence:
+2024-02-27 12:00:58,361 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:58,361 - INFO:       Train-Test: N/A
+2024-02-27 12:00:58,361 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:58,361 - INFO: 
+Overlap Metrics:
+2024-02-27 12:00:58,361 - INFO:    Overlap Coefficient:
+2024-02-27 12:00:58,361 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:58,361 - INFO:       Train-Test: N/A
+2024-02-27 12:00:58,361 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:58,361 - INFO:    Dice Coefficient:
+2024-02-27 12:00:58,361 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:58,361 - INFO:       Train-Test: N/A
+2024-02-27 12:00:58,361 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:58,362 - INFO:    Intersection Count:
+2024-02-27 12:00:58,362 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:58,362 - INFO:       Train-Test: N/A
+2024-02-27 12:00:58,362 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:58,362 - INFO: Successfully processed cmudict
+2024-02-27 12:00:59,348 - INFO: Q-grams union size: 132664
+2024-02-27 12:00:59,348 - INFO: Train vector size: 132664, Test vector size: 132664, Prediction vector size: 132664, Incorrect prediction vector size: 132664
+2024-02-27 12:00:59,509 - INFO: 
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:00:59,509 - INFO: 
+Similarity Metrics:
+2024-02-27 12:00:59,509 - INFO:    EMD:
+2024-02-27 12:00:59,509 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,510 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,510 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,510 - INFO:    Frequency Similarity:
+2024-02-27 12:00:59,514 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,515 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,515 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,515 - INFO:    Jaccard Similarity:
+2024-02-27 12:00:59,516 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,516 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,516 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,516 - INFO:    Cosine Similarity:
+2024-02-27 12:00:59,522 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,522 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,522 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,522 - INFO: 
+Statistical Metrics:
+2024-02-27 12:00:59,522 - INFO:    KL Divergence:
+2024-02-27 12:00:59,523 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,523 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,523 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,523 - INFO: 
+Overlap Metrics:
+2024-02-27 12:00:59,523 - INFO:    Overlap Coefficient:
+2024-02-27 12:00:59,524 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,524 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,524 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,524 - INFO:    Dice Coefficient:
+2024-02-27 12:00:59,524 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,524 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,525 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,525 - INFO:    Intersection Count:
+2024-02-27 12:00:59,525 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,525 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,525 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,525 - INFO: Successfully processed gutenberg
+2024-02-27 12:00:59,844 - INFO: Q-grams union size: 41226
+2024-02-27 12:00:59,845 - INFO: Train vector size: 41226, Test vector size: 41226, Prediction vector size: 41226, Incorrect prediction vector size: 41226
+2024-02-27 12:00:59,900 - INFO: 
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:00:59,900 - INFO: 
+Similarity Metrics:
+2024-02-27 12:00:59,900 - INFO:    EMD:
+2024-02-27 12:00:59,901 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,901 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,901 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,901 - INFO:    Frequency Similarity:
+2024-02-27 12:00:59,901 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,901 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,902 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,902 - INFO:    Jaccard Similarity:
+2024-02-27 12:00:59,902 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,902 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,902 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,903 - INFO:    Cosine Similarity:
+2024-02-27 12:00:59,903 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,903 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,903 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,903 - INFO: 
+Statistical Metrics:
+2024-02-27 12:00:59,903 - INFO:    KL Divergence:
+2024-02-27 12:00:59,904 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,904 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,904 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,904 - INFO: 
+Overlap Metrics:
+2024-02-27 12:00:59,904 - INFO:    Overlap Coefficient:
+2024-02-27 12:00:59,904 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,905 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,905 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,905 - INFO:    Dice Coefficient:
+2024-02-27 12:00:59,905 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,906 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,906 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,906 - INFO:    Intersection Count:
+2024-02-27 12:00:59,906 - INFO:       Train-Prediction: N/A
+2024-02-27 12:00:59,908 - INFO:       Train-Test: N/A
+2024-02-27 12:00:59,908 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:00:59,908 - INFO: Successfully processed inaugural
+2024-02-27 12:01:00,586 - INFO: Q-grams union size: 110392
+2024-02-27 12:01:00,587 - INFO: Train vector size: 110392, Test vector size: 110392, Prediction vector size: 110392, Incorrect prediction vector size: 110392
+2024-02-27 12:01:00,680 - INFO: 
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:01:00,680 - INFO: 
+Similarity Metrics:
+2024-02-27 12:01:00,681 - INFO:    EMD:
+2024-02-27 12:01:00,682 - INFO:       Train-Prediction: N/A
+2024-02-27 12:01:00,682 - INFO:       Train-Test: N/A
+2024-02-27 12:01:00,683 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:01:00,683 - INFO:    Frequency Similarity:
+2024-02-27 12:01:00,684 - INFO:       Train-Prediction: N/A
+2024-02-27 12:01:00,684 - INFO:       Train-Test: N/A
+2024-02-27 12:01:00,685 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:01:00,686 - INFO:    Jaccard Similarity:
+2024-02-27 12:01:00,688 - INFO:       Train-Prediction: N/A
+2024-02-27 12:01:00,689 - INFO:       Train-Test: N/A
+2024-02-27 12:01:00,689 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:01:00,690 - INFO:    Cosine Similarity:
+2024-02-27 12:01:00,699 - INFO:       Train-Prediction: N/A
+2024-02-27 12:01:00,700 - INFO:       Train-Test: N/A
+2024-02-27 12:01:00,702 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:01:00,703 - INFO: 
+Statistical Metrics:
+2024-02-27 12:01:00,703 - INFO:    KL Divergence:
+2024-02-27 12:01:00,703 - INFO:       Train-Prediction: N/A
+2024-02-27 12:01:00,703 - INFO:       Train-Test: N/A
+2024-02-27 12:01:00,703 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:01:00,704 - INFO: 
+Overlap Metrics:
+2024-02-27 12:01:00,704 - INFO:    Overlap Coefficient:
+2024-02-27 12:01:00,704 - INFO:       Train-Prediction: N/A
+2024-02-27 12:01:00,704 - INFO:       Train-Test: N/A
+2024-02-27 12:01:00,704 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:01:00,705 - INFO:    Dice Coefficient:
+2024-02-27 12:01:00,705 - INFO:       Train-Prediction: N/A
+2024-02-27 12:01:00,705 - INFO:       Train-Test: N/A
+2024-02-27 12:01:00,705 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:01:00,705 - INFO:    Intersection Count:
+2024-02-27 12:01:00,705 - INFO:       Train-Prediction: N/A
+2024-02-27 12:01:00,706 - INFO:       Train-Test: N/A
+2024-02-27 12:01:00,706 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:01:00,706 - INFO: Successfully processed reuters
+2024-02-27 12:03:17,317 - INFO: Q-grams union size: 144138
+2024-02-27 12:03:17,318 - INFO: Train vector size: 144138, Test vector size: 144138, Prediction vector size: 144138, Incorrect prediction vector size: 144138
+2024-02-27 12:03:17,465 - ERROR: Error processing brown: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 12:03:20,832 - INFO: Q-grams union size: 391109
+2024-02-27 12:03:20,833 - INFO: Train vector size: 391109, Test vector size: 391109, Prediction vector size: 391109, Incorrect prediction vector size: 391109
+2024-02-27 12:03:21,248 - ERROR: Error processing CLMET3: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 12:03:24,957 - INFO: Q-grams union size: 316893
+2024-02-27 12:03:24,957 - INFO: Train vector size: 316893, Test vector size: 316893, Prediction vector size: 316893, Incorrect prediction vector size: 316893
+2024-02-27 12:03:25,300 - ERROR: Error processing cmudict: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 12:03:27,041 - INFO: Q-grams union size: 132664
+2024-02-27 12:03:27,042 - INFO: Train vector size: 132664, Test vector size: 132664, Prediction vector size: 132664, Incorrect prediction vector size: 132664
+2024-02-27 12:03:27,151 - ERROR: Error processing gutenberg: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 12:03:27,401 - INFO: Q-grams union size: 41226
+2024-02-27 12:03:27,401 - INFO: Train vector size: 41226, Test vector size: 41226, Prediction vector size: 41226, Incorrect prediction vector size: 41226
+2024-02-27 12:03:27,445 - ERROR: Error processing inaugural: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 12:03:28,221 - INFO: Q-grams union size: 110392
+2024-02-27 12:03:28,222 - INFO: Train vector size: 110392, Test vector size: 110392, Prediction vector size: 110392, Incorrect prediction vector size: 110392
+2024-02-27 12:03:28,316 - ERROR: Error processing reuters: log_results() missing 1 required positional argument: 'logger'
+2024-02-27 12:03:47,916 - INFO: Q-grams union size: 144138
+2024-02-27 12:03:47,916 - INFO: Train vector size: 144138, Test vector size: 144138, Prediction vector size: 144138, Incorrect prediction vector size: 144138
+2024-02-27 12:03:48,256 - INFO: 
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:03:48,257 - INFO: 
+Similarity Metrics:
+2024-02-27 12:03:48,258 - INFO:    EMD:
+2024-02-27 12:03:48,259 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:48,259 - INFO:       Train-Test: N/A
+2024-02-27 12:03:48,260 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:48,261 - INFO:    Frequency Similarity:
+2024-02-27 12:03:48,262 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:48,262 - INFO:       Train-Test: N/A
+2024-02-27 12:03:48,262 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:48,262 - INFO:    Jaccard Similarity:
+2024-02-27 12:03:48,262 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:48,262 - INFO:       Train-Test: N/A
+2024-02-27 12:03:48,262 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:48,263 - INFO:    Cosine Similarity:
+2024-02-27 12:03:48,263 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:48,263 - INFO:       Train-Test: N/A
+2024-02-27 12:03:48,263 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:48,263 - INFO: 
+Statistical Metrics:
+2024-02-27 12:03:48,263 - INFO:    KL Divergence:
+2024-02-27 12:03:48,263 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:48,263 - INFO:       Train-Test: N/A
+2024-02-27 12:03:48,263 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:48,263 - INFO: 
+Overlap Metrics:
+2024-02-27 12:03:48,263 - INFO:    Overlap Coefficient:
+2024-02-27 12:03:48,264 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:48,264 - INFO:       Train-Test: N/A
+2024-02-27 12:03:48,264 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:48,264 - INFO:    Dice Coefficient:
+2024-02-27 12:03:48,264 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:48,264 - INFO:       Train-Test: N/A
+2024-02-27 12:03:48,264 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:48,264 - INFO:    Intersection Count:
+2024-02-27 12:03:48,264 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:48,264 - INFO:       Train-Test: N/A
+2024-02-27 12:03:48,264 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:48,264 - INFO: Successfully processed brown
+2024-02-27 12:03:53,129 - INFO: Q-grams union size: 391109
+2024-02-27 12:03:53,130 - INFO: Train vector size: 391109, Test vector size: 391109, Prediction vector size: 391109, Incorrect prediction vector size: 391109
+2024-02-27 12:03:53,725 - INFO: 
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:03:53,725 - INFO: 
+Similarity Metrics:
+2024-02-27 12:03:53,725 - INFO:    EMD:
+2024-02-27 12:03:53,726 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:53,726 - INFO:       Train-Test: N/A
+2024-02-27 12:03:53,726 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:53,726 - INFO:    Frequency Similarity:
+2024-02-27 12:03:53,726 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:53,727 - INFO:       Train-Test: N/A
+2024-02-27 12:03:53,727 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:53,727 - INFO:    Jaccard Similarity:
+2024-02-27 12:03:53,727 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:53,728 - INFO:       Train-Test: N/A
+2024-02-27 12:03:53,728 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:53,740 - INFO:    Cosine Similarity:
+2024-02-27 12:03:53,741 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:53,741 - INFO:       Train-Test: N/A
+2024-02-27 12:03:53,741 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:53,741 - INFO: 
+Statistical Metrics:
+2024-02-27 12:03:53,741 - INFO:    KL Divergence:
+2024-02-27 12:03:53,741 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:53,741 - INFO:       Train-Test: N/A
+2024-02-27 12:03:53,741 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:53,741 - INFO: 
+Overlap Metrics:
+2024-02-27 12:03:53,741 - INFO:    Overlap Coefficient:
+2024-02-27 12:03:53,741 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:53,741 - INFO:       Train-Test: N/A
+2024-02-27 12:03:53,741 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:53,741 - INFO:    Dice Coefficient:
+2024-02-27 12:03:53,742 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:53,742 - INFO:       Train-Test: N/A
+2024-02-27 12:03:53,742 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:53,742 - INFO:    Intersection Count:
+2024-02-27 12:03:53,742 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:53,742 - INFO:       Train-Test: N/A
+2024-02-27 12:03:53,742 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:53,742 - INFO: Successfully processed CLMET3
+2024-02-27 12:03:57,246 - INFO: Q-grams union size: 316893
+2024-02-27 12:03:57,246 - INFO: Train vector size: 316893, Test vector size: 316893, Prediction vector size: 316893, Incorrect prediction vector size: 316893
+2024-02-27 12:03:57,638 - INFO: 
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:03:57,640 - INFO: 
+Similarity Metrics:
+2024-02-27 12:03:57,641 - INFO:    EMD:
+2024-02-27 12:03:57,641 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:57,642 - INFO:       Train-Test: N/A
+2024-02-27 12:03:57,644 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:57,644 - INFO:    Frequency Similarity:
+2024-02-27 12:03:57,644 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:57,645 - INFO:       Train-Test: N/A
+2024-02-27 12:03:57,645 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:57,645 - INFO:    Jaccard Similarity:
+2024-02-27 12:03:57,645 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:57,645 - INFO:       Train-Test: N/A
+2024-02-27 12:03:57,645 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:57,645 - INFO:    Cosine Similarity:
+2024-02-27 12:03:57,645 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:57,646 - INFO:       Train-Test: N/A
+2024-02-27 12:03:57,646 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:57,646 - INFO: 
+Statistical Metrics:
+2024-02-27 12:03:57,652 - INFO:    KL Divergence:
+2024-02-27 12:03:57,653 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:57,659 - INFO:       Train-Test: N/A
+2024-02-27 12:03:57,660 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:57,660 - INFO: 
+Overlap Metrics:
+2024-02-27 12:03:57,660 - INFO:    Overlap Coefficient:
+2024-02-27 12:03:57,660 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:57,660 - INFO:       Train-Test: N/A
+2024-02-27 12:03:57,660 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:57,660 - INFO:    Dice Coefficient:
+2024-02-27 12:03:57,660 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:57,660 - INFO:       Train-Test: N/A
+2024-02-27 12:03:57,661 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:57,661 - INFO:    Intersection Count:
+2024-02-27 12:03:57,661 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:57,661 - INFO:       Train-Test: N/A
+2024-02-27 12:03:57,661 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:57,661 - INFO: Successfully processed cmudict
+2024-02-27 12:03:59,176 - INFO: Q-grams union size: 132664
+2024-02-27 12:03:59,194 - INFO: Train vector size: 132664, Test vector size: 132664, Prediction vector size: 132664, Incorrect prediction vector size: 132664
+2024-02-27 12:03:59,499 - INFO: 
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:03:59,502 - INFO: 
+Similarity Metrics:
+2024-02-27 12:03:59,502 - INFO:    EMD:
+2024-02-27 12:03:59,502 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,502 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,502 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,503 - INFO:    Frequency Similarity:
+2024-02-27 12:03:59,503 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,503 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,503 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,503 - INFO:    Jaccard Similarity:
+2024-02-27 12:03:59,503 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,503 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,503 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,503 - INFO:    Cosine Similarity:
+2024-02-27 12:03:59,503 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,503 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,503 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,504 - INFO: 
+Statistical Metrics:
+2024-02-27 12:03:59,504 - INFO:    KL Divergence:
+2024-02-27 12:03:59,504 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,504 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,504 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,504 - INFO: 
+Overlap Metrics:
+2024-02-27 12:03:59,504 - INFO:    Overlap Coefficient:
+2024-02-27 12:03:59,504 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,504 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,504 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,504 - INFO:    Dice Coefficient:
+2024-02-27 12:03:59,504 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,504 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,505 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,505 - INFO:    Intersection Count:
+2024-02-27 12:03:59,505 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,505 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,505 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,505 - INFO: Successfully processed gutenberg
+2024-02-27 12:03:59,919 - INFO: Q-grams union size: 41226
+2024-02-27 12:03:59,919 - INFO: Train vector size: 41226, Test vector size: 41226, Prediction vector size: 41226, Incorrect prediction vector size: 41226
+2024-02-27 12:03:59,959 - INFO: 
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:03:59,959 - INFO: 
+Similarity Metrics:
+2024-02-27 12:03:59,959 - INFO:    EMD:
+2024-02-27 12:03:59,959 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,959 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,959 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,971 - INFO:    Frequency Similarity:
+2024-02-27 12:03:59,971 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,971 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,971 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,971 - INFO:    Jaccard Similarity:
+2024-02-27 12:03:59,971 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,971 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,971 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,972 - INFO:    Cosine Similarity:
+2024-02-27 12:03:59,972 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,972 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,972 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,972 - INFO: 
+Statistical Metrics:
+2024-02-27 12:03:59,972 - INFO:    KL Divergence:
+2024-02-27 12:03:59,972 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,972 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,972 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,972 - INFO: 
+Overlap Metrics:
+2024-02-27 12:03:59,972 - INFO:    Overlap Coefficient:
+2024-02-27 12:03:59,972 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,973 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,973 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,973 - INFO:    Dice Coefficient:
+2024-02-27 12:03:59,973 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,973 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,973 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,973 - INFO:    Intersection Count:
+2024-02-27 12:03:59,973 - INFO:       Train-Prediction: N/A
+2024-02-27 12:03:59,973 - INFO:       Train-Test: N/A
+2024-02-27 12:03:59,973 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:03:59,973 - INFO: Successfully processed inaugural
+2024-02-27 12:04:01,293 - INFO: Q-grams union size: 110392
+2024-02-27 12:04:01,294 - INFO: Train vector size: 110392, Test vector size: 110392, Prediction vector size: 110392, Incorrect prediction vector size: 110392
+2024-02-27 12:04:01,437 - INFO: 
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:04:01,438 - INFO: 
+Similarity Metrics:
+2024-02-27 12:04:01,439 - INFO:    EMD:
+2024-02-27 12:04:01,440 - INFO:       Train-Prediction: N/A
+2024-02-27 12:04:01,442 - INFO:       Train-Test: N/A
+2024-02-27 12:04:01,442 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:04:01,443 - INFO:    Frequency Similarity:
+2024-02-27 12:04:01,445 - INFO:       Train-Prediction: N/A
+2024-02-27 12:04:01,446 - INFO:       Train-Test: N/A
+2024-02-27 12:04:01,451 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:04:01,451 - INFO:    Jaccard Similarity:
+2024-02-27 12:04:01,454 - INFO:       Train-Prediction: N/A
+2024-02-27 12:04:01,455 - INFO:       Train-Test: N/A
+2024-02-27 12:04:01,455 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:04:01,455 - INFO:    Cosine Similarity:
+2024-02-27 12:04:01,455 - INFO:       Train-Prediction: N/A
+2024-02-27 12:04:01,455 - INFO:       Train-Test: N/A
+2024-02-27 12:04:01,455 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:04:01,455 - INFO: 
+Statistical Metrics:
+2024-02-27 12:04:01,455 - INFO:    KL Divergence:
+2024-02-27 12:04:01,455 - INFO:       Train-Prediction: N/A
+2024-02-27 12:04:01,456 - INFO:       Train-Test: N/A
+2024-02-27 12:04:01,456 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:04:01,460 - INFO: 
+Overlap Metrics:
+2024-02-27 12:04:01,461 - INFO:    Overlap Coefficient:
+2024-02-27 12:04:01,461 - INFO:       Train-Prediction: N/A
+2024-02-27 12:04:01,461 - INFO:       Train-Test: N/A
+2024-02-27 12:04:01,461 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:04:01,461 - INFO:    Dice Coefficient:
+2024-02-27 12:04:01,461 - INFO:       Train-Prediction: N/A
+2024-02-27 12:04:01,461 - INFO:       Train-Test: N/A
+2024-02-27 12:04:01,461 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:04:01,461 - INFO:    Intersection Count:
+2024-02-27 12:04:01,461 - INFO:       Train-Prediction: N/A
+2024-02-27 12:04:01,462 - INFO:       Train-Test: N/A
+2024-02-27 12:04:01,463 - INFO:       Train-Incorrect Prediction: N/A
+2024-02-27 12:04:01,466 - INFO: Successfully processed reuters
+2024-02-27 12:04:22,094 - INFO: Q-grams union size: 144138
+2024-02-27 12:04:22,095 - INFO: Train vector size: 144138, Test vector size: 144138, Prediction vector size: 144138, Incorrect prediction vector size: 144138
+2024-02-27 12:04:22,268 - ERROR: Error processing brown: log_results() got an unexpected keyword argument 'logger'
+2024-02-27 12:04:26,142 - INFO: Q-grams union size: 391109
+2024-02-27 12:04:26,142 - INFO: Train vector size: 391109, Test vector size: 391109, Prediction vector size: 391109, Incorrect prediction vector size: 391109
+2024-02-27 12:04:26,612 - ERROR: Error processing CLMET3: log_results() got an unexpected keyword argument 'logger'
+2024-02-27 12:04:29,452 - INFO: Q-grams union size: 316893
+2024-02-27 12:04:29,452 - INFO: Train vector size: 316893, Test vector size: 316893, Prediction vector size: 316893, Incorrect prediction vector size: 316893
+2024-02-27 12:04:30,112 - ERROR: Error processing cmudict: log_results() got an unexpected keyword argument 'logger'
+2024-02-27 12:04:32,043 - INFO: Q-grams union size: 132664
+2024-02-27 12:04:32,054 - INFO: Train vector size: 132664, Test vector size: 132664, Prediction vector size: 132664, Incorrect prediction vector size: 132664
+2024-02-27 12:04:32,245 - ERROR: Error processing gutenberg: log_results() got an unexpected keyword argument 'logger'
+2024-02-27 12:04:32,742 - INFO: Q-grams union size: 41226
+2024-02-27 12:04:32,743 - INFO: Train vector size: 41226, Test vector size: 41226, Prediction vector size: 41226, Incorrect prediction vector size: 41226
+2024-02-27 12:04:32,817 - ERROR: Error processing inaugural: log_results() got an unexpected keyword argument 'logger'
+2024-02-27 12:04:34,495 - INFO: Q-grams union size: 110392
+2024-02-27 12:04:34,497 - INFO: Train vector size: 110392, Test vector size: 110392, Prediction vector size: 110392, Incorrect prediction vector size: 110392
+2024-02-27 12:04:34,771 - ERROR: Error processing reuters: log_results() got an unexpected keyword argument 'logger'
+2024-02-27 12:05:07,084 - INFO: Q-grams union size: 144138
+2024-02-27 12:05:07,085 - INFO: Train vector size: 144138, Test vector size: 144138, Prediction vector size: 144138, Incorrect prediction vector size: 144138
+2024-02-27 12:05:07,294 - INFO: 
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:05:07,295 - INFO: Spearman Correlation Train-Pred: 0.1846
+2024-02-27 12:05:07,296 - INFO: Spearman Correlation Train-Test: 0.1846
+2024-02-27 12:05:07,296 - INFO: Spearman Correlation Train-Incorrect Pred: 0.1846
+2024-02-27 12:05:07,297 - INFO: Frequency Similarity Train-Pred: 0.7883
+2024-02-27 12:05:07,297 - INFO: Frequency Similarity Train-Test: 0.7883
+2024-02-27 12:05:07,298 - INFO: Frequency Similarity Train-Incorrect Pred: 0.7883
+2024-02-27 12:05:07,299 - INFO: Dice Coefficient Train-Pred: 0.7884
+2024-02-27 12:05:07,302 - INFO: Dice Coefficient Train-Test: 0.7884
+2024-02-27 12:05:07,302 - INFO: Dice Coefficient Train-Incorrect Pred: 0.7884
+2024-02-27 12:05:07,302 - INFO: Intersection Count Train-Pred: 0.1062
+2024-02-27 12:05:07,302 - INFO: Intersection Count Train-Test: 0.1062
+2024-02-27 12:05:07,303 - INFO: Intersection Count Train-Incorrect Pred: 0.1062
+2024-02-27 12:05:07,303 - INFO: Successfully processed brown
+2024-02-27 12:05:13,709 - INFO: Q-grams union size: 391109
+2024-02-27 12:05:13,709 - INFO: Train vector size: 391109, Test vector size: 391109, Prediction vector size: 391109, Incorrect prediction vector size: 391109
+2024-02-27 12:05:14,238 - INFO: 
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:05:14,240 - INFO: Spearman Correlation Train-Pred: 0.2307
+2024-02-27 12:05:14,240 - INFO: Spearman Correlation Train-Test: 0.2307
+2024-02-27 12:05:14,240 - INFO: Spearman Correlation Train-Incorrect Pred: 0.2307
+2024-02-27 12:05:14,240 - INFO: Frequency Similarity Train-Pred: 0.8357
+2024-02-27 12:05:14,240 - INFO: Frequency Similarity Train-Test: 0.8357
+2024-02-27 12:05:14,241 - INFO: Frequency Similarity Train-Incorrect Pred: 0.8357
+2024-02-27 12:05:14,241 - INFO: Dice Coefficient Train-Pred: 0.8358
+2024-02-27 12:05:14,241 - INFO: Dice Coefficient Train-Test: 0.8358
+2024-02-27 12:05:14,241 - INFO: Dice Coefficient Train-Incorrect Pred: 0.8358
+2024-02-27 12:05:14,241 - INFO: Intersection Count Train-Pred: 0.0794
+2024-02-27 12:05:14,241 - INFO: Intersection Count Train-Test: 0.0794
+2024-02-27 12:05:14,242 - INFO: Intersection Count Train-Incorrect Pred: 0.0794
+2024-02-27 12:05:14,242 - INFO: Successfully processed CLMET3
+2024-02-27 12:05:17,292 - INFO: Q-grams union size: 316893
+2024-02-27 12:05:17,299 - INFO: Train vector size: 316893, Test vector size: 316893, Prediction vector size: 316893, Incorrect prediction vector size: 316893
+2024-02-27 12:05:17,626 - INFO: 
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:05:17,627 - INFO: Spearman Correlation Train-Pred: 0.1698
+2024-02-27 12:05:17,627 - INFO: Spearman Correlation Train-Test: 0.1698
+2024-02-27 12:05:17,628 - INFO: Spearman Correlation Train-Incorrect Pred: 0.1698
+2024-02-27 12:05:17,630 - INFO: Frequency Similarity Train-Pred: 0.8169
+2024-02-27 12:05:17,630 - INFO: Frequency Similarity Train-Test: 0.8169
+2024-02-27 12:05:17,631 - INFO: Frequency Similarity Train-Incorrect Pred: 0.8169
+2024-02-27 12:05:17,645 - INFO: Dice Coefficient Train-Pred: 0.8169
+2024-02-27 12:05:17,647 - INFO: Dice Coefficient Train-Test: 0.8169
+2024-02-27 12:05:17,647 - INFO: Dice Coefficient Train-Incorrect Pred: 0.8169
+2024-02-27 12:05:17,648 - INFO: Intersection Count Train-Pred: 0.0890
+2024-02-27 12:05:17,648 - INFO: Intersection Count Train-Test: 0.0890
+2024-02-27 12:05:17,648 - INFO: Intersection Count Train-Incorrect Pred: 0.0890
+2024-02-27 12:05:17,650 - INFO: Successfully processed cmudict
+2024-02-27 12:05:18,772 - INFO: Q-grams union size: 132664
+2024-02-27 12:05:18,773 - INFO: Train vector size: 132664, Test vector size: 132664, Prediction vector size: 132664, Incorrect prediction vector size: 132664
+2024-02-27 12:05:18,897 - INFO: 
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:05:18,897 - INFO: Spearman Correlation Train-Pred: 0.2206
+2024-02-27 12:05:18,897 - INFO: Spearman Correlation Train-Test: 0.2206
+2024-02-27 12:05:18,897 - INFO: Spearman Correlation Train-Incorrect Pred: 0.2206
+2024-02-27 12:05:18,897 - INFO: Frequency Similarity Train-Pred: 0.7903
+2024-02-27 12:05:18,897 - INFO: Frequency Similarity Train-Test: 0.7903
+2024-02-27 12:05:18,897 - INFO: Frequency Similarity Train-Incorrect Pred: 0.7903
+2024-02-27 12:05:18,897 - INFO: Dice Coefficient Train-Pred: 0.7903
+2024-02-27 12:05:18,897 - INFO: Dice Coefficient Train-Test: 0.7903
+2024-02-27 12:05:18,897 - INFO: Dice Coefficient Train-Incorrect Pred: 0.7903
+2024-02-27 12:05:18,898 - INFO: Intersection Count Train-Pred: 0.1081
+2024-02-27 12:05:18,898 - INFO: Intersection Count Train-Test: 0.1081
+2024-02-27 12:05:18,898 - INFO: Intersection Count Train-Incorrect Pred: 0.1081
+2024-02-27 12:05:18,898 - INFO: Successfully processed gutenberg
+2024-02-27 12:05:19,270 - INFO: Q-grams union size: 41226
+2024-02-27 12:05:19,270 - INFO: Train vector size: 41226, Test vector size: 41226, Prediction vector size: 41226, Incorrect prediction vector size: 41226
+2024-02-27 12:05:19,302 - INFO: 
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:05:19,303 - INFO: Spearman Correlation Train-Pred: 0.1868
+2024-02-27 12:05:19,306 - INFO: Spearman Correlation Train-Test: 0.1868
+2024-02-27 12:05:19,306 - INFO: Spearman Correlation Train-Incorrect Pred: 0.1868
+2024-02-27 12:05:19,306 - INFO: Frequency Similarity Train-Pred: 0.7248
+2024-02-27 12:05:19,306 - INFO: Frequency Similarity Train-Test: 0.7248
+2024-02-27 12:05:19,306 - INFO: Frequency Similarity Train-Incorrect Pred: 0.7248
+2024-02-27 12:05:19,308 - INFO: Dice Coefficient Train-Pred: 0.7256
+2024-02-27 12:05:19,309 - INFO: Dice Coefficient Train-Test: 0.7256
+2024-02-27 12:05:19,309 - INFO: Dice Coefficient Train-Incorrect Pred: 0.7256
+2024-02-27 12:05:19,310 - INFO: Intersection Count Train-Pred: 0.1439
+2024-02-27 12:05:19,310 - INFO: Intersection Count Train-Test: 0.1439
+2024-02-27 12:05:19,310 - INFO: Intersection Count Train-Incorrect Pred: 0.1439
+2024-02-27 12:05:19,310 - INFO: Successfully processed inaugural
+2024-02-27 12:05:20,323 - INFO: Q-grams union size: 110392
+2024-02-27 12:05:20,323 - INFO: Train vector size: 110392, Test vector size: 110392, Prediction vector size: 110392, Incorrect prediction vector size: 110392
+2024-02-27 12:05:20,452 - INFO: 
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+2024-02-27 12:05:20,453 - INFO: Spearman Correlation Train-Pred: 0.0604
+2024-02-27 12:05:20,453 - INFO: Spearman Correlation Train-Test: 0.0604
+2024-02-27 12:05:20,453 - INFO: Spearman Correlation Train-Incorrect Pred: 0.0604
+2024-02-27 12:05:20,453 - INFO: Frequency Similarity Train-Pred: 0.7457
+2024-02-27 12:05:20,454 - INFO: Frequency Similarity Train-Test: 0.7457
+2024-02-27 12:05:20,454 - INFO: Frequency Similarity Train-Incorrect Pred: 0.7457
+2024-02-27 12:05:20,455 - INFO: Dice Coefficient Train-Pred: 0.7457
+2024-02-27 12:05:20,455 - INFO: Dice Coefficient Train-Test: 0.7457
+2024-02-27 12:05:20,455 - INFO: Dice Coefficient Train-Incorrect Pred: 0.7457
+2024-02-27 12:05:20,456 - INFO: Intersection Count Train-Pred: 0.1127
+2024-02-27 12:05:20,456 - INFO: Intersection Count Train-Test: 0.1127
+2024-02-27 12:05:20,456 - INFO: Intersection Count Train-Incorrect Pred: 0.1127
+2024-02-27 12:05:20,457 - INFO: Successfully processed reuters
+Q-grams union size: 144138
+Train vector size: 144138, Test vector size: 144138, Prediction vector size: 144138, Incorrect prediction vector size: 144138
+
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.1846
+Spearman Correlation Train-Test: 0.1846
+Spearman Correlation Train-Incorrect Pred: 0.1846
+Frequency Similarity Train-Pred: 0.7883
+Frequency Similarity Train-Test: 0.7883
+Frequency Similarity Train-Incorrect Pred: 0.7883
+Dice Coefficient Train-Pred: 0.7884
+Dice Coefficient Train-Test: 0.7884
+Dice Coefficient Train-Incorrect Pred: 0.7884
+Intersection Count Train-Pred: 0.1062
+Intersection Count Train-Test: 0.1062
+Intersection Count Train-Incorrect Pred: 0.1062
+Successfully processed brown
+Q-grams union size: 391109
+Train vector size: 391109, Test vector size: 391109, Prediction vector size: 391109, Incorrect prediction vector size: 391109
+
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.2307
+Spearman Correlation Train-Test: 0.2307
+Spearman Correlation Train-Incorrect Pred: 0.2307
+Frequency Similarity Train-Pred: 0.8357
+Frequency Similarity Train-Test: 0.8357
+Frequency Similarity Train-Incorrect Pred: 0.8357
+Dice Coefficient Train-Pred: 0.8358
+Dice Coefficient Train-Test: 0.8358
+Dice Coefficient Train-Incorrect Pred: 0.8358
+Intersection Count Train-Pred: 0.0794
+Intersection Count Train-Test: 0.0794
+Intersection Count Train-Incorrect Pred: 0.0794
+Successfully processed CLMET3
+Q-grams union size: 316893
+Train vector size: 316893, Test vector size: 316893, Prediction vector size: 316893, Incorrect prediction vector size: 316893
+
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.1698
+Spearman Correlation Train-Test: 0.1698
+Spearman Correlation Train-Incorrect Pred: 0.1698
+Frequency Similarity Train-Pred: 0.8169
+Frequency Similarity Train-Test: 0.8169
+Frequency Similarity Train-Incorrect Pred: 0.8169
+Dice Coefficient Train-Pred: 0.8169
+Dice Coefficient Train-Test: 0.8169
+Dice Coefficient Train-Incorrect Pred: 0.8169
+Intersection Count Train-Pred: 0.0890
+Intersection Count Train-Test: 0.0890
+Intersection Count Train-Incorrect Pred: 0.0890
+Successfully processed cmudict
+Q-grams union size: 132664
+Train vector size: 132664, Test vector size: 132664, Prediction vector size: 132664, Incorrect prediction vector size: 132664
+
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.2206
+Spearman Correlation Train-Test: 0.2206
+Spearman Correlation Train-Incorrect Pred: 0.2206
+Frequency Similarity Train-Pred: 0.7903
+Frequency Similarity Train-Test: 0.7903
+Frequency Similarity Train-Incorrect Pred: 0.7903
+Dice Coefficient Train-Pred: 0.7903
+Dice Coefficient Train-Test: 0.7903
+Dice Coefficient Train-Incorrect Pred: 0.7903
+Intersection Count Train-Pred: 0.1081
+Intersection Count Train-Test: 0.1081
+Intersection Count Train-Incorrect Pred: 0.1081
+Successfully processed gutenberg
+Q-grams union size: 41226
+Train vector size: 41226, Test vector size: 41226, Prediction vector size: 41226, Incorrect prediction vector size: 41226
+
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.1868
+Spearman Correlation Train-Test: 0.1868
+Spearman Correlation Train-Incorrect Pred: 0.1868
+Frequency Similarity Train-Pred: 0.7248
+Frequency Similarity Train-Test: 0.7248
+Frequency Similarity Train-Incorrect Pred: 0.7248
+Dice Coefficient Train-Pred: 0.7256
+Dice Coefficient Train-Test: 0.7256
+Dice Coefficient Train-Incorrect Pred: 0.7256
+Intersection Count Train-Pred: 0.1439
+Intersection Count Train-Test: 0.1439
+Intersection Count Train-Incorrect Pred: 0.1439
+Successfully processed inaugural
+Q-grams union size: 110392
+Train vector size: 110392, Test vector size: 110392, Prediction vector size: 110392, Incorrect prediction vector size: 110392
+
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.0604
+Spearman Correlation Train-Test: 0.0604
+Spearman Correlation Train-Incorrect Pred: 0.0604
+Frequency Similarity Train-Pred: 0.7457
+Frequency Similarity Train-Test: 0.7457
+Frequency Similarity Train-Incorrect Pred: 0.7457
+Dice Coefficient Train-Pred: 0.7457
+Dice Coefficient Train-Test: 0.7457
+Dice Coefficient Train-Incorrect Pred: 0.7457
+Intersection Count Train-Pred: 0.1127
+Intersection Count Train-Test: 0.1127
+Intersection Count Train-Incorrect Pred: 0.1127
+Successfully processed reuters
+Q-grams union size: 144138
+Train vector size: 144138, Test vector size: 144138, Prediction vector size: 144138, Incorrect prediction vector size: 144138
+
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.5660
+Spearman Correlation Train-Test: 0.1846
+Spearman Correlation Train-Incorrect Pred: 0.2777
+Frequency Similarity Train-Pred: 0.8173
+Frequency Similarity Train-Test: 0.7883
+Frequency Similarity Train-Incorrect Pred: 0.6502
+Dice Coefficient Train-Pred: 0.7630
+Dice Coefficient Train-Test: 0.7884
+Dice Coefficient Train-Incorrect Pred: 0.3980
+Intersection Count Train-Pred: 0.1625
+Intersection Count Train-Test: 0.1062
+Intersection Count Train-Incorrect Pred: 0.2506
+Successfully processed brown
+Q-grams union size: 391109
+Train vector size: 391109, Test vector size: 391109, Prediction vector size: 391109, Incorrect prediction vector size: 391109
+
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.5868
+Spearman Correlation Train-Test: 0.2307
+Spearman Correlation Train-Incorrect Pred: 0.3303
+Frequency Similarity Train-Pred: 0.8457
+Frequency Similarity Train-Test: 0.8357
+Frequency Similarity Train-Incorrect Pred: 0.7239
+Dice Coefficient Train-Pred: 0.7606
+Dice Coefficient Train-Test: 0.8358
+Dice Coefficient Train-Incorrect Pred: 0.4479
+Intersection Count Train-Pred: 0.1231
+Intersection Count Train-Test: 0.0794
+Intersection Count Train-Incorrect Pred: 0.1904
+Successfully processed CLMET3
+Q-grams union size: 316893
+Train vector size: 316893, Test vector size: 316893, Prediction vector size: 316893, Incorrect prediction vector size: 316893
+
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.5490
+Spearman Correlation Train-Test: 0.1698
+Spearman Correlation Train-Incorrect Pred: 0.3221
+Frequency Similarity Train-Pred: 0.8209
+Frequency Similarity Train-Test: 0.8169
+Frequency Similarity Train-Incorrect Pred: 0.7230
+Dice Coefficient Train-Pred: 0.7259
+Dice Coefficient Train-Test: 0.8169
+Dice Coefficient Train-Incorrect Pred: 0.4873
+Intersection Count Train-Pred: 0.1455
+Intersection Count Train-Test: 0.0890
+Intersection Count Train-Incorrect Pred: 0.1929
+Successfully processed cmudict
+Q-grams union size: 132664
+Train vector size: 132664, Test vector size: 132664, Prediction vector size: 132664, Incorrect prediction vector size: 132664
+
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.3698
+Spearman Correlation Train-Test: 0.2206
+Spearman Correlation Train-Incorrect Pred: 0.0090
+Frequency Similarity Train-Pred: 0.7730
+Frequency Similarity Train-Test: 0.7903
+Frequency Similarity Train-Incorrect Pred: 0.6145
+Dice Coefficient Train-Pred: 0.7165
+Dice Coefficient Train-Test: 0.7903
+Dice Coefficient Train-Incorrect Pred: 0.3567
+Intersection Count Train-Pred: 0.1381
+Intersection Count Train-Test: 0.1081
+Intersection Count Train-Incorrect Pred: 0.1622
+Successfully processed gutenberg
+Q-grams union size: 41226
+Train vector size: 41226, Test vector size: 41226, Prediction vector size: 41226, Incorrect prediction vector size: 41226
+
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.3117
+Spearman Correlation Train-Test: 0.1868
+Spearman Correlation Train-Incorrect Pred: -0.0112
+Frequency Similarity Train-Pred: 0.7212
+Frequency Similarity Train-Test: 0.7248
+Frequency Similarity Train-Incorrect Pred: 0.5219
+Dice Coefficient Train-Pred: 0.7002
+Dice Coefficient Train-Test: 0.7256
+Dice Coefficient Train-Incorrect Pred: 0.2736
+Intersection Count Train-Pred: 0.1704
+Intersection Count Train-Test: 0.1439
+Intersection Count Train-Incorrect Pred: 0.2149
+Successfully processed inaugural
+Q-grams union size: 110392
+Train vector size: 110392, Test vector size: 110392, Prediction vector size: 110392, Incorrect prediction vector size: 110392
+
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+Spearman Correlation Train-Pred: 0.2642
+Spearman Correlation Train-Test: 0.0604
+Spearman Correlation Train-Incorrect Pred: -0.0805
+Frequency Similarity Train-Pred: 0.7171
+Frequency Similarity Train-Test: 0.7457
+Frequency Similarity Train-Incorrect Pred: 0.5751
+Dice Coefficient Train-Pred: 0.6556
+Dice Coefficient Train-Test: 0.7457
+Dice Coefficient Train-Incorrect Pred: 0.3819
+Intersection Count Train-Pred: 0.1494
+Intersection Count Train-Test: 0.1127
+Intersection Count Train-Incorrect Pred: 0.1568
+Successfully processed reuters
