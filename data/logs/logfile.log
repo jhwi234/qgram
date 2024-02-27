@@ -34147,3 +34147,62 @@ Minimum Word Length: 3
 2024-02-27 09:58:02,291 - TOP2 ACCURACY: 80.14% | TOP2 VALIDITY: 84.49%
 2024-02-27 09:58:02,291 - TOP3 ACCURACY: 86.28% | TOP3 VALIDITY: 89.80%
 2024-02-27 09:58:02,585 - ---------------------------------------------
+2024-02-27 10:48:08,851 - Processing cmudict Corpus
+2024-02-27 10:48:08,853 - ---------------------------------------------
+2024-02-27 10:50:26,282 - Model for 6-gram loaded from cmudict
+2024-02-27 10:50:26,387 - Language Model for cmudict initialized with:
+2024-02-27 10:50:26,389 - Seed: 42
+2024-02-27 10:50:26,392 - Q-gram Range: [6, 6]
+2024-02-27 10:50:26,392 - Train-Test Split Configuration: 0.5
+2024-02-27 10:50:26,392 - Training Set Size: 57745
+2024-02-27 10:50:26,392 - Testing Set Size: 57746
+2024-02-27 10:50:26,392 - Vowel Replacement Ratio: 0.2
+2024-02-27 10:50:26,392 - Consonant Replacement Ratio: 0.8
+2024-02-27 10:50:26,392 - Unique Character Count: 26
+2024-02-27 10:50:26,392 - Minimum Word Length: 3
+2024-02-27 10:50:35,068 - Evaluated with: context_sensitive
+2024-02-27 10:50:35,068 - Model evaluation completed for: cmudict
+2024-02-27 10:50:35,068 - TOP1 ACCURACY: 53.70% | TOP1 VALIDITY: 70.58%
+2024-02-27 10:50:35,068 - TOP2 ACCURACY: 68.00% | TOP2 VALIDITY: 82.13%
+2024-02-27 10:50:35,068 - TOP3 ACCURACY: 76.07% | TOP3 VALIDITY: 87.46%
+2024-02-27 10:50:36,562 - ---------------------------------------------
+2024-02-27 10:50:36,656 - Processing brown Corpus
+2024-02-27 10:50:36,656 - ---------------------------------------------
+2024-02-27 10:50:46,221 - Model for 6-gram loaded from brown
+2024-02-27 10:50:46,320 - Language Model for brown initialized with:
+2024-02-27 10:50:46,321 - Seed: 42
+2024-02-27 10:50:46,324 - Q-gram Range: [6, 6]
+2024-02-27 10:50:46,324 - Train-Test Split Configuration: 0.5
+2024-02-27 10:50:46,337 - Training Set Size: 20604
+2024-02-27 10:50:46,338 - Testing Set Size: 20604
+2024-02-27 10:50:46,338 - Vowel Replacement Ratio: 0.2
+2024-02-27 10:50:46,338 - Consonant Replacement Ratio: 0.8
+2024-02-27 10:50:46,338 - Unique Character Count: 26
+2024-02-27 10:50:46,356 - Minimum Word Length: 3
+2024-02-27 10:50:50,437 - Evaluated with: context_sensitive
+2024-02-27 10:50:50,438 - Model evaluation completed for: brown
+2024-02-27 10:50:50,438 - TOP1 ACCURACY: 61.70% | TOP1 VALIDITY: 71.99%
+2024-02-27 10:50:50,438 - TOP2 ACCURACY: 74.64% | TOP2 VALIDITY: 82.86%
+2024-02-27 10:50:50,439 - TOP3 ACCURACY: 81.76% | TOP3 VALIDITY: 88.18%
+2024-02-27 10:50:51,031 - ---------------------------------------------
+2024-02-27 10:50:51,056 - Processing CLMET3 Corpus
+2024-02-27 10:50:51,056 - ---------------------------------------------
+2024-02-27 10:50:56,412 - Model for 6-gram loaded from CLMET3
+2024-02-27 10:50:56,667 - Language Model for CLMET3 initialized with:
+2024-02-27 10:50:56,667 - Seed: 42
+2024-02-27 10:50:56,667 - Q-gram Range: [6, 6]
+2024-02-27 10:50:56,667 - Train-Test Split Configuration: 0.5
+2024-02-27 10:50:56,667 - Training Set Size: 74239
+2024-02-27 10:50:56,667 - Testing Set Size: 74239
+2024-02-27 10:50:56,667 - Vowel Replacement Ratio: 0.2
+2024-02-27 10:50:56,667 - Consonant Replacement Ratio: 0.8
+2024-02-27 10:50:56,667 - Unique Character Count: 28
+2024-02-27 10:50:56,667 - Minimum Word Length: 3
+2024-02-27 10:51:16,366 - Evaluated with: context_sensitive
+2024-02-27 10:51:16,367 - Model evaluation completed for: CLMET3.txt
+2024-02-27 10:51:16,367 - TOP1 ACCURACY: 58.25% | TOP1 VALIDITY: 71.37%
+2024-02-27 10:51:16,367 - TOP2 ACCURACY: 72.02% | TOP2 VALIDITY: 82.83%
+2024-02-27 10:51:16,367 - TOP3 ACCURACY: 79.38% | TOP3 VALIDITY: 88.02%
+2024-02-27 10:51:18,407 - ---------------------------------------------
+2024-02-27 10:51:18,541 - Processing reuters Corpus
+2024-02-27 10:51:18,542 - ---------------------------------------------

@@ -1732,3 +1732,51 @@ Overlap Metrics:
 2024-02-27 10:29:22,623 - ERROR: Error processing inaugural: 'set' object is not subscriptable
 2024-02-27 10:29:22,623 - INFO: Q-gram file for reuters, train does not exist. Generating now...
 2024-02-27 10:29:22,671 - ERROR: Error processing reuters: 'set' object is not subscriptable
+2024-02-27 10:32:54,122 - INFO: Q-gram files for brown do not exist. Generating now...
+2024-02-27 10:32:55,922 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_correct_predictions_qgrams.txt'
+2024-02-27 10:32:55,922 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_incorrect_pred_qgrams.txt'
+2024-02-27 10:32:56,386 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:32:56,404 - INFO: Q-gram files for CLMET3 do not exist. Generating now...
+2024-02-27 10:33:03,254 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_correct_predictions_qgrams.txt'
+2024-02-27 10:33:03,255 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_incorrect_pred_qgrams.txt'
+2024-02-27 10:33:04,772 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:33:04,846 - INFO: Q-gram files for cmudict do not exist. Generating now...
+2024-02-27 10:33:08,660 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_correct_predictions_qgrams.txt'
+2024-02-27 10:33:08,660 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_incorrect_pred_qgrams.txt'
+2024-02-27 10:33:09,494 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:33:09,567 - INFO: Q-gram files for gutenberg do not exist. Generating now...
+2024-02-27 10:33:10,610 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_correct_predictions_qgrams.txt'
+2024-02-27 10:33:10,610 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_incorrect_pred_qgrams.txt'
+2024-02-27 10:33:10,949 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:33:10,965 - INFO: Q-gram files for inaugural do not exist. Generating now...
+2024-02-27 10:33:11,328 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_correct_predictions_qgrams.txt'
+2024-02-27 10:33:11,329 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_incorrect_pred_qgrams.txt'
+2024-02-27 10:33:11,427 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:33:11,430 - INFO: Q-gram files for reuters do not exist. Generating now...
+2024-02-27 10:33:12,290 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_correct_predictions_qgrams.txt'
+2024-02-27 10:33:12,291 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_incorrect_pred_qgrams.txt'
+2024-02-27 10:33:12,540 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:43:40,360 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_correct_predictions_qgrams.txt'
+2024-02-27 10:43:40,361 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_incorrect_pred_qgrams.txt'
+2024-02-27 10:43:40,731 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:43:41,859 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_correct_predictions_qgrams.txt'
+2024-02-27 10:43:41,860 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_incorrect_pred_qgrams.txt'
+2024-02-27 10:43:43,167 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:43:43,939 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_correct_predictions_qgrams.txt'
+2024-02-27 10:43:43,939 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_incorrect_pred_qgrams.txt'
+2024-02-27 10:43:45,124 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:43:45,492 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_correct_predictions_qgrams.txt'
+2024-02-27 10:43:45,492 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_incorrect_pred_qgrams.txt'
+2024-02-27 10:43:45,880 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:43:45,991 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_correct_predictions_qgrams.txt'
+2024-02-27 10:43:45,992 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_incorrect_pred_qgrams.txt'
+2024-02-27 10:43:46,090 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:43:46,403 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_correct_predictions_qgrams.txt'
+2024-02-27 10:43:46,404 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_incorrect_pred_qgrams.txt'
+2024-02-27 10:43:46,659 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:51:24,708 - ERROR: Error processing brown: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:51:28,580 - ERROR: Error processing CLMET3: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:51:30,608 - ERROR: Error processing cmudict: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:51:31,512 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:51:31,812 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:51:32,487 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
