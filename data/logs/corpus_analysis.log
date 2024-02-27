@@ -1624,3 +1624,111 @@ Overlap Metrics:
 2024-02-04 10:42:32,534 - ERROR: Error processing gutenberg: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
 2024-02-04 10:42:32,591 - ERROR: Error processing inaugural: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
 2024-02-04 10:42:32,752 - ERROR: Error processing reuters: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2024-02-27 10:15:29,101 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_train_qgrams.txt'
+2024-02-27 10:15:29,103 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_test_qgrams.txt'
+2024-02-27 10:15:29,104 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_correct_predictions_qgrams.txt'
+2024-02-27 10:15:29,104 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_incorrect_pred_qgrams.txt'
+2024-02-27 10:15:29,107 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,110 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,111 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,111 - ERROR: Error processing brown: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:15:29,111 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_train_qgrams.txt'
+2024-02-27 10:15:29,111 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_test_qgrams.txt'
+2024-02-27 10:15:29,111 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_correct_predictions_qgrams.txt'
+2024-02-27 10:15:29,111 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_incorrect_pred_qgrams.txt'
+2024-02-27 10:15:29,112 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,112 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,112 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,112 - ERROR: Error processing CLMET3: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:15:29,112 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_train_qgrams.txt'
+2024-02-27 10:15:29,112 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_test_qgrams.txt'
+2024-02-27 10:15:29,112 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_correct_predictions_qgrams.txt'
+2024-02-27 10:15:29,113 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_incorrect_pred_qgrams.txt'
+2024-02-27 10:15:29,113 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,113 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,113 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,113 - ERROR: Error processing cmudict: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:15:29,113 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_train_qgrams.txt'
+2024-02-27 10:15:29,113 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_test_qgrams.txt'
+2024-02-27 10:15:29,113 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_correct_predictions_qgrams.txt'
+2024-02-27 10:15:29,114 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_incorrect_pred_qgrams.txt'
+2024-02-27 10:15:29,114 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,114 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,114 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,114 - ERROR: Error processing gutenberg: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:15:29,114 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_train_qgrams.txt'
+2024-02-27 10:15:29,114 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_test_qgrams.txt'
+2024-02-27 10:15:29,114 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_correct_predictions_qgrams.txt'
+2024-02-27 10:15:29,115 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_incorrect_pred_qgrams.txt'
+2024-02-27 10:15:29,115 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,115 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,115 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,115 - ERROR: Error processing inaugural: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:15:29,115 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_train_qgrams.txt'
+2024-02-27 10:15:29,115 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_test_qgrams.txt'
+2024-02-27 10:15:29,115 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_correct_predictions_qgrams.txt'
+2024-02-27 10:15:29,116 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_incorrect_pred_qgrams.txt'
+2024-02-27 10:15:29,116 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,116 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,116 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:15:29,116 - ERROR: Error processing reuters: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:21:28,652 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_train_qgrams.txt'
+2024-02-27 10:21:28,653 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_test_qgrams.txt'
+2024-02-27 10:21:28,653 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_correct_predictions_qgrams.txt'
+2024-02-27 10:21:28,654 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_incorrect_pred_qgrams.txt'
+2024-02-27 10:21:28,655 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,655 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,656 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,656 - ERROR: Error processing brown: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:21:28,656 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_train_qgrams.txt'
+2024-02-27 10:21:28,657 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_test_qgrams.txt'
+2024-02-27 10:21:28,657 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_correct_predictions_qgrams.txt'
+2024-02-27 10:21:28,658 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_incorrect_pred_qgrams.txt'
+2024-02-27 10:21:28,658 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,659 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,661 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,662 - ERROR: Error processing CLMET3: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:21:28,662 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_train_qgrams.txt'
+2024-02-27 10:21:28,662 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_test_qgrams.txt'
+2024-02-27 10:21:28,666 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_correct_predictions_qgrams.txt'
+2024-02-27 10:21:28,666 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_incorrect_pred_qgrams.txt'
+2024-02-27 10:21:28,667 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,667 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,667 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,667 - ERROR: Error processing cmudict: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:21:28,667 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_train_qgrams.txt'
+2024-02-27 10:21:28,667 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_test_qgrams.txt'
+2024-02-27 10:21:28,667 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_correct_predictions_qgrams.txt'
+2024-02-27 10:21:28,668 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_incorrect_pred_qgrams.txt'
+2024-02-27 10:21:28,668 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,668 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,668 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,668 - ERROR: Error processing gutenberg: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:21:28,668 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_train_qgrams.txt'
+2024-02-27 10:21:28,668 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_test_qgrams.txt'
+2024-02-27 10:21:28,668 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_correct_predictions_qgrams.txt'
+2024-02-27 10:21:28,669 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_incorrect_pred_qgrams.txt'
+2024-02-27 10:21:28,669 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,669 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,669 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,669 - ERROR: Error processing inaugural: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:21:28,669 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_train_qgrams.txt'
+2024-02-27 10:21:28,669 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_test_qgrams.txt'
+2024-02-27 10:21:28,669 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_correct_predictions_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_correct_predictions_qgrams.txt'
+2024-02-27 10:21:28,669 - ERROR: Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_incorrect_pred_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_incorrect_pred_qgrams.txt'
+2024-02-27 10:21:28,670 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,670 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,670 - WARNING: Attempted to calculate EMD on empty distribution.
+2024-02-27 10:21:28,670 - ERROR: Error processing reuters: 'numpy.ndarray' object has no attribute 'keys'
+2024-02-27 10:29:21,959 - INFO: Q-gram file for brown, train does not exist. Generating now...
+2024-02-27 10:29:22,051 - ERROR: Error processing brown: 'set' object is not subscriptable
+2024-02-27 10:29:22,058 - INFO: Q-gram file for CLMET3, train does not exist. Generating now...
+2024-02-27 10:29:22,316 - ERROR: Error processing CLMET3: 'set' object is not subscriptable
+2024-02-27 10:29:22,329 - INFO: Q-gram file for cmudict, train does not exist. Generating now...
+2024-02-27 10:29:22,493 - ERROR: Error processing cmudict: 'set' object is not subscriptable
+2024-02-27 10:29:22,504 - INFO: Q-gram file for gutenberg, train does not exist. Generating now...
+2024-02-27 10:29:22,587 - ERROR: Error processing gutenberg: 'set' object is not subscriptable
+2024-02-27 10:29:22,591 - INFO: Q-gram file for inaugural, train does not exist. Generating now...
+2024-02-27 10:29:22,623 - ERROR: Error processing inaugural: 'set' object is not subscriptable
+2024-02-27 10:29:22,623 - INFO: Q-gram file for reuters, train does not exist. Generating now...
+2024-02-27 10:29:22,671 - ERROR: Error processing reuters: 'set' object is not subscriptable
