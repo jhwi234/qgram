@@ -162,24 +162,20 @@ def calculate_metrics(train_qgrams, test_qgrams, pred_qgrams, incorrect_pred_qgr
     pred_vec = np.array([pred_qgrams.get(qgram, 0) for qgram in qgrams_union])
     incorrect_vec = np.array([incorrect_pred_qgrams.get(qgram, 0) for qgram in qgrams_union])
 
-    # Debugging: log the sizes of the vectors
-    logging.info(f"Q-grams union size: {len(qgrams_union)}")
-    logging.info(f"Train vector size: {len(train_vec)}, Test vector size: {len(test_vec)}, Prediction vector size: {len(pred_vec)}, Incorrect prediction vector size: {len(incorrect_vec)}")
-
     metrics = {
-        "Spearman Correlation Train-Pred": calculate_spearman_correlation(train_vec, pred_vec),
+        "Spearman Correlation Train-Correct Pred": calculate_spearman_correlation(train_vec, pred_vec),
         "Spearman Correlation Train-Test": calculate_spearman_correlation(train_vec, test_vec),
         "Spearman Correlation Train-Incorrect Pred": calculate_spearman_correlation(train_vec, incorrect_vec),
         
-        "Frequency Similarity Train-Pred": calculate_frequency_similarity(train_vec, pred_vec),
+        "Frequency Similarity Train-Correct Pred": calculate_frequency_similarity(train_vec, pred_vec),
         "Frequency Similarity Train-Test": calculate_frequency_similarity(train_vec, test_vec),
         "Frequency Similarity Train-Incorrect Pred": calculate_frequency_similarity(train_vec, incorrect_vec),
         
-        "Dice Coefficient Train-Pred": calculate_dice_coefficient(train_vec, pred_vec),
+        "Dice Coefficient Train-Correct Pred": calculate_dice_coefficient(train_vec, pred_vec),
         "Dice Coefficient Train-Test": calculate_dice_coefficient(train_vec, test_vec),
         "Dice Coefficient Train-Incorrect Pred": calculate_dice_coefficient(train_vec, incorrect_vec),
         
-        "Intersection Count Train-Pred": calculate_intersection_count(train_vec, pred_vec),
+        "Intersection Count Train-Correct Pred": calculate_intersection_count(train_vec, pred_vec),
         "Intersection Count Train-Test": calculate_intersection_count(train_vec, test_vec),
         "Intersection Count Train-Incorrect Pred": calculate_intersection_count(train_vec, incorrect_vec),
     }
@@ -212,7 +208,6 @@ def process_corpus(corpus_name, config):
 
         log_results(corpus_name, metrics)
 
-        logging.info(f"Successfully processed {corpus_name}")
     except Exception as e:
         logging.error(f"Error processing {corpus_name}: {e}")
 
@@ -226,9 +221,20 @@ def log_results(corpus_name, metrics):
     header = f"{corpus_name} Corpus Analysis"
     logging.info(f'\n{separator}\n{header}\n{separator}')
 
-    # Assuming metrics is a dictionary with metric names as keys and values as the metric values.
-    for metric_name, metric_value in metrics.items():
-        logging.info(f"{metric_name}: {format_value(metric_value)}")
+    last_category = None
+    for metric_name in sorted(metrics.keys()):
+        # Extract the category from the metric name (assuming category is the prefix up to the first space)
+        current_category = metric_name.split(" ")[0]
+
+        # Check if we've moved to a new category of metrics based on prefix change
+        if last_category is not None and current_category != last_category:
+            logging.info("")  # Add a line break for readability between categories
+
+        # Log the metric
+        logging.info(f"{metric_name}: {format_value(metrics[metric_name])}")
+        
+        # Update the last category tracker
+        last_category = current_category
 
 def main():
     setup_logging(Config(Path.cwd()))
