@@ -31,10 +31,12 @@ class Config:
             path.mkdir(parents=True, exist_ok=True)
 
     def get_file_path(self, corpus_name, file_type, dataset_type=None):
+        # Adjusted method to reference the available q-gram files correctly
         if file_type == 'csv':
             return self.csv_dir / f"{corpus_name}_context_sensitive_split0.5_qrange6-6_prediction.csv"
         elif file_type == 'qgram':
-            suffix = '_correct_predictions_qgrams.txt' if dataset_type == 'correct' else f'_{dataset_type}_qgrams.txt'
+            # Adjusting the suffix to match the existing files
+            suffix = '_train_qgrams.txt' if dataset_type == 'train' else '_test_qgrams.txt'
             return self.qgrams_dir / f"{corpus_name}{suffix}"
 
 # Update the setup_logging function to use the log directory
