@@ -415,7 +415,11 @@ class AdvancedTools(CorpusTools):
             return np.sum((K * sample_sizes**beta - distinct_word_counts)**2)
 
         initial_params = [K_linear, beta]
-        result = minimize(objective_function, initial_params, method='Nelder-Mead')
+        # Define bounds for the parameters: None for K (allowing it to vary freely) and (0, 1) for beta
+        parameter_bounds = [(None, None), (0.001, 0.999)]  # (min, max) pairs for K and beta, respectively
+
+        # Refine the estimates of K and beta using nonlinear optimization with bounds
+        result = minimize(objective_function, initial_params, method='L-BFGS-B', bounds=parameter_bounds)
 
         # Use the results from linear regression if the optimization does not succeed
         K, beta = result.x if result.success else (K_linear, beta)
