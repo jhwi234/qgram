@@ -3460,3 +3460,117 @@ Intersection Count Train-Test: 0.1127
 Spearman Correlation Train-Correct Pred: 0.2642
 Spearman Correlation Train-Incorrect Pred: -0.0805
 Spearman Correlation Train-Test: 0.0604
+
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.7630
+Dice Coefficient Train-Incorrect Pred: 0.3980
+Dice Coefficient Train-Test: 0.7884
+
+Frequency Similarity Train-Correct Pred: 0.8173
+Frequency Similarity Train-Incorrect Pred: 0.6502
+Frequency Similarity Train-Test: 0.7883
+
+Intersection Count Train-Correct Pred: 0.1625
+Intersection Count Train-Incorrect Pred: 0.2506
+Intersection Count Train-Test: 0.1062
+
+Spearman Correlation Train-Correct Pred: 0.5660
+Spearman Correlation Train-Incorrect Pred: 0.2777
+Spearman Correlation Train-Test: 0.1846
+
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.7606
+Dice Coefficient Train-Incorrect Pred: 0.4479
+Dice Coefficient Train-Test: 0.8358
+
+Frequency Similarity Train-Correct Pred: 0.8457
+Frequency Similarity Train-Incorrect Pred: 0.7239
+Frequency Similarity Train-Test: 0.8357
+
+Intersection Count Train-Correct Pred: 0.1231
+Intersection Count Train-Incorrect Pred: 0.1904
+Intersection Count Train-Test: 0.0794
+
+Spearman Correlation Train-Correct Pred: 0.5868
+Spearman Correlation Train-Incorrect Pred: 0.3303
+Spearman Correlation Train-Test: 0.2307
+
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.7259
+Dice Coefficient Train-Incorrect Pred: 0.4873
+Dice Coefficient Train-Test: 0.8169
+
+Frequency Similarity Train-Correct Pred: 0.8209
+Frequency Similarity Train-Incorrect Pred: 0.7230
+Frequency Similarity Train-Test: 0.8169
+
+Intersection Count Train-Correct Pred: 0.1455
+Intersection Count Train-Incorrect Pred: 0.1929
+Intersection Count Train-Test: 0.0890
+
+Spearman Correlation Train-Correct Pred: 0.5490
+Spearman Correlation Train-Incorrect Pred: 0.3221
+Spearman Correlation Train-Test: 0.1698
+
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.7165
+Dice Coefficient Train-Incorrect Pred: 0.3567
+Dice Coefficient Train-Test: 0.7903
+
+Frequency Similarity Train-Correct Pred: 0.7730
+Frequency Similarity Train-Incorrect Pred: 0.6145
+Frequency Similarity Train-Test: 0.7903
+
+Intersection Count Train-Correct Pred: 0.1381
+Intersection Count Train-Incorrect Pred: 0.1622
+Intersection Count Train-Test: 0.1081
+
+Spearman Correlation Train-Correct Pred: 0.3698
+Spearman Correlation Train-Incorrect Pred: 0.0090
+Spearman Correlation Train-Test: 0.2206
+
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.7002
+Dice Coefficient Train-Incorrect Pred: 0.2736
+Dice Coefficient Train-Test: 0.7256
+
+Frequency Similarity Train-Correct Pred: 0.7212
+Frequency Similarity Train-Incorrect Pred: 0.5219
+Frequency Similarity Train-Test: 0.7248
+
+Intersection Count Train-Correct Pred: 0.1704
+Intersection Count Train-Incorrect Pred: 0.2149
+Intersection Count Train-Test: 0.1439
+
+Spearman Correlation Train-Correct Pred: 0.3117
+Spearman Correlation Train-Incorrect Pred: -0.0112
+Spearman Correlation Train-Test: 0.1868
+
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.6556
+Dice Coefficient Train-Incorrect Pred: 0.3819
+Dice Coefficient Train-Test: 0.7457
+
+Frequency Similarity Train-Correct Pred: 0.7171
+Frequency Similarity Train-Incorrect Pred: 0.5751
+Frequency Similarity Train-Test: 0.7457
+
+Intersection Count Train-Correct Pred: 0.1494
+Intersection Count Train-Incorrect Pred: 0.1568
+Intersection Count Train-Test: 0.1127
+
+Spearman Correlation Train-Correct Pred: 0.2642
+Spearman Correlation Train-Incorrect Pred: -0.0805
+Spearman Correlation Train-Test: 0.0604
