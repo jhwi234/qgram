@@ -109,6 +109,7 @@ data/outputs/
 entropy_model/
 entropy_corpora/
 downloads/
+plots/
 
 # Specific file types
 *.klm
