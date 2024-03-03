@@ -53,7 +53,7 @@ def run_command(command, error_message):
     Returns True if the command executes successfully, or False if an error occurs.
     """
     try:
-        result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True)
+        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True)
         return True
     except subprocess.CalledProcessError as e:
         logging.error(f"{error_message}: {e.stderr.decode()}")
@@ -76,8 +76,8 @@ class Config:
         self.seed = 42
         self.q_range = [6, 6]
         self.split_config = 0.5
-        self.vowel_replacement_ratio = 0.2
-        self.consonant_replacement_ratio = 0.8
+        self.vowel_replacement_ratio = 0.5
+        self.consonant_replacement_ratio = 0.5
         self.min_word_length = 3
         self.prediction_method_name = 'context_sensitive'
         self.log_level = logging.INFO
@@ -426,7 +426,7 @@ def run(corpus_name, config, split_type):
     logging.info(f'Processing {formatted_corpus_name} Corpus with split type {split_type}')
     
     corpus_manager = CorpusManager(formatted_corpus_name, config, split_type)
-    eval_model = EvaluateModel(corpus_manager)
+    eval_model = EvaluateModel(corpus_manager, split_type)
     prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
 
     evaluation_metrics, predictions = eval_model.evaluate_character_predictions(prediction_method)
@@ -447,7 +447,7 @@ def main():
     config.create_directories()
 
     # List of corpora to process, excluding mega_corpus
-    corpora = ['brown', 'cmudict', 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural']
+    corpora = ['cmudict', 'brown', 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural', 'webtext', 'nps_chat']
     split_types = ['A', 'B', 'HAPAX']  # List of split types
 
     # Process each corpus with all specified split types
