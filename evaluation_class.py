@@ -3,7 +3,7 @@ import csv
 from predictions_class import Predictions
 
 class EvaluateModel:
-    def __init__(self, corpus_manager, log_initialization_details=True):
+    def __init__(self, corpus_manager, split_type=None, log_initialization_details=True):
         # Initialization and dataset preparation using the provided corpus_manager
         self.corpus_manager = corpus_manager
         self.corpus_name = corpus_manager.corpus_name 
@@ -13,6 +13,7 @@ class EvaluateModel:
         self.train_set = corpus_manager.train_set
         self.test_set = corpus_manager.test_set
         self.all_words = corpus_manager.all_words
+        self.split_type = split_type 
 
         # Extract unique characters from the corpus
         unique_characters = corpus_manager.extract_unique_characters()
@@ -166,13 +167,13 @@ class EvaluateModel:
                 file.write(f'{char}, {total_relevant}, {correctly_retrieved}, {total_predictions}, {recall:.4f}, {precision:.4f}\n')
                 
     def export_prediction_details_to_csv(self, predictions, prediction_method_name):
-        # Adjust file name to include test-train split and q-gram range
+        # Check if the split type is provided and adjust the filename accordingly
+        split_type_str = f"_{self.split_type}" if self.split_type else ""
         csv_file_path = self.config.csv_dir / (
-            f'{self.corpus_name}_{prediction_method_name}_split'
+            f'{self.corpus_name}_{prediction_method_name}{split_type_str}_split'
             f'{self.config.split_config}_qrange{self.config.q_range[0]}-'
             f'{self.config.q_range[1]}_prediction.csv'
         )
-
         with csv_file_path.open('w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             # Adjusted columns to include top three predictions
