@@ -4,7 +4,7 @@ import numpy as np
 import statsmodels.formula.api as smf
 
 # Adjust the file path to navigate up one directory and then into the 'data' directory
-file_path = Path('../data/outputs/csv/brown_context_sensitive_HAPAX_split0.5_qrange6-6_prediction.csv')
+file_path = Path('data/outputs/csv/brown_context_sensitive_HAPAX_split0.5_qrange6-6_prediction.csv')
 
 # Load the dataset
 data = pd.read_csv(file_path)

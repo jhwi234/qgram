@@ -16,8 +16,15 @@ data['Top1_Predicted_Letter'] = data['Top1_Predicted_Letter'].astype(str)
 # Calculate word length
 data['word_length'] = data['Original_Word'].apply(len)
 
-# Perform logistic regression to investigate the relationship between word length and Top1_Is_Accurate
-model = smf.logit(formula='Top1_Is_Accurate ~ word_length', data=data).fit()
+# Calculate context length on the left and right
+data['context_length_left'] = data['Tested_Word'].str.find('_')
+data['context_length_right'] = data['word_length'] - data['context_length_left'] - 1
+
+# Combine the context lengths into a single variable
+data['context_length'] = data['context_length_left'] + data['context_length_right']
+
+# Perform logistic regression to investigate the relationship between context length and Top1_Is_Accurate
+model = smf.logit(formula='Top1_Is_Accurate ~ context_length', data=data).fit()
 
 # Display the regression results
 print(model.summary())
