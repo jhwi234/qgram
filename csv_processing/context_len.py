@@ -16,7 +16,7 @@ data['Top1_Predicted_Letter'] = data['Top1_Predicted_Letter'].astype(str)
 # Calculate word length
 data['word_length'] = data['Original_Word'].apply(len)
 
-# Calculate context length on the left and right
+# Calculate context length on the left and right of the missing letter
 data['context_length_left'] = data['Tested_Word'].str.find('_')
 data['context_length_right'] = data['word_length'] - data['context_length_left'] - 1
 
