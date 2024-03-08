@@ -40147,3 +40147,43 @@ Minimum Word Length: 3
 2024-03-07 16:29:19,495 - TOP3 ACCURACY: 61.96% | TOP3 VALIDITY: 70.00%
 2024-03-07 16:29:19,571 - ---------------------------------------------
 >>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
+2024-03-08 02:05:08,627 - Processing cmudict Corpus
+2024-03-08 02:05:08,628 - ---------------------------------------------
+2024-03-08 02:05:20,055 - Model for 6-gram loaded from cmudict
+2024-03-08 02:05:20,252 - Language Model for cmudict initialized with:
+2024-03-08 02:05:20,253 - Seed: 42
+2024-03-08 02:05:20,253 - Q-gram Range: [6, 6]
+2024-03-08 02:05:20,254 - Train-Test Split Configuration: 0.5
+2024-03-08 02:05:20,255 - Training Set Size: 57745
+2024-03-08 02:05:20,256 - Testing Set Size: 57746
+2024-03-08 02:05:20,257 - Vowel Replacement Ratio: 0.2
+2024-03-08 02:05:20,257 - Consonant Replacement Ratio: 0.8
+2024-03-08 02:05:20,258 - Unique Character Count: 26
+2024-03-08 02:05:20,259 - Minimum Word Length: 3
+2024-03-08 02:05:54,142 - Evaluated with: context_sensitive
+2024-03-08 02:05:54,142 - Model evaluation completed for: cmudict
+2024-03-08 02:05:54,143 - TOP1 ACCURACY: 53.83% | TOP1 VALIDITY: 70.48%
+2024-03-08 02:05:54,144 - TOP2 ACCURACY: 68.01% | TOP2 VALIDITY: 81.95%
+2024-03-08 02:05:54,144 - TOP3 ACCURACY: 76.20% | TOP3 VALIDITY: 87.37%
+2024-03-08 02:05:58,507 - ---------------------------------------------
+2024-03-08 02:05:58,652 - Processing brown Corpus
+2024-03-08 02:05:58,653 - ---------------------------------------------
+2024-03-08 02:06:28,209 - Model for 6-gram loaded from brown
+2024-03-08 02:06:28,366 - Language Model for brown initialized with:
+2024-03-08 02:06:28,372 - Seed: 42
+2024-03-08 02:06:28,376 - Q-gram Range: [6, 6]
+2024-03-08 02:06:28,379 - Train-Test Split Configuration: 0.5
+2024-03-08 02:06:28,379 - Training Set Size: 20604
+2024-03-08 02:06:28,380 - Testing Set Size: 20604
+2024-03-08 02:06:28,381 - Vowel Replacement Ratio: 0.2
+2024-03-08 02:06:28,381 - Consonant Replacement Ratio: 0.8
+2024-03-08 02:06:28,382 - Unique Character Count: 26
+2024-03-08 02:06:28,383 - Minimum Word Length: 3
+2024-03-08 02:06:44,485 - Evaluated with: context_sensitive
+2024-03-08 02:06:44,486 - Model evaluation completed for: brown
+2024-03-08 02:06:44,487 - TOP1 ACCURACY: 62.30% | TOP1 VALIDITY: 72.65%
+2024-03-08 02:06:44,488 - TOP2 ACCURACY: 75.52% | TOP2 VALIDITY: 83.58%
+2024-03-08 02:06:44,489 - TOP3 ACCURACY: 82.26% | TOP3 VALIDITY: 88.62%
+2024-03-08 02:06:46,362 - ---------------------------------------------
+2024-03-08 02:06:46,424 - Processing CLMET3 Corpus
+2024-03-08 02:06:46,425 - ---------------------------------------------
