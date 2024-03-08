@@ -54,9 +54,9 @@ def plot_logistic_regression(data, X_test, predictions):
 
 def main():
     datasets = {
-        "CLMET3": 'data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange6-6_prediction.csv',
-        "Brown": 'data/outputs/csv/brown_context_sensitive_split0.5_qrange6-6_prediction.csv',
-        "CMUDict": 'data/outputs/csv/cmudict_context_sensitive_split0.5_qrange6-6_prediction.csv'
+        "CLMET3": Path('data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange6-6_prediction.csv'),
+        "Brown": Path('data/outputs/csv/brown_context_sensitive_split0.5_qrange6-6_prediction.csv'),
+        "CMUDict": Path('data/outputs/csv/cmudict_context_sensitive_split0.5_qrange6-6_prediction.csv')
     }
 
     for name, path in datasets.items():
@@ -64,6 +64,5 @@ def main():
         data = preprocess_data(path)
         accuracy = logistic_regression_analysis(data)
         print(f"\n{name} Dataset Normalized Position Accuracy:\n", accuracy)
-
 if __name__ == "__main__":
     main()
