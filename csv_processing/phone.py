@@ -1,5 +1,6 @@
 import pandas as pd
 import statsmodels.formula.api as smf
+from pathlib import Path  # Importing Path class
 
 def is_vowel(char):
     vowels = 'aeiouyæœèéî'
@@ -7,7 +8,7 @@ def is_vowel(char):
 
 def classify_phonological_category(char):
     char = char.lower()
-    if char in "pbtdckg":
+    if char in "pbtdkg":
         return 'Plosive'
     elif char in "mn":
         return 'Nasal'
@@ -15,7 +16,7 @@ def classify_phonological_category(char):
         return 'Fricative'
     elif char in "lr":
         return 'Liquid'
-    elif char in "wy":
+    elif char in "wy":  # Added 'y' to Glide as it was previously considered only as a vowel
         return 'Glide'
     elif is_vowel(char):
         return 'Vowel'
@@ -37,3 +38,22 @@ def run_logistic_regression_phonological(df):
     formula = 'Top1_Is_Accurate ~ ' + ' + '.join(phonological_categories)
     model = smf.logit(formula=formula, data=df).fit()
     print(model.summary())
+
+def main():
+    datasets = {
+        "CLMET3": 'data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange6-6_prediction.csv',
+        "Brown": 'data/outputs/csv/brown_context_sensitive_split0.5_qrange6-6_prediction.csv',
+        "CMUDict": 'data/outputs/csv/cmudict_context_sensitive_split0.5_qrange6-6_prediction.csv'
+    }
+
+    for name, path in datasets.items():
+        print(f"\nAnalyzing {name} Dataset...")
+        df = pd.read_csv(path)
+        df_preprocessed = preprocess_data_simple(df)
+        print(f"\nResults for Corrected Predictions in {name}:")
+        run_logistic_regression_corrected(df_preprocessed)
+        print(f"\nResults for Phonological Predictions in {name}:")
+        run_logistic_regression_phonological(df_preprocessed)
+
+if __name__ == "__main__":
+    main()
