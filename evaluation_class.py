@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 import logging
 import csv
+=======
+import csv
+import logging
+import math
+>>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
 from predictions_class import Predictions
 
 class EvaluateModel:
@@ -139,12 +145,17 @@ class EvaluateModel:
         return {'accuracy': accuracy_metrics, 'validity': validity_metrics, 
                 'recall': recall_metrics, 'precision': precision_metrics, 
                 'total_words': len(self.test_set)}, predictions
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
     def save_recall_precision_stats(self, evaluation_metrics):
         # Retrieve recall and precision metrics from the evaluation_metrics dictionary
         recall_metrics = evaluation_metrics['recall']
         precision_metrics = evaluation_metrics['precision']
 
+<<<<<<< HEAD
         # Sort metrics by Total Relevant (Actual Missing Letter Occurrences) in descending order
         sorted_metrics = sorted(
             [
@@ -168,6 +179,45 @@ class EvaluateModel:
                 
     def export_prediction_details_to_csv(self, predictions, prediction_method_name):
         # Check if the split type is provided and adjust the filename accordingly
+=======
+        # Total occurrences of all letters
+        total_letters = sum(self.actual_missing_letter_occurrences.values())
+
+        # Compute F1-score and G-Mean for each character
+        f1_scores = {}
+        g_means = {}
+        weighted_f1_scores = {}
+        weighted_g_means = {}
+        for char in recall_metrics:
+            precision = precision_metrics[char]
+            recall = recall_metrics[char]
+            f1 = (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+            g_mean = math.sqrt(precision * recall)
+            
+            f1_scores[char] = f1
+            g_means[char] = g_mean
+            
+            # Calculate weighted scores considering the total occurrences of each letter as a weight
+            weight = self.actual_missing_letter_occurrences[char] / total_letters
+            weighted_f1_scores[char] = f1 * weight
+            weighted_g_means[char] = g_mean * weight
+
+        # Sorting metrics by weighted F1-score in descending order might not be meaningful since each character's weighted score is influenced by its frequency, 
+        # but we'll sort by the original F1-Score for consistency in the output
+        sorted_metrics = sorted(
+            [(char, self.actual_missing_letter_occurrences[char], self.correct_top_predictions[char], self.top_predicted_counts[char], recall_metrics[char], precision_metrics[char], f1_scores[char], g_means[char], weighted_f1_scores[char], weighted_g_means[char]) for char in recall_metrics],
+            key=lambda item: item[6], reverse=True  # Sort by F1-score
+        )
+
+        # Save sorted metrics to a file, including the new weighted columns
+        metrics_file_path = self.config.csv_dir / f'{self.corpus_name}_recall_precision_f1_gmean_weighted.csv'
+        with metrics_file_path.open('w', encoding='utf-8') as file:
+            file.write('Character,Total_Missing_Letter_Occurrences,Total_Correctly_Retrieved,Total_Predictions,Recall,Precision,F1-Score,G-Mean,Weighted F1,Weighted G-Mean\n')
+            for char, total_relevant, correctly_retrieved, total_predictions, recall, precision, f1_score, g_mean, weighted_f1, weighted_g_mean in sorted_metrics:
+                file.write(f'{char},{total_relevant},{correctly_retrieved},{total_predictions},{recall:.4f},{precision:.4f},{f1_score:.4f},{g_mean:.4f},{weighted_f1:.4f},{weighted_g_mean:.4f}\n')
+    
+    def export_prediction_details_to_csv(self, predictions, prediction_method_name):
+>>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
         split_type_str = f"_{self.split_type}" if self.split_type else ""
         csv_file_path = self.config.csv_dir / (
             f'{self.corpus_name}_{prediction_method_name}{split_type_str}_split'
@@ -176,12 +226,16 @@ class EvaluateModel:
         )
         with csv_file_path.open('w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
+<<<<<<< HEAD
             # Adjusted columns to include top three predictions
+=======
+>>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
             writer.writerow([
                 'Tested_Word', 'Original_Word', 'Correct_Letter', 
                 'Top1_Predicted_Letter', 'Top1_Confidence', 'Top1_Is_Valid', 'Top1_Is_Accurate',
                 'Top2_Predicted_Letter', 'Top2_Confidence', 'Top2_Is_Valid', 'Top2_Is_Accurate',
                 'Top3_Predicted_Letter', 'Top3_Confidence', 'Top3_Is_Valid', 'Top3_Is_Accurate',
+<<<<<<< HEAD
                 'Correct_Letter_Rank'
             ])
 
@@ -189,11 +243,22 @@ class EvaluateModel:
                 row = [mod_word, orig_word, miss_letter]
 
                 # Process each of the top three predictions
+=======
+                'Correct_Letter_Rank', 'In_Training_Set'
+            ])
+
+            # Adjusted to directly convert self.train_set to a set without unpacking
+            training_words_set = set(self.train_set)
+            for mod_word, miss_letter, orig_word, top_preds, cor_letter_rank in predictions:
+                row = [mod_word, orig_word, miss_letter]
+
+>>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
                 for predicted_letter, confidence in top_preds:
                     reconstructed_word = mod_word.replace('_', predicted_letter)
                     is_valid = 1 if reconstructed_word in self.all_words else 0
                     is_accurate = 1 if predicted_letter == miss_letter else 0
 
+<<<<<<< HEAD
                     # Append prediction details to the row
                     row.extend([predicted_letter, confidence, is_valid, is_accurate])
 
@@ -201,6 +266,13 @@ class EvaluateModel:
                 row.append(cor_letter_rank)
 
                 # Write the complete row to the CSV
+=======
+                    row.extend([predicted_letter, confidence, is_valid, is_accurate])
+
+                row.append(cor_letter_rank)
+                row.append(1 if orig_word in training_words_set else 0)  # Check if in training set
+
+>>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
                 writer.writerow(row)
 
     def save_summary_stats_txt(self, evaluation_metrics, predictions, prediction_method_name):

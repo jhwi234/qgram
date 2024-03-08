@@ -14,8 +14,17 @@ from evaluation_class import EvaluateModel
 
 # Define constants for vowels and consonants using Enum for better organizationclass Letters(Enum):
 class Letters(Enum):
+<<<<<<< HEAD
     VOWELS = 'aeiouæœ'
     CONSONANTS = 'bcdfghjklmnpqrstvwxyz'
+=======
+    # Updated to include the specified vowels, removing non-vowel characters from the list
+    VOWELS = 'aeèéiîouyæœ'
+    
+    # Updated to ensure all alphabetic characters are represented, either as vowels or consonants
+    # Removed vowels from the consonant string to maintain accuracy
+    CONSONANTS = 'bcdfghjklmnpqrstvwxz'
+>>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
 
     @staticmethod
     def is_vowel(char):
@@ -76,8 +85,13 @@ class Config:
         self.seed = 42
         self.q_range = [6, 6]
         self.split_config = 0.5
+<<<<<<< HEAD
         self.vowel_replacement_ratio = 0.5
         self.consonant_replacement_ratio = 0.5
+=======
+        self.vowel_replacement_ratio = 0.2
+        self.consonant_replacement_ratio = 0.8
+>>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
         self.min_word_length = 3
         self.prediction_method_name = 'context_sensitive'
         self.log_level = logging.INFO
