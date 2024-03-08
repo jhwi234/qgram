@@ -1,0 +1,27 @@
+The analysis of q-gram distributions across various corpora using the described metrics yields the following observations:
+
+1. **Earth Mover's Distance (EMD):** The EMD values are generally higher for Train-Prediction than for Train-Test across most corpora. This suggests a greater divergence in q-gram distributions between the training sets and the correctly predicted words, compared to the overall test sets. This divergence highlights variations in sub-word structures that are crucial for understanding the adaptability and limitations of predictive models.
+
+2. **Frequency Similarity:** The consistently high values across corpora indicate that the frequency distributions of q-grams in the training sets and the correctly predicted words are quite similar. This similarity in linguistic patterns is advantageous for training predictive models, as it suggests a consistency in the underlying language structures.
+
+3. **Jaccard Similarity:** Lower Jaccard Similarity scores indicate a variation in the unique q-grams between the sets. This implies that despite some commonality in q-gram frequencies, there is diversity in the specific q-grams used in the training, prediction, and test sets. This diversity could be a factor in the model's ability to generalize across different textual contexts.
+
+4. **Cosine Similarity:** High Cosine Similarity scores across all corpora suggest a strong alignment in the overall pattern of q-gram usage. This indicates that the model is able to recognize and leverage similar distribution patterns of q-grams effectively, a positive sign for its predictive capability.
+
+5. **KL Divergence:** The generally higher divergence for Train-Prediction than Train-Test across most corpora suggests that the probability distribution of q-grams in correctly predicted words diverges more from the training set than the overall test set. This could indicate that the model is effectively handling a wider variety of q-gram distributions.
+
+6. **Overlap Coefficient and Dice Coefficient:** High values in these metrics across corpora indicate significant overlap in q-grams between the training sets and the correctly predicted words. This suggests that a substantial core of shared q-grams exists, which likely forms the foundation for successful predictions.
+
+### Implications and Interpretation:
+
+- In corpora like **brown, gutenberg, and inaugural**, the higher divergence in Train-Prediction suggests that the predictive model is adept at correctly predicting words with more unique or varied q-gram structures. This indicates robustness in the model, as it can handle diverse linguistic patterns.
+
+- For **CLMET3 and cmudict**, the lower divergence in Train-Prediction suggests that the prediction sets are more closely aligned with the training sets. This could imply a higher accuracy in predictions due to the similarity in q-gram distributions.
+
+- The **high Cosine Similarity** across corpora is indicative of the model's ability to recognize and work with directionally similar q-gram patterns, an essential aspect of effective language modeling and prediction.
+
+- The **lower Jaccard Similarity** underscores the model's capability to generalize well across diverse q-gram structures, accommodating variations in language use.
+
+- The **substantial overlap** as indicated by high Overlap and Dice Coefficients, suggests that common q-gram structures are crucial in the model's ability to make accurate predictions, reinforcing the importance of these core structures in language modeling.
+
+The metrics provide a detailed view of the q-gram distributions in various corpora, highlighting both the challenges and strengths of predictive models in handling diverse linguistic patterns. The variations observed underscore the necessity for predictive models to be adaptable to both common and unique sub-word structures for optimal performance in language processing tasks.
