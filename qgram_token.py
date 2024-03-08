@@ -1,24 +1,20 @@
 ### this version of the script generates word lists that maintain the original number of the tokens in the training list rather than turning it into a list of unique tokens
 
-import random
 import logging
+import random
 import regex as reg
-from pathlib import Path
 import subprocess
-from enum import Enum
 from collections import Counter
+from enum import Enum
+from pathlib import Path
 
-import nltk
 import kenlm
+import nltk
 from evaluation_class import EvaluateModel
 
-# Define constants for vowels and consonants using Enum for better organizationclass Letters(Enum):
+# Define constants for vowels and consonants using Enum for better organization
 class Letters(Enum):
-    # Updated to include the specified vowels, removing non-vowel characters from the list
     VOWELS = 'aeèéiîouyæœ'
-    
-    # Updated to ensure all alphabetic characters are represented, either as vowels or consonants
-    # Removed vowels from the consonant string to maintain accuracy
     CONSONANTS = 'bcdfghjklmnpqrstvwxz'
 
     @staticmethod
@@ -39,17 +35,17 @@ def build_kenlm_model(corpus_name, q, corpus_path, model_directory) -> tuple[int
     binary_file = model_directory / f"{corpus_name}_{q}gram.klm"
 
     # Attempt to build the ARPA model file
-    if not run_command(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
+    if not run_command(['lmplz', '--discount_fallback', '-o', str(q), 
+                        '--text', str(corpus_path), '--arpa', str(arpa_file)],
                        "lmplz failed to generate ARPA model"):
-        return q, None  # Early return on failure
+        return q, None
 
     # Attempt to convert the ARPA model to binary format
     if not run_command(['build_binary', '-s', str(arpa_file), str(binary_file)],
                        "build_binary failed to convert ARPA model to binary format"):
-        return q, None  # Early return on failure
+        return q, None
 
-    # If both commands succeed, no need to log success explicitly here
-    return q, str(binary_file)  # Ensure the path is returned as a string for compatibility
+    return q, str(binary_file)
 
 def run_command(command, error_message):
     """
@@ -63,7 +59,7 @@ def run_command(command, error_message):
         logging.error(f"{error_message}: {e.stderr.decode()}")
         return False
 
-# Configuration class for language model testing parameters. Change the testing inputs here.class Config:
+# Configuration class for language model testing parameters
 class Config:
     def __init__(self, base_dir=None):
         self.base_dir = Path(base_dir if base_dir else __file__).parent
@@ -75,8 +71,6 @@ class Config:
         self.text_dir = self.output_dir / 'texts'
         self.csv_dir = self.output_dir / 'csv'
         self.sets_dir = self.output_dir / 'sets'
-        
-        # Default values for other configurations
         self.seed = 42
         self.q_range = [6, 6]
         self.split_config = 0.5
@@ -86,22 +80,20 @@ class Config:
         self.prediction_method_name = 'context_sensitive'
         self.log_level = logging.INFO
 
-    # Logging Configuration: Setup log file and console output formats
     def setup_logging(self):
         self.log_dir.mkdir(parents=True, exist_ok=True)
         logfile = self.log_dir / 'logfile.log'
         file_handler = logging.FileHandler(logfile, mode='a')
         file_format = logging.Formatter('%(asctime)s - %(message)s')
         file_handler.setFormatter(file_format)
-
         console_handler = logging.StreamHandler()
         console_format = logging.Formatter('%(message)s')
         console_handler.setFormatter(console_format)
-
-        logging.basicConfig(level=logging.INFO, handlers=[file_handler, console_handler])
+        logging.basicConfig(level=self.log_level, handlers=[file_handler, console_handler])
 
     def create_directories(self):
-        for directory in [self.data_dir, self.model_dir, self.log_dir, self.corpus_dir, self.output_dir, self.sets_dir, self.text_dir, self.csv_dir]:
+        for directory in [self.data_dir, self.model_dir, self.log_dir, self.corpus_dir, 
+                          self.output_dir, self.sets_dir, self.text_dir, self.csv_dir]:
             directory.mkdir(exist_ok=True)
 
 class CorpusManager:
@@ -111,7 +103,6 @@ class CorpusManager:
 
     @staticmethod
     def add_to_global_corpus(words):
-        """Add words to the global list of words across all corpora."""
         CorpusManager.corpora_tokens.extend(words)
 
     @staticmethod
@@ -127,8 +118,8 @@ class CorpusManager:
         self.rng = random.Random(config.seed)
         self.corpus = Counter()
         self.load_corpus()
-        self.train_set = [] # Not a set in the python sense allows for duplicates
-        self.test_set = [] # Not a set in the python sense allows for duplicates
+        self.train_set = []
+        self.test_set = []
         self.model = {}
         self.all_words = set()
         self.prepare_datasets()
@@ -154,6 +145,7 @@ class CorpusManager:
                 raise ValueError(f"File '{file_path}' does not exist and NLTK corpus '{nltk_corpus_name}' not found.")
             except Exception as e:
                 raise RuntimeError(f"Failed to load corpus '{self.corpus_name}': {e}")
+
 
     def prepare_datasets(self):
         """
@@ -449,17 +441,12 @@ def main():
     config = Config()
     config.setup_logging()
     config.create_directories()
-
-    # List of corpora to process, excluding mega_corpus
-    corpora = ['cmudict', 'brown', 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural', 'webtext', 'nps_chat']
-    split_types = ['A', 'B', 'HAPAX']  # List of split types
-
-    # Process each corpus with all specified split types
+    corpora = ['cmudict', 'brown', 'CLMET3.txt', 'reuters', 'gutenberg', 
+               'inaugural', 'webtext', 'nps_chat']
+    split_types = ['A', 'B', 'HAPAX']
     for corpus_name in corpora:
         for split_type in split_types:
             run(corpus_name, config, split_type)
-
-# Removed the mega_corpus handling logic from the main function
 
 if __name__ == '__main__':
     main()

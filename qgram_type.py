@@ -1,18 +1,20 @@
 import logging
 from pathlib import Path
 
-from evaluation_class import EvaluateModel
 from corpus_class import CorpusManager
+from evaluation_class import EvaluateModel
+
 
 class Config:
-    # Configuration class for setting up directories and default parameters
+    """Configuration class for setting up directories and default parameters."""
+
     def __init__(self, base_dir=None):
         self.base_dir = Path(base_dir if base_dir else __file__).parent
         self._set_directories()
         self._set_values()
 
     def _set_directories(self):
-        # Setup various directories needed for the application
+        """Setup various directories needed for the application."""
         self.data_dir = self.base_dir / 'data'
         self.model_dir = self.data_dir / 'models'
         self.log_dir = self.data_dir / 'logs'
@@ -23,7 +25,7 @@ class Config:
         self.sets_dir = self.output_dir / 'sets'
 
     def _set_values(self):
-        # Values for testing
+        """Values for testing."""
         self.seed = 42
         self.q_range = [6, 6]
         self.split_config = 0.5
@@ -34,7 +36,7 @@ class Config:
         self.log_level = logging.INFO
 
     def setup_logging(self):
-        # Setup logging with file and console handlers
+        """Setup logging with file and console handlers."""
         self.log_dir.mkdir(parents=True, exist_ok=True)
         logfile = self.log_dir / 'logfile.log'
         file_handler = logging.FileHandler(logfile, mode='a')
@@ -45,21 +47,28 @@ class Config:
         console_format = logging.Formatter('%(message)s')
         console_handler.setFormatter(console_format)
 
-        logging.basicConfig(level=self.log_level, handlers=[file_handler, console_handler])
+        logging.basicConfig(level=self.log_level, 
+                            handlers=[file_handler, console_handler])
 
     def create_directories(self):
-        # Create necessary directories if they don't exist
-        for directory in [self.data_dir, self.model_dir, self.log_dir, self.corpus_dir, self.output_dir, self.sets_dir, self.text_dir, self.csv_dir]:
+        """Create necessary directories if they don't exist."""
+        directories = [
+            self.data_dir, self.model_dir, self.log_dir, self.corpus_dir,
+            self.output_dir, self.sets_dir, self.text_dir, self.csv_dir
+        ]
+        for directory in directories:
             directory.mkdir(exist_ok=True)
 
-# Helper function to log standard evaluation results
+
 def log_evaluation_results(evaluation_metrics, corpus_name, prediction_method_name):
+    """Helper function to log standard evaluation results."""
     logging.info(f'Evaluated with: {prediction_method_name}')
     logging.info(f'Model evaluation completed for: {corpus_name}')
     for i in range(1, 4):
         accuracy = evaluation_metrics['accuracy'].get(i, 0.0)
         validity = evaluation_metrics['validity'].get(i, 0.0)
         logging.info(f'TOP{i} ACCURACY: {accuracy:.2%} | TOP{i} VALIDITY: {validity:.2%}')
+
 
 def run(corpus_name, config):
     """
@@ -75,7 +84,8 @@ def run(corpus_name, config):
     eval_model = EvaluateModel(corpus_manager)
     prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
 
-    evaluation_metrics, predictions = eval_model.evaluate_character_predictions(prediction_method)
+    evaluation_metrics, predictions = eval_model.evaluate_character_predictions(
+        prediction_method)
 
     # Log evaluation results using the new function
     log_evaluation_results(evaluation_metrics, corpus_name, prediction_method.__name__)
@@ -87,16 +97,21 @@ def run(corpus_name, config):
 
     logging.info('-' * 45)
 
+
 def main():
-    # Setup logging and create necessary directories
+    """Setup logging and create necessary directories."""
     config = Config()
     config.setup_logging()
     config.create_directories()
 
     # Iterating over each corpus for processing
-    corpora = ['cmudict', 'brown', 'CLMET3.txt', 'reuters', 'gutenberg', 'inaugural', 'webtext', 'nps_chat']
+    corpora = [
+        'cmudict', 'brown', 'CLMET3.txt', 'reuters', 'gutenberg',
+        'inaugural', 'webtext', 'nps_chat'
+    ]
     for corpus_name in corpora:
         run(corpus_name, config)
+
 
 if __name__ == '__main__':
     main()
