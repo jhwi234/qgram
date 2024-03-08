@@ -1,0 +1,12 @@
+https://github.com/kpu/kenlm/archive/master.zip # kenlm
+math
+matplotlib
+nltk
+numpy
+pandas
+regex
+scipy
+seaborn
+scikit-learn
+statsmodels
+tabulate
