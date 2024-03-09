@@ -147,41 +147,26 @@ class EvaluateModel:
         recall_metrics = evaluation_metrics['recall']
         precision_metrics = evaluation_metrics['precision']
 
-        # Total occurrences of all letters
-        total_letters = sum(self.actual_missing_letter_occurrences.values())
-
-        # Compute F1-score and G-Mean for each character
+        # Compute F1-score for each character
         f1_scores = {}
-        g_means = {}
-        weighted_f1_scores = {}
-        weighted_g_means = {}
         for char in recall_metrics:
             precision = precision_metrics[char]
             recall = recall_metrics[char]
             f1 = (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-            g_mean = math.sqrt(precision * recall)
-            
             f1_scores[char] = f1
-            g_means[char] = g_mean
-            
-            # Calculate weighted scores considering the total occurrences of each letter as a weight
-            weight = self.actual_missing_letter_occurrences[char] / total_letters
-            weighted_f1_scores[char] = f1 * weight
-            weighted_g_means[char] = g_mean * weight
 
-        # Sorting metrics by weighted F1-score in descending order might not be meaningful since each character's weighted score is influenced by its frequency, 
-        # but we'll sort by the original F1-Score for consistency in the output
+        # Sort metrics by F1-score in descending order
         sorted_metrics = sorted(
-            [(char, self.actual_missing_letter_occurrences[char], self.correct_top_predictions[char], self.top_predicted_counts[char], recall_metrics[char], precision_metrics[char], f1_scores[char], g_means[char], weighted_f1_scores[char], weighted_g_means[char]) for char in recall_metrics],
+            [(char, self.actual_missing_letter_occurrences[char], self.correct_top_predictions[char], self.top_predicted_counts[char], recall_metrics[char], precision_metrics[char], f1_scores[char]) for char in recall_metrics],
             key=lambda item: item[6], reverse=True  # Sort by F1-score
         )
 
-        # Save sorted metrics to a file, including the new weighted columns
-        metrics_file_path = self.config.csv_dir / f'{self.corpus_name}_recall_precision_f1_gmean_weighted.csv'
+        # Save sorted metrics to a file
+        metrics_file_path = self.config.csv_dir / f'{self.corpus_name}_recall_precision_f1.csv'
         with metrics_file_path.open('w', encoding='utf-8') as file:
-            file.write('Character,Total_Missing_Letter_Occurrences,Total_Correctly_Retrieved,Total_Predictions,Recall,Precision,F1-Score,G-Mean,Weighted F1,Weighted G-Mean\n')
-            for char, total_relevant, correctly_retrieved, total_predictions, recall, precision, f1_score, g_mean, weighted_f1, weighted_g_mean in sorted_metrics:
-                file.write(f'{char},{total_relevant},{correctly_retrieved},{total_predictions},{recall:.4f},{precision:.4f},{f1_score:.4f},{g_mean:.4f},{weighted_f1:.4f},{weighted_g_mean:.4f}\n')
+            file.write('Character,Total_Missing_Letter_Occurrences,Total_Correctly_Retrieved,Total_Predictions,Recall,Precision,F1-Score\n')
+            for char, total_relevant, correctly_retrieved, total_predictions, recall, precision, f1_score in sorted_metrics:
+                file.write(f'{char},{total_relevant},{correctly_retrieved},{total_predictions},{recall:.4f},{precision:.4f},{f1_score:.4f}\n')
     
     def export_prediction_details_to_csv(self, predictions, prediction_method_name):
         split_type_str = f"_{self.split_type}" if self.split_type else ""
