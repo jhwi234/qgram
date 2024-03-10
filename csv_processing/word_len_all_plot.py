@@ -1,30 +1,28 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
 from pathlib import Path
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# File paths
-clmet_file_path = Path('data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange6-6_prediction.csv')
-brown_file_path = Path('data/outputs/csv/brown_context_sensitive_split0.5_qrange6-6_prediction.csv')
-cmudict_file_path = Path('data/outputs/csv/cmudict_context_sensitive_split0.5_qrange6-6_prediction.csv')
-
-# Load datasets
+# Corrected datasets loading and preparation
 datasets = {
-    "CLMET3": pd.read_csv(clmet_file_path),
-    "Brown": pd.read_csv(brown_file_path),
-    "CMUDict": pd.read_csv(cmudict_file_path)
+    "CLMET3": 'data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange6-6_prediction.csv',
+    "Lampeter": 'data/outputs/csv/sorted_tokens_lampeter_context_sensitive_split0.5_qrange6-6_prediction.csv',
+    "Edges": 'data/outputs/csv/sorted_tokens_openEdges_context_sensitive_split0.5_qrange6-6_prediction.csv',
+    "Brown": 'data/outputs/csv/brown_context_sensitive_split0.5_qrange6-6_prediction.csv'
 }
 
-# Prepare data
-for dataset_name, dataset in datasets.items():
-    dataset['Word_Length'] = dataset['Original_Word'].fillna('').apply(len)
-    dataset['Dataset'] = dataset_name
+# Update: Load datasets and prepare them
+for name, path in datasets.items():
+    data = pd.read_csv(path)
+    data['Word_Length'] = data['Original_Word'].fillna('').apply(len)
+    data['Dataset'] = name
+    datasets[name] = data  # Replace path with actual data
 
 # Combine datasets
 combined_data = pd.concat(datasets.values())
 
 # Filter for word lengths up to 16
-filtered_data = combined_data[combined_data['Word_Length'] <= 16]
+filtered_data = combined_data[combined_data['Word_Length'] <= 15]
 
 # Group and aggregate across all datasets, after filtering
 overall_grouped_data = filtered_data.groupby('Word_Length').agg(
