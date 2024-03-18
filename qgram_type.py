@@ -105,10 +105,8 @@ def main():
     config.create_directories()
 
     # Iterating over each corpus for processing
-    corpora = [
-        'cmudict', 'brown', 'CLMET3.txt', 'reuters', 'gutenberg',
-        'inaugural', 'webtext', 'nps_chat'
-    ]
+    corpora = ['cmudict', 'brown', 'CLMET3.txt', 'sorted_tokens_lampeter.txt', 
+               'sorted_tokens_openEdges.txt', 'reuters', 'gutenberg', 'webtext']
     for corpus_name in corpora:
         run(corpus_name, config)
 
