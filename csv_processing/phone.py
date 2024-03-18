@@ -16,7 +16,7 @@ def classify_phonological_category(char):
         return 'Fricative'
     elif char in "lr":
         return 'Liquid'
-    elif char in "wy":  # Added 'y' to Glide as it was previously considered only as a vowel
+    elif char in "w":
         return 'Glide'
     elif is_vowel(char):
         return 'Vowel'
