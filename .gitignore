@@ -110,10 +110,7 @@ entropy_model/
 entropy_corpora/
 downloads/
 plots/
-<<<<<<< HEAD
-=======
 kenlm/
->>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
 
 # Specific file types
 *.klm
@@ -122,10 +119,7 @@ kenlm/
 
 # Specific files
 chechen.py
-<<<<<<< HEAD
-=======
 kenlm.tar.gz
->>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
 
 # mypy cache
 .mypy_cache/
