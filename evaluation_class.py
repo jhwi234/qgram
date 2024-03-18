@@ -1,7 +1,5 @@
-
 import csv
 import logging
-import math
 from predictions_class import Predictions
 
 class EvaluateModel:

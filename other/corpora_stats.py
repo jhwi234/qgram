@@ -7,10 +7,6 @@ import numpy as np
 from nltk.corpus import brown, gutenberg, inaugural, reuters, webtext
 import tabulate
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 9698c3277e395c0ecb9e118b3e05e3169f439863
 def download_corpus(corpus_name):
     """Downloads the specified NLTK corpus if not already present."""
     try:
