@@ -28,7 +28,9 @@ def classify_phonological_category(char):
 def preprocess_data_simple(df):
     df['is_vowel'] = df['Correct_Letter'].apply(lambda x: 1 if is_vowel(x) else 0)
     df['Phonological_Category'] = df['Correct_Letter'].apply(classify_phonological_category)
-    df = pd.get_dummies(df, columns=['Phonological_Category'], drop_first=True)
+    df = pd.get_dummies(df, columns=['Phonological_Category'], drop_first=False)
+    if 'Phonological_Category_Vowel' in df.columns:  # Check if the Vowel column exists
+        df.drop(columns=['Phonological_Category_Vowel'], inplace=True)  # Drop the Vowel column to use it as a reference
     return df
 
 def run_logistic_regression_corrected(df):
