@@ -2,6 +2,8 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from pathlib import Path  # Importing Path class
 
+### Set reference level to vowel instead of frienciative which is alphabetical default
+
 def is_vowel(char):
     vowels = 'aeiouyæœèéî'
     return char.lower() in vowels
