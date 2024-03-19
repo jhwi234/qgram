@@ -5,6 +5,9 @@ import warnings
 from pathlib import Path
 from scipy import stats
 
+
+# break up by consonant and vowel to see if the bins are different the poistion and the kind of character that appeares there
+
 warnings.filterwarnings('ignore', category=FutureWarning)
 
 def preprocess_data(file_path):
