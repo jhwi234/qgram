@@ -32,7 +32,7 @@ def run_logistic_regression_phonological_adjusted(df):
     # Specify 'Vowel' as the reference category using C(variable, Treatment(reference='Vowel'))
     formula = 'Top1_Is_Accurate ~ C(Phonological_Category, Treatment(reference="Vowel"))'
     # Fit the logistic regression model
-    model = smf.logit(formula=formula, data=df).fit()
+    model = smf.logit(formula, data=df).fit()
     print(model.summary())
 
 def main():
