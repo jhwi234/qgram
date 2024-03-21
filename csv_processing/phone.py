@@ -1,9 +1,8 @@
 import pandas as pd
 import statsmodels.formula.api as smf
-from pathlib import Path  # Importing Path class
+from pathlib import Path
 
-### Set reference level to vowel instead of frienciative which is alphabetical default
-
+# Define functions for phonological category classification
 def is_vowel(char):
     vowels = 'aeiouyæœèéî'
     return char.lower() in vowels
@@ -18,29 +17,23 @@ def classify_phonological_category(char):
         return 'Fricative'
     elif char in "lr":
         return 'Liquid'
-    elif char in "w":
-        return 'Glide'
     elif is_vowel(char):
         return 'Vowel'
     else:
         return 'Other'
 
-def preprocess_data_simple(df):
-    df['is_vowel'] = df['Correct_Letter'].apply(lambda x: 1 if is_vowel(x) else 0)
+# Preprocess the data
+def preprocess_data_adjusted(df):
     df['Phonological_Category'] = df['Correct_Letter'].apply(classify_phonological_category)
     df = pd.get_dummies(df, columns=['Phonological_Category'], drop_first=False)
-    if 'Phonological_Category_Vowel' in df.columns:  # Check if the Vowel column exists
-        df.drop(columns=['Phonological_Category_Vowel'], inplace=True)  # Drop the Vowel column to use it as a reference
     return df
 
-def run_logistic_regression_corrected(df):
-    model = smf.logit(formula='Top1_Is_Accurate ~ is_vowel', data=df).fit()
-    print(model.summary())
-
-def run_logistic_regression_phonological(df):
+# Logistic regression analysis with phonological categories
+def run_logistic_regression_phonological_adjusted(df):
     phonological_categories = [col for col in df.columns if col.startswith('Phonological_Category_')]
-    formula = 'Top1_Is_Accurate ~ ' + ' + '.join(phonological_categories)
-    model = smf.logit(formula=formula, data=df).fit()
+    formula = f'Top1_Is_Accurate ~ {" + ".join(phonological_categories)}'
+    # Increase the maximum number of iterations to improve the chances of convergence
+    model = smf.logit(formula=formula, data=df).fit_regularized(method='l1', maxiter=1000)
     print(model.summary())
 
 def main():
@@ -54,11 +47,9 @@ def main():
     for name, path in datasets.items():
         print(f"\nAnalyzing {name} Dataset...")
         df = pd.read_csv(path)
-        df_preprocessed = preprocess_data_simple(df)
-        print(f"\nResults for Corrected Predictions in {name}:")
-        run_logistic_regression_corrected(df_preprocessed)
+        df_preprocessed = preprocess_data_adjusted(df)
         print(f"\nResults for Phonological Predictions in {name}:")
-        run_logistic_regression_phonological(df_preprocessed)
+        run_logistic_regression_phonological_adjusted(df_preprocessed)
 
 if __name__ == "__main__":
     main()
