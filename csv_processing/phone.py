@@ -25,17 +25,14 @@ def classify_phonological_category(char):
 # Preprocess the data
 def preprocess_data_adjusted(df):
     df['Phonological_Category'] = df['Correct_Letter'].apply(classify_phonological_category)
-    df = pd.get_dummies(df, columns=['Phonological_Category'], drop_first=False)
     return df
 
 # Logistic regression analysis with phonological categories
 def run_logistic_regression_phonological_adjusted(df):
-    # Create a list of phonological category columns, excluding 'Vowel'
-    phonological_categories = [col for col in df.columns if col.startswith('Phonological_Category_') and 'Vowel' not in col]
-    # Construct the formula, ensuring 'Vowel' is the reference by its absence
-    formula = f'Top1_Is_Accurate ~ {" + ".join(phonological_categories)}'
-    # Fit the logistic regression model with L1 regularization and a high maxiter
-    model = smf.logit(formula=formula, data=df).fit_regularized(method='l1', maxiter=1000)
+    # Specify 'Vowel' as the reference category using C(variable, Treatment(reference='Vowel'))
+    formula = 'Top1_Is_Accurate ~ C(Phonological_Category, Treatment(reference="Vowel"))'
+    # Fit the logistic regression model
+    model = smf.logit(formula=formula, data=df).fit()
     print(model.summary())
 
 def main():
