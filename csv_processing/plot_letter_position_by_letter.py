@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import warnings
 from pathlib import Path
-from scipy import stats
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings('ignore', category=FutureWarning)
