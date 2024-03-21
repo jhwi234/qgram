@@ -30,9 +30,11 @@ def preprocess_data_adjusted(df):
 
 # Logistic regression analysis with phonological categories
 def run_logistic_regression_phonological_adjusted(df):
-    phonological_categories = [col for col in df.columns if col.startswith('Phonological_Category_')]
+    # Create a list of phonological category columns, excluding 'Vowel'
+    phonological_categories = [col for col in df.columns if col.startswith('Phonological_Category_') and 'Vowel' not in col]
+    # Construct the formula, ensuring 'Vowel' is the reference by its absence
     formula = f'Top1_Is_Accurate ~ {" + ".join(phonological_categories)}'
-    # Increase the maximum number of iterations to improve the chances of convergence
+    # Fit the logistic regression model with L1 regularization and a high maxiter
     model = smf.logit(formula=formula, data=df).fit_regularized(method='l1', maxiter=1000)
     print(model.summary())
 
