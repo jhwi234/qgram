@@ -1,44 +1,48 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import warnings
 from pathlib import Path
-from scipy import stats
 
-
-# break up by consonant and vowel to see if the bins are different the poistion and the kind of character that appeares there
-
-warnings.filterwarnings('ignore', category=FutureWarning)
-
-def preprocess_data(file_path):
-    data = pd.read_csv(file_path)
-    # Assuming 'Tested_Word' and 'Original_Word' are correct column names.
-    data['Missing_Letter_Position'] = data['Tested_Word'].apply(lambda x: x.find('_') if isinstance(x, str) else -1)
-    data['Word_Length'] = data['Original_Word'].apply(lambda x: len(x) if isinstance(x, str) else 0)
-    data['Normalized_Missing_Letter_Position'] = data.apply(
-        lambda row: row['Missing_Letter_Position'] / (row['Word_Length'] - 1) if row['Word_Length'] > 1 else 0, axis=1)
-    data['Normalized_Position_Bin'] = pd.cut(data['Normalized_Missing_Letter_Position'], bins=10, labels=range(10))
-    return data
-
-def plot_line_with_confidence_intervals_and_regression(data, dataset_name):
-    accuracy_summary = data.groupby('Normalized_Position_Bin')['Top1_Is_Accurate'].agg(['mean', 'std', 'count'])
-    accuracy_summary['se'] = accuracy_summary['std'] / np.sqrt(accuracy_summary['count'])
-    accuracy_summary['ci'] = 1.96 * accuracy_summary['se']
-    accuracy_summary['Bin_Midpoint'] = accuracy_summary.index.astype(float) + 0.5
-    accuracy_summary.reset_index(drop=True, inplace=True)
+def preprocess_data(path):
+    df = pd.read_csv(path)
     
-    slope, intercept, r_value, p_value, std_err = stats.linregress(accuracy_summary['Bin_Midpoint'], accuracy_summary['mean'])
+    # Function to calculate the position of the missing letter
+    def missing_letter_position(tested_word, original_word):
+        tested_word, original_word = str(tested_word), str(original_word)
+        for i in range(min(len(tested_word), len(original_word))):
+            if tested_word[i] != original_word[i]:
+                return i + 1  # Position is 1-indexed
+        return None
+
+    # Apply the function to calculate missing letter positions
+    df['Missing_Letter_Position'] = df.apply(lambda row: missing_letter_position(row['Tested_Word'], row['Original_Word']), axis=1)
+
+    # Normalize positions into 9 bins
+    df['Normalized_Position'] = df['Missing_Letter_Position'].apply(lambda x: min(x, 9))
+
+    # Calculate average accuracy for each normalized position
+    accuracy_by_position = df.groupby('Normalized_Position')['Top1_Is_Accurate'].mean().reset_index()
+
+    return accuracy_by_position
+
+def plot_line(data, name):
+    fig, ax = plt.subplots()
+    bars = ax.bar(data['Normalized_Position'], data['Top1_Is_Accurate'], color='skyblue')
+    ax.set_title(f'{name} Corpus - Accuracy by Normalized Letter Position', fontsize=14)
+    ax.set_xlabel('Normalized Letter Position', fontsize=12)
+    ax.set_ylabel('Average Accuracy', fontsize=12)
+    ax.set_xticks(data['Normalized_Position'])
+    ax.set_xticklabels(data['Normalized_Position'], rotation=0)
+    ax.grid(axis='y', linestyle='--', alpha=0.7)
     
-    plt.figure(figsize=(12, 8), dpi=100)
-    plt.errorbar(x=range(10), y=accuracy_summary['mean'], yerr=accuracy_summary['ci'], fmt='-o', capsize=5, color='#377eb8', ecolor='lightgray', elinewidth=3, capthick=2, markersize=5)
-    plt.plot(accuracy_summary['Bin_Midpoint'], intercept + slope * accuracy_summary['Bin_Midpoint'], '--', label=f'Regression Line: $y={intercept:.4f}+{slope:.4f}x$, $R^2={r_value**2:.4f}$', color='#e41a1c')
-    
-    plt.xlabel('Normalized Missing Letter Position Bin', fontsize=14)
-    plt.ylabel('Mean Accuracy', fontsize=14)
-    plt.title(f'{dataset_name}: Mean Accuracy vs. Normalized Missing Letter Position', fontsize=16)
-    plt.xticks(range(10), labels=[f"Bin {i}" for i in range(10)])
-    plt.legend(fontsize=12)
-    plt.grid(True, linestyle='--', linewidth=0.5)
+    # Adding value labels on top of each bar
+    for bar in bars:
+        height = bar.get_height()
+        ax.annotate(f'{height:.2f}',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
     plt.tight_layout()
     plt.show()
 
@@ -53,7 +57,7 @@ def main():
     for name, path in datasets.items():
         print(f"\nAnalyzing {name} Dataset...")
         data = preprocess_data(path)
-        plot_line_with_confidence_intervals_and_regression(data, name)
+        plot_line(data, name)
 
 if __name__ == "__main__":
     main()
