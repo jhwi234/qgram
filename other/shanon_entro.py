@@ -9,7 +9,7 @@ import nltk
 import regex as reg
 
 # Configuration
-Q_GRAMS = 10
+Q_GRAMS = 6
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 def ensure_directory_exists(directory_path):
