@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
+import seaborn as sns
 
 def preprocess_data(path):
     df = pd.read_csv(path)
@@ -25,36 +26,44 @@ def preprocess_data(path):
     return accuracy_by_position
 
 def plot_line(data, name):
-    fig, ax = plt.subplots()
-    bars = ax.bar(data['Normalized_Position'], data['Top1_Is_Accurate'], color='skyblue')
-    ax.set_title(f'{name} Corpus - Accuracy by Normalized Letter Position', fontsize=14)
-    ax.set_xlabel('Normalized Letter Position', fontsize=12)
-    ax.set_ylabel('Average Accuracy', fontsize=12)
-    ax.set_xticks(data['Normalized_Position'])
-    ax.set_xticklabels(data['Normalized_Position'], rotation=0)
-    ax.grid(axis='y', linestyle='--', alpha=0.7)
+    # Set the aesthetic style of the plots
+    sns.set_style("whitegrid")
+    
+    # Make the plot larger and set an aspect ratio
+    plt.figure(figsize=(10, 6))
+    
+    # Use a colorblind-friendly color
+    color = sns.color_palette("colorblind")[0]  # Selects the first color from the colorblind-friendly palette
+    
+    # Create the bar plot with Seaborn for automatic aesthetics improvements, using a colorblind-friendly color
+    bars = sns.barplot(x='Normalized_Position', y='Top1_Is_Accurate', data=data, color=color)
+    
+    # Set more descriptive titles and labels
+    bars.set_title(f'Prediction Accuracy by Letter Position in {name} Corpus', fontsize=16)
+    bars.set_xlabel('Position of Missing/Incorrect Letter', fontsize=14)
+    bars.set_ylabel('Average Prediction Accuracy (%)', fontsize=14)
+    
+    # Improve tick marks for better readability
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
     
     # Adding value labels on top of each bar
-    for bar in bars:
-        height = bar.get_height()
-        ax.annotate(f'{height:.2f}',
-                    xy=(bar.get_x() + bar.get_width() / 2, height),
-                    xytext=(0, 3),  # 3 points vertical offset
-                    textcoords="offset points",
-                    ha='center', va='bottom')
-
+    for index, row in data.iterrows():
+        bars.text(index, row.Top1_Is_Accurate, round(row.Top1_Is_Accurate, 2), color='black', ha="center", fontsize=10)
+    
     plt.tight_layout()
     plt.show()
 
 def main():
-    datasets = {
+    dataset_paths = {
         "CLMET3": Path('data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange6-6_prediction.csv'),
         "Lampeter": Path('data/outputs/csv/sorted_tokens_lampeter_context_sensitive_split0.5_qrange6-6_prediction.csv'),
         "Edges": Path('data/outputs/csv/sorted_tokens_openEdges_context_sensitive_split0.5_qrange6-6_prediction.csv'),
+        "CMU": Path('data/outputs/csv/cmudict_context_sensitive_split0.5_qrange6-6_prediction.csv'),
         "Brown": Path('data/outputs/csv/brown_context_sensitive_split0.5_qrange6-6_prediction.csv')
     }
 
-    for name, path in datasets.items():
+    for name, path in dataset_paths.items():
         print(f"\nAnalyzing {name} Dataset...")
         data = preprocess_data(path)
         plot_line(data, name)
