@@ -17,8 +17,8 @@ def preprocess_data(path):
     # Apply the function to calculate missing letter positions
     df['Missing_Letter_Position'] = df.apply(lambda row: missing_letter_position(row['Tested_Word'], row['Original_Word']), axis=1)
 
-    # Normalize positions into 9 bins
-    df['Normalized_Position'] = df['Missing_Letter_Position'].apply(lambda x: min(x, 9))
+    # Normalize positions into 10 bins
+    df['Normalized_Position'] = df['Missing_Letter_Position'].apply(lambda x: min(x, 10))
 
     # Calculate average accuracy for each normalized position
     accuracy_by_position = df.groupby('Normalized_Position')['Top1_Is_Accurate'].mean().reset_index()
