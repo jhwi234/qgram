@@ -24,17 +24,16 @@ def analyze_word_length_accuracy(file_path):
     print("\nRobust Regression Analysis Summary:")
     print(robust_regression_model.summary())
 
-# File paths
-clmet_file_path = Path('data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange6-6_prediction.csv')
-brown_file_path = Path('data/outputs/csv/brown_context_sensitive_split0.5_qrange6-6_prediction.csv')
-cmudict_file_path = Path('data/outputs/csv/cmudict_context_sensitive_split0.5_qrange6-6_prediction.csv')
+# Dictionary mapping dataset names to their file paths
+datasets = {
+    "CLMET3": Path('data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange6-6_prediction.csv'),
+    "Lampeter": Path('data/outputs/csv/sorted_tokens_lampeter_context_sensitive_split0.5_qrange6-6_prediction.csv'),
+    "Edges": Path('data/outputs/csv/sorted_tokens_openEdges_context_sensitive_split0.5_qrange6-6_prediction.csv'),
+    "CMU": Path('data/outputs/csv/cmudict_context_sensitive_split0.5_qrange6-6_prediction.csv'),
+    "Brown": Path('data/outputs/csv/brown_context_sensitive_split0.5_qrange6-6_prediction.csv')
+}
 
 # Perform analysis for each dataset
-print("CLMET3 Dataset Analysis:")
-analyze_word_length_accuracy(clmet_file_path)
-
-print("\nBrown Dataset Analysis:")
-analyze_word_length_accuracy(brown_file_path)
-
-print("\nCMUDict Dataset Analysis:")
-analyze_word_length_accuracy(cmudict_file_path)
+for dataset_name, file_path in datasets.items():
+    print(f"\n{dataset_name} Dataset Analysis:")
+    analyze_word_length_accuracy(file_path)
