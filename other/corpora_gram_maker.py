@@ -3,43 +3,50 @@ import csv
 from collections import Counter
 
 def extract_qgrams(word, max_q):
-    """Generates up to max_q q-grams for the given word."""
+    """Generate q-grams of lengths 1 through max_q for a given word."""
     return [word[i:i+q] for q in range(1, max_q + 1) for i in range(len(word) - q + 1)]
 
-def generate_and_save_qgrams_frequency_table(filename, max_q):
-    """Reads a CSV, generates a frequency table of q-grams, and saves it to a file in a specified directory."""
-    csv_dir = Path('data/outputs/csv/')
-    csv_file_path = csv_dir / filename
-
-    # Ensure the CSV file exists before proceeding
-    if not csv_file_path.exists():
-        return "CSV file does not exist."
-    
-    # Prepare the qgrams directory
-    qgrams_dir = Path('data/outputs/qgrams')
-    qgrams_dir.mkdir(parents=True, exist_ok=True)
-
-    # Compute the frequency table directly from the CSV
+def read_csv_and_generate_qgrams(csv_file_path, max_q):
+    """Read a CSV file and generate q-grams for each 'Original_Word'."""
     with csv_file_path.open(newline='', encoding='utf-8') as csvfile:
-        frequency_table = Counter(
+        return [
             qgram
             for row in csv.DictReader(csvfile)
             for qgram in extract_qgrams(row['Original_Word'], max_q)
-        )
+        ]
 
-    # Sort the frequency table by frequency in descending order
-    sorted_frequency_table = sorted(frequency_table.items(), key=lambda item: item[1], reverse=True)
+def save_frequency_table(sorted_frequency_table, output_file_path):
+    """Save the sorted frequency table to a file."""
+    content = "\n".join(f"{qgram}: {frequency}" for qgram, frequency in sorted_frequency_table)
+    output_file_path.write_text(content, encoding="utf-8")
 
-    # Path for the output text file
-    output_file_path = qgrams_dir / f"sorted_{max_q}grams_frequency_table.txt"
+def generate_and_save_qgrams_frequency_table(filename, max_q):
+    """Process a CSV file to generate and save a q-grams frequency table."""
+    csv_file_path = Path('data/outputs/csv') / filename
+
+    if not csv_file_path.is_file():
+        return "CSV file does not exist."
     
-    # Save the sorted frequency table to a text file
-    with output_file_path.open("w", encoding="utf-8") as f:
-        f.write("\n".join(f"{qgram}: {frequency}" for qgram, frequency in sorted_frequency_table))
+    # Extract the first part of the filename to use in the output filename
+    filename_without_ext = csv_file_path.stem
+
+    qgrams_dir = Path('data/outputs/qgrams')
+    qgrams_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate q-grams and create a frequency table
+    qgrams = read_csv_and_generate_qgrams(csv_file_path, max_q)
+    frequency_table = Counter(qgrams)
+    sorted_table = sorted(frequency_table.items(), key=lambda item: item[1], reverse=True)
+
+    output_file_path = qgrams_dir / f"{filename_without_ext}_{max_q}grams_frequency_table.txt"
+    save_frequency_table(sorted_table, output_file_path)
 
     return f"Sorted {max_q}-grams frequency table saved successfully to {output_file_path}"
 
-if __name__ == "__main__":
+def main():
     csv_filename = "brown_context_sensitive_split0.5_qrange6-6_prediction.csv"
     result = generate_and_save_qgrams_frequency_table(csv_filename, 6)
     print(result)
+
+if __name__ == "__main__":
+    main()
