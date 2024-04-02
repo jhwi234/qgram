@@ -3574,3 +3574,129 @@ Intersection Count Train-Test: 0.1127
 Spearman Correlation Train-Correct Pred: 0.2642
 Spearman Correlation Train-Incorrect Pred: -0.0805
 Spearman Correlation Train-Test: 0.0604
+Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_train_qgrams.txt'
+Failed to read from /home/tc/qgram/data/outputs/qgrams/brown_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/brown_test_qgrams.txt'
+
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.0000
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0
+
+Frequency Similarity Train-Correct Pred: 0.5000
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 1.0000
+
+Intersection Count Train-Correct Pred: 0
+Intersection Count Train-Incorrect Pred: 0
+Intersection Count Train-Test: 0
+
+Spearman Correlation Train-Correct Pred: 0
+Spearman Correlation Train-Incorrect Pred: 0
+Spearman Correlation Train-Test: 0
+Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_train_qgrams.txt'
+Failed to read from /home/tc/qgram/data/outputs/qgrams/CLMET3_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/CLMET3_test_qgrams.txt'
+
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.0000
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0
+
+Frequency Similarity Train-Correct Pred: 0.5000
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 1.0000
+
+Intersection Count Train-Correct Pred: 0
+Intersection Count Train-Incorrect Pred: 0
+Intersection Count Train-Test: 0
+
+Spearman Correlation Train-Correct Pred: 0
+Spearman Correlation Train-Incorrect Pred: 0
+Spearman Correlation Train-Test: 0
+Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_train_qgrams.txt'
+Failed to read from /home/tc/qgram/data/outputs/qgrams/cmudict_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/cmudict_test_qgrams.txt'
+
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.0000
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0
+
+Frequency Similarity Train-Correct Pred: 0.5000
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 1.0000
+
+Intersection Count Train-Correct Pred: 0
+Intersection Count Train-Incorrect Pred: 0
+Intersection Count Train-Test: 0
+
+Spearman Correlation Train-Correct Pred: 0
+Spearman Correlation Train-Incorrect Pred: 0
+Spearman Correlation Train-Test: 0
+Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_train_qgrams.txt'
+Failed to read from /home/tc/qgram/data/outputs/qgrams/gutenberg_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/gutenberg_test_qgrams.txt'
+
+--------------------------------------------------
+gutenberg Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.0000
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0
+
+Frequency Similarity Train-Correct Pred: 0.5000
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 1.0000
+
+Intersection Count Train-Correct Pred: 0
+Intersection Count Train-Incorrect Pred: 0
+Intersection Count Train-Test: 0
+
+Spearman Correlation Train-Correct Pred: 0
+Spearman Correlation Train-Incorrect Pred: 0
+Spearman Correlation Train-Test: 0
+Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_train_qgrams.txt'
+Failed to read from /home/tc/qgram/data/outputs/qgrams/inaugural_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/inaugural_test_qgrams.txt'
+
+--------------------------------------------------
+inaugural Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.0000
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0
+
+Frequency Similarity Train-Correct Pred: 0.5000
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 1.0000
+
+Intersection Count Train-Correct Pred: 0
+Intersection Count Train-Incorrect Pred: 0
+Intersection Count Train-Test: 0
+
+Spearman Correlation Train-Correct Pred: 0
+Spearman Correlation Train-Incorrect Pred: 0
+Spearman Correlation Train-Test: 0
+Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_train_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_train_qgrams.txt'
+Failed to read from /home/tc/qgram/data/outputs/qgrams/reuters_test_qgrams.txt: [Errno 2] No such file or directory: '/home/tc/qgram/data/outputs/qgrams/reuters_test_qgrams.txt'
+
+--------------------------------------------------
+reuters Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Correct Pred: 0.0000
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0
+
+Frequency Similarity Train-Correct Pred: 0.5000
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 1.0000
+
+Intersection Count Train-Correct Pred: 0
+Intersection Count Train-Incorrect Pred: 0
+Intersection Count Train-Test: 0
+
+Spearman Correlation Train-Correct Pred: 0
+Spearman Correlation Train-Incorrect Pred: 0
+Spearman Correlation Train-Test: 0

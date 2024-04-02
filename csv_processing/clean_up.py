@@ -1,43 +1,43 @@
 import pandas as pd
 from pathlib import Path
+import logging
 
-# Define dataset paths
-datasets = {
-    "CLMET3": Path('data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange6-6_prediction.csv'),
-    "Lampeter": Path('data/outputs/csv/sorted_tokens_lampeter_context_sensitive_split0.5_qrange6-6_prediction.csv'),
-    "Edges": Path('data/outputs/csv/sorted_tokens_openEdges_context_sensitive_split0.5_qrange6-6_prediction.csv'),
-    "CMU": Path('data/outputs/csv/cmudict_context_sensitive_split0.5_qrange6-6_prediction.csv'),
-    "Brown": Path('data/outputs/csv/brown_context_sensitive_split0.5_qrange6-6_prediction.csv')
-}
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 def clean_dataset(file_path):
-    # Load the dataset
-    df = pd.read_csv(file_path)
-    
-    # Ensure consistent casing
-    df['Tested_Word'] = df['Tested_Word'].str.lower()
-    df['Original_Word'] = df['Original_Word'].str.lower()
-    
-    # Trim whitespace
-    df['Tested_Word'] = df['Tested_Word'].str.strip()
-    df['Original_Word'] = df['Original_Word'].str.strip()
-    
-    # Drop rows where 'Original_Word' is null
-    df.dropna(subset=['Original_Word'], inplace=True)
-    
-    # Validate data types
-    # Ensuring 'In_Training_Set' is treated as a boolean
-    df['In_Training_Set'] = df['In_Training_Set'].astype(bool)
-    
-    # Remove duplicate rows
-    df.drop_duplicates(inplace=True)
-    
-    # Save the cleaned dataset back to disk
-    cleaned_file_path = file_path.parent / f"{file_path.stem}_cleaned{file_path.suffix}"
-    df.to_csv(cleaned_file_path, index=False)
-    print(f"Cleaned dataset saved to {cleaned_file_path}")
+    try:
+        df = pd.read_csv(file_path)
+        
+        df['Tested_Word'] = df['Tested_Word'].str.lower().str.strip()
+        df['Original_Word'] = df['Original_Word'].str.lower().str.strip()
+        
+        # Drop rows where 'Original_Word' is null
+        df.dropna(subset=['Original_Word'], inplace=True)
 
-# Iterate over each dataset, clean it, and save the cleaned version
-for name, path in datasets.items():
-    print(f"Cleaning dataset: {name}")
-    clean_dataset(path)
+        # Ensure boolean data types
+        df['In_Training_Set'] = df['In_Training_Set'].astype(bool)
+        for i in range(1, 4):
+            df[f'Top{i}_Is_Valid'] = df[f'Top{i}_Is_Valid'].astype(bool)
+            df[f'Top{i}_Is_Accurate'] = df[f'Top{i}_Is_Accurate'].astype(bool)
+
+        # Ensure 'Correct_Letter_Rank' is integer
+        df['Correct_Letter_Rank'] = df['Correct_Letter_Rank'].astype(int)
+        
+        # Remove duplicates
+        df.drop_duplicates(inplace=True)
+        
+        # Save the cleaned dataset
+        cleaned_file_path = file_path.parent / f"{file_path.stem}_cleaned{file_path.suffix}"
+        df.to_csv(cleaned_file_path, index=False)
+        logging.info(f"Cleaned dataset saved to {cleaned_file_path}")
+    except Exception as e:
+        logging.error(f"Failed to clean {file_path.name} due to {e}")
+
+data_dir = Path('data/outputs/csv')
+
+files_to_clean = [file_path for file_path in data_dir.glob('*.csv') if 'f1' not in file_path.stem]
+
+for file_path in files_to_clean:
+    logging.info(f"Cleaning dataset: {file_path.name}")
+    clean_dataset(file_path)
