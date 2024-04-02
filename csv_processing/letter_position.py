@@ -1,7 +1,7 @@
 import pandas as pd
-import statsmodels.api as sm
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import roc_curve, auc, precision_recall_curve
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from pathlib import Path
@@ -19,29 +19,29 @@ def preprocess_data(file_path):
     return data
 
 def logistic_regression_analysis(data):
+    # Adjusted to add ROC and precision-recall curve plotting
     data = add_additional_features(data)
     X = data[['Normalized_Missing_Letter_Position', 'Word_Complexity']]
     y = data['Top1_Is_Accurate']
-    
-    # Standardize features since you're directly using scikit-learn's Logistic Regression
+
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    
-    # Splitting the dataset into training and testing sets
+
     X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
-    
-    # Initialize and train the Logistic Regression model
+
     model = LogisticRegression().fit(X_train, y_train)
     predictions = model.predict(X_test)
-    
-    # Printing evaluation metrics
-    print_evaluation_metrics(y_test, predictions)
-    
-    # Now call the cross-validation function with the standardized features and target
-    logistic_regression_with_cross_validation(X_scaled, y)
-    
-    return data.groupby('Normalized_Position_Bin', observed=True)['Top1_Is_Accurate'].mean().reset_index()
+    predictions_proba = model.predict_proba(X_test)[:, 1]  # Get probabilities for the positive class
 
+    # Plotting ROC Curve and Precision-Recall Curve
+    plot_roc_curve(y_test, predictions_proba)
+    plot_precision_recall(y_test, predictions_proba)
+
+    print_evaluation_metrics(y_test, predictions)
+    logistic_regression_with_cross_validation(X_scaled, y)
+
+    return data.groupby('Normalized_Position_Bin', observed=True)['Top1_Is_Accurate'].mean().reset_index()
+    
 def add_additional_features(data):
     # Adjusting the function to handle non-string (NaN or float) values in 'Original_Word'
     data['Word_Complexity'] = data['Original_Word'].apply(lambda x: len(set(x)) / len(x) if isinstance(x, str) and len(x) > 0 else 0)
@@ -73,6 +73,30 @@ def print_model_diagnostics(model):
     print("Log-Likelihood: {:.4f}".format(model.llf))
     print("AIC: {:.4f}".format(model.aic))
     print("BIC: {:.4f}".format(model.bic))
+
+def plot_roc_curve(y_test, y_scores):
+    fpr, tpr, thresholds = roc_curve(y_test, y_scores)
+    roc_auc = auc(fpr, tpr)
+
+    plt.figure()
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic')
+    plt.legend(loc="lower right")
+    plt.show()
+
+def plot_precision_recall(y_test, y_scores):
+    precision, recall, thresholds = precision_recall_curve(y_test, y_scores)
+    plt.figure()
+    plt.plot(recall, precision, marker='.', label='Logistic')
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Precision-Recall curve')
+    plt.show()
 
 def main():
     datasets = {
