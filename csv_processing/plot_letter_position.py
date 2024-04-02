@@ -5,7 +5,7 @@ import seaborn as sns
 
 def preprocess_data(path):
     """
-    Preprocess data by calculating the position of missing letters in words and normalizing this information.
+    Preprocess data by calculating the position of missing letters in words and normalizing.
 
     Args:
     - path (Path or str): The path to the CSV file containing the dataset.
