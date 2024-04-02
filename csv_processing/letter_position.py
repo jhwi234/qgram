@@ -1,7 +1,9 @@
 import pandas as pd
 import statsmodels.api as sm
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
 from pathlib import Path
 import matplotlib.pyplot as plt
 import warnings
@@ -17,18 +19,48 @@ def preprocess_data(file_path):
     return data
 
 def logistic_regression_analysis(data):
-    X = sm.add_constant(data[['Normalized_Missing_Letter_Position']])
+    data = add_additional_features(data)
+    X = data[['Normalized_Missing_Letter_Position', 'Word_Complexity']]
     y = data['Top1_Is_Accurate']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-    model = sm.Logit(y_train, X_train).fit(disp=0)
-    predictions = model.predict(X_test)
-    predictions_binary = [1 if x > 0.5 else 0 for x in predictions]
     
-    print_evaluation_metrics(y_test, predictions_binary)
-    print_model_diagnostics(model)
-    plot_logistic_regression(data, X_test, predictions)
+    # Standardize features since you're directly using scikit-learn's Logistic Regression
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    # Splitting the dataset into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
+    
+    # Initialize and train the Logistic Regression model
+    model = LogisticRegression().fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    
+    # Printing evaluation metrics
+    print_evaluation_metrics(y_test, predictions)
+    
+    # Now call the cross-validation function with the standardized features and target
+    logistic_regression_with_cross_validation(X_scaled, y)
     
     return data.groupby('Normalized_Position_Bin', observed=True)['Top1_Is_Accurate'].mean().reset_index()
+
+def add_additional_features(data):
+    # Adjusting the function to handle non-string (NaN or float) values in 'Original_Word'
+    data['Word_Complexity'] = data['Original_Word'].apply(lambda x: len(set(x)) / len(x) if isinstance(x, str) and len(x) > 0 else 0)
+    return data
+
+def logistic_regression_with_cross_validation(X, y):
+    
+    # It's good practice to scale features when using logistic regression
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    # Initialize the LogisticRegression model
+    model = LogisticRegression()
+    
+    # Perform cross-validation
+    cv_scores = cross_val_score(model, X_scaled, y, cv=5, scoring='accuracy')
+    
+    print(f"Cross-Validation Accuracy Scores: {cv_scores}")
+    print(f"Mean CV Score: {cv_scores.mean()}")
 
 def print_evaluation_metrics(y_test, predictions_binary):
     print("Confusion Matrix:")
@@ -41,16 +73,6 @@ def print_model_diagnostics(model):
     print("Log-Likelihood: {:.4f}".format(model.llf))
     print("AIC: {:.4f}".format(model.aic))
     print("BIC: {:.4f}".format(model.bic))
-
-def plot_logistic_regression(data, X_test, predictions):
-    plt.figure(figsize=(10, 6))
-    plt.scatter(data['Normalized_Missing_Letter_Position'], data['Top1_Is_Accurate'], color='red', label='Actual data')
-    plt.plot(X_test['Normalized_Missing_Letter_Position'], predictions, color='blue', label='Logistic Regression Curve')
-    plt.xlabel('Normalized Missing Letter Position')
-    plt.ylabel('Prediction Accuracy')
-    plt.title('Logistic Regression Analysis')
-    plt.legend()
-    plt.show()
 
 def main():
     datasets = {
@@ -66,5 +88,6 @@ def main():
         data = preprocess_data(path)
         accuracy = logistic_regression_analysis(data)
         print(f"\n{name} Dataset Normalized Position Accuracy:\n", accuracy)
+
 if __name__ == "__main__":
     main()
