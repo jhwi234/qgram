@@ -28,7 +28,7 @@ def clean_dataset(file_path):
         df.drop_duplicates(inplace=True)
         
         # Save the cleaned dataset
-        cleaned_file_path = file_path.parent / f"{file_path.stem}_cleaned{file_path.suffix}"
+        cleaned_file_path = file_path.parent / f"{file_path.stem}{file_path.suffix}"
         df.to_csv(cleaned_file_path, index=False)
         logging.info(f"Cleaned dataset saved to {cleaned_file_path}")
     except Exception as e:

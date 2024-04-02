@@ -17,8 +17,8 @@ for name, path in datasets.items():
     data = pd.read_csv(path)
     data['Word_Length'] = data['Original_Word'].fillna('').apply(len)
     data['Dataset'] = name
-    datasets[name] = data  # Replace path with actual data
-
+    datasets[name] = data
+    
 # Combine datasets
 combined_data = pd.concat(datasets.values())
 
