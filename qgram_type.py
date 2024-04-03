@@ -27,7 +27,7 @@ class Config:
     def _set_values(self):
         """Values for testing."""
         self.seed = 42
-        self.q_range = [6, 6]
+        self.q_range = [8, 8]
         self.split_config = 0.5
         self.vowel_replacement_ratio = 0.2
         self.consonant_replacement_ratio = 0.8
@@ -106,7 +106,7 @@ def main():
 
     # Iterating over each corpus for processing
     corpora = ['cmudict', 'brown', 'CLMET3.txt', 'sorted_tokens_lampeter.txt', 
-               'sorted_tokens_openEdges.txt', 'reuters', 'gutenberg', 'webtext']
+               'sorted_tokens_openEdges.txt']
     for corpus_name in corpora:
         run(corpus_name, config)
 

@@ -72,7 +72,7 @@ class Config:
         self.csv_dir = self.output_dir / 'csv'
         self.sets_dir = self.output_dir / 'sets'
         self.seed = 42
-        self.q_range = [6, 6]
+        self.q_range = [8, 8]
         self.split_config = 0.5
         self.vowel_replacement_ratio = 0.2
         self.consonant_replacement_ratio = 0.8
@@ -442,7 +442,7 @@ def main():
     config.setup_logging()
     config.create_directories()
     corpora = ['cmudict', 'brown', 'CLMET3_all_tokens.txt', 'all_tokens_lampeter.txt', 
-               'all_tokens_openEdges.txt', 'reuters', 'gutenberg', 'webtext']
+               'all_tokens_openEdges.txt']
     split_types = ['A', 'B', 'HAPAX']
     for corpus_name in corpora:
         for split_type in split_types:
