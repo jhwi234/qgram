@@ -100,7 +100,8 @@ class TextProcessor:
 
     def tokenize_text(self, text):
         """
-        Tokenizes the given text by identifying words, contractions, hyphenated words, and words with Old and Middle English characters.
+        Tokenizes the given text by identifying words, contractions, hyphenated words, 
+        and words with Old and Middle English characters.
 
         Parameters
         ----------
@@ -109,8 +110,8 @@ class TextProcessor:
 
         Returns
         -------
-        set
-            A set of unique tokens.
+        list
+            A list of tokens.
         """
         # Ensure input is a string
         if not isinstance(text, str):
@@ -120,7 +121,7 @@ class TextProcessor:
         normalized_text = unicodedata.normalize('NFKC', text)
 
         # Initialize an empty set to store unique tokens
-        unique_tokens = set()
+        tokens = []
 
         for line in normalized_text.split('\n'):
             if self.is_valid_line(line):
@@ -128,9 +129,9 @@ class TextProcessor:
                 matches_found = False  # To indicate if any matches were found
                 for token in regex.finditer(self.tokenizer_pattern, line, overlapped=True):
                     matches_found = True
-                    unique_tokens.add(token.group())
+                    tokens.append(token.group())
 
-        return unique_tokens
+        return tokens
 
     def process_text(self, text):
         """
@@ -143,8 +144,8 @@ class TextProcessor:
 
         Returns
         -------
-        set
-            A set of unique tokens from the processed text.
+        list
+            A list of tokens from the processed text.
         """
         text_without_html = self.remove_html_tags(text)
         cleaned_text = self.remove_non_linguistic_strings(text_without_html)
@@ -161,8 +162,8 @@ class TextProcessor:
 
         Returns
         -------
-        set
-            A set of unique tokens from the processed file.
+        list
+            A list of tokens from the processed file.
         """
         if not isinstance(filepath, str):
             raise TextProcessorError("File path must be a string")
