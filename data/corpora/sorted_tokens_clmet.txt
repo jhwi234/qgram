@@ -11716,6 +11716,7 @@ authours
 autichamp
 auto
 auto-biography
+auto-da
 auto-da-
 auto-da-fe
 auto-painting
@@ -40212,6 +40213,7 @@ county-town
 county-towns
 coup
 coup-
+coup-d
 coup-d'
 coup-d'oeil
 coup-de-grace
@@ -40239,6 +40241,7 @@ couplings
 coupon
 coupons
 coups
+coups-d
 coups-d'
 coupy
 cour
@@ -114133,6 +114136,7 @@ misdoubted
 misdoubting
 misdrawn
 mise
+mise-en
 mise-en-
 mise-en-scene
 miself
@@ -114358,6 +114362,7 @@ missioners
 missiones
 missions
 missis
+missis-en
 missis-en-
 missish
 missisippi
@@ -175838,6 +175843,7 @@ table-cloth
 table-cloths
 table-cover
 table-covers
+table-d
 table-d'
 table-drawer
 table-drawers
