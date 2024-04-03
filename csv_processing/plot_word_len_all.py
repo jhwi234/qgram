@@ -45,7 +45,7 @@ for i in range(len(overall_grouped_data) - 1):
 # Binding the ScalarMappable to the axes for the colorbar
 plt.colorbar(sm, label='Sample Count', ax=ax)
 
-ax.set_title('Overall Prediction Accuracy vs. Word Length with Gradient (Up to 16 Letters)')
+ax.set_title('Overall Prediction Accuracy vs. Word Length with Gradient (Up to 15 Letters)')
 ax.set_xlabel('Word Length')
 ax.set_ylabel('Mean Prediction Accuracy')
 ax.grid(True, linestyle='--', linewidth=0.5, color='gray', alpha=0.5)
