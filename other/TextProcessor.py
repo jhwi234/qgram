@@ -120,7 +120,7 @@ class TextProcessor:
         # Normalize text to NFKC (Compatibility Composition)
         normalized_text = unicodedata.normalize('NFKC', text)
 
-        # Initialize an empty set to store unique tokens
+        # Initialize an empty list to store tokens
         tokens = []
 
         for line in normalized_text.split('\n'):
