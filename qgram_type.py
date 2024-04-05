@@ -28,7 +28,7 @@ class Config:
         """Values for testing."""
         self.seed = 42
         self.q_range = [8, 8]
-        self.split_config = 0.5
+        self.split_config = 0.1
         self.vowel_replacement_ratio = 0.2
         self.consonant_replacement_ratio = 0.8
         self.min_word_length = 3

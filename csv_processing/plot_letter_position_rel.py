@@ -52,44 +52,38 @@ def preprocess_data(path):
     return accuracy_by_position
 
 def plot_line(data, name):
-    """
-    Plot the accuracy of predictions across different bins of the relative positions of the missing letter.
+    # Use Seaborn's theme setting for a clean aesthetic
+    sns.set_theme(style="whitegrid")
 
-    Args:
-    - data (DataFrame): The preprocessed data containing binned relative positions and their corresponding accuracies.
-    - name (str): The name of the dataset being visualized, used for titling the plot.
-    """
-    # Set the visual style of the plots to be more readable
-    sns.set_style("whitegrid")
-    
-    # Create a figure with a specified size for clarity
-    plt.figure(figsize=(10, 6))
-    
-    # Choose a color from the colorblind-friendly palette
-    color = sns.color_palette("colorblind")[0]
-    
-    # Create a bar plot with binned relative positions on the x-axis and accuracy on the y-axis
-    bars = sns.barplot(x='Binned_Position', y='Top1_Is_Accurate', data=data, color=color)
-    
-    # Set the title and labels of the plot, with increased font sizes for readability
-    bars.set_title(f'Prediction Accuracy by Binned Relative Letter Position in {name} Corpus', fontsize=20)
-    bars.set_xlabel('Binned Relative Position of Missing Letter', fontsize=18)
-    bars.set_ylabel('Mean Prediction Accuracy (%)', fontsize=18)
-    
-    # Customize tick marks for better readability
-    plt.xticks(fontsize=14)
-    plt.yticks(fontsize=14)
-    
-    # Enhance grid lines for better readability
-    plt.grid(True, which='both', linestyle='--', linewidth=0.5, color='grey', alpha=0.7)
-    
-    # Optionally, adjust the tick labels to reflect the bin ranges or categories if needed
-    
-    # Add percentage labels above each bar for clarity
+    # Enhanced figure size for better readability
+    plt.figure(figsize=(12, 8))
+
+    # Instead of using a diverse color palette for each bar, use a single color
+    # This avoids the issue with the deprecation warning regarding palette use without 'hue'
+    color = sns.color_palette("deep", 2)  # This selects a single color from the 'deep' palette
+
+    # Creating a bar plot with a consistent color scheme
+    bars = sns.barplot(
+        x='Binned_Position',
+        y='Top1_Is_Accurate',
+        data=data,
+        color=color[0]  # Apply the single selected color
+    )
+
+    # Customizing the plot's title and axis labels with more readable fonts
+    bars.set_title(f'Accuracy by Relative Letter Position - {name}', fontsize=22, fontweight='bold')
+    bars.set_xlabel('Relative Position of Missing Letter', fontsize=20)
+    bars.set_ylabel('Mean Accuracy (%)', fontsize=20)
+
+    # Adjusting tick parameters for better readability
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
+
+    # Adding percentage labels above each bar for enhanced clarity
     for index, row in data.iterrows():
-        bars.text(index, row.Top1_Is_Accurate, f'{round(row.Top1_Is_Accurate, 2)}%', color='black', ha="center", va='bottom', fontsize=14)
-    
-    # Adjust layout to accommodate labels
+        bars.text(index, row.Top1_Is_Accurate, f"{round(row.Top1_Is_Accurate, 2)}%", color='black', ha="center", fontsize=14)
+
+    # Tight layout for better spacing
     plt.tight_layout()
     plt.show()
 
@@ -99,11 +93,11 @@ def main():
     """
     # Define paths to datasets
     dataset_paths = {
-        "CLMET3": Path('data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange6-6_prediction.csv'),
-        "Lampeter": Path('data/outputs/csv/sorted_tokens_lampeter_context_sensitive_split0.5_qrange6-6_prediction.csv'),
-        "Edges": Path('data/outputs/csv/sorted_tokens_openEdges_context_sensitive_split0.5_qrange6-6_prediction.csv'),
-        "CMU": Path('data/outputs/csv/cmudict_context_sensitive_split0.5_qrange6-6_prediction.csv'),
-        "Brown": Path('data/outputs/csv/brown_context_sensitive_split0.5_qrange6-6_prediction.csv')
+        "CLMET3": Path('data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange8-8_prediction.csv'),
+        "Lampeter": Path('data/outputs/csv/sorted_tokens_lampeter_context_sensitive_split0.5_qrange8-8_prediction.csv'),
+        "Edges": Path('data/outputs/csv/sorted_tokens_openEdges_context_sensitive_split0.5_qrange8-8_prediction.csv'),
+        "CMU": Path('data/outputs/csv/cmudict_context_sensitive_split0.5_qrange8-8_prediction.csv'),
+        "Brown": Path('data/outputs/csv/brown_context_sensitive_split0.5_qrange8-8_prediction.csv')
     }
 
     # Iterate over each dataset, preprocess, and plot the data

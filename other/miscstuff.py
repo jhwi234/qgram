@@ -10,7 +10,7 @@ def count_strings_in_files(directory_path='data/corpora/'):
     all_files = os.listdir()
     
     # Filter files that start with "all_" and end with ".txt"
-    target_files = [file for file in all_files if file.startswith('sorted_') and file.endswith('.txt')]
+    target_files = [file for file in all_files if file.startswith('all_') and file.endswith('.txt')]
     
     # Dictionary to hold the count of strings for each file
     strings_count = {}
