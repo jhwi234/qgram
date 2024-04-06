@@ -2,12 +2,15 @@ from pathlib import Path
 import pandas as pd
 import statsmodels.formula.api as smf
 
-# Define a function to perform robust analysis
+# Define a function to perform logistic regression analysis with Top1_Is_Accurate as a boolean
 def analyze_word_length_accuracy(file_path):
     data = pd.read_csv(file_path)
 
     # Handle missing values by treating them as empty strings for word length calculation
     data['Word_Length'] = data['Original_Word'].fillna('').apply(len)
+    
+    # Ensure 'Top1_Is_Accurate' is boolean, then convert True/False to 1/0
+    data['Top1_Is_Accurate'] = data['Top1_Is_Accurate'].astype(int)
     
     # Calculate additional statistical measures
     word_length_stats = data.groupby('Word_Length').agg({
@@ -18,11 +21,15 @@ def analyze_word_length_accuracy(file_path):
     print("Statistical Analysis of Word Length and Prediction Accuracy:")
     print(word_length_stats)
 
-    # Perform robust linear regression with word length as the predictor of top prediction accuracy
-    robust_regression_model = smf.rlm('Top1_Is_Accurate ~ Word_Length', data=data).fit()
+    # Check data types before regression
+    print("\nData Types:")
+    print(data.dtypes)
 
-    print("\nRobust Regression Analysis Summary:")
-    print(robust_regression_model.summary())
+    # Perform logistic regression with word length as the predictor of top prediction accuracy
+    logistic_regression_model = smf.logit('Top1_Is_Accurate ~ Word_Length', data=data).fit()
+
+    print("\nLogistic Regression Analysis Summary:")
+    print(logistic_regression_model.summary())
 
 # Dictionary mapping dataset names to their file paths
 datasets = {
