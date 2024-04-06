@@ -30,7 +30,7 @@ combined_data['Word_Length_Category'] = pd.cut(combined_data['Word_Length'], bin
 # Calculate the average accuracy for each relative position range, controlled by word length
 # Include observed=True to address the FutureWarning
 accuracy_by_length_and_position = combined_data.groupby(
-    ['Word_Length_Category', pd.cut(combined_data['Relative_Position'], bins=10)],
+    ['Word_Length_Category', pd.cut(combined_data['Relative_Position'], bins=8)],
     observed=True  # This addresses the FutureWarning by explicitly stating behavior for categorical data
 )['Top1_Is_Accurate'].mean().unstack(level=0)
 

@@ -44,7 +44,7 @@ def preprocess_data(path):
     )
 
     # Bin the normalized relative positions into 10 bins
-    df['Binned_Position'] = pd.cut(df['Normalized_Relative_Position'], bins=10, labels=False) + 1
+    df['Binned_Position'] = pd.cut(df['Normalized_Relative_Position'], bins=8, labels=False) + 1
 
     # Group by the binned position and calculate the mean accuracy for each bin
     accuracy_by_position = df.groupby('Binned_Position')['Top1_Is_Accurate'].mean().reset_index()
