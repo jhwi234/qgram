@@ -9,28 +9,38 @@ def clean_dataset(file_path):
     try:
         df = pd.read_csv(file_path)
         
+        # Standardize 'Tested_Word' and 'Original_Word'
         df['Tested_Word'] = df['Tested_Word'].str.lower().str.strip()
         df['Original_Word'] = df['Original_Word'].str.lower().str.strip()
         
         # Drop rows where 'Original_Word' is null
-        df.dropna(subset=['Original_Word'], inplace=True)
+        df = df.dropna(subset=['Original_Word'])
 
-        # Ensure boolean data types
-        df['In_Training_Set'] = df['In_Training_Set'].astype(bool)
-        for i in range(1, 4):
-            df[f'Top{i}_Is_Valid'] = df[f'Top{i}_Is_Valid'].astype(bool)
-            df[f'Top{i}_Is_Accurate'] = df[f'Top{i}_Is_Accurate'].astype(bool)
+        # Ensure boolean data types for 'In_Training_Set' and accuracy/validation flags
+        boolean_columns = ['In_Training_Set'] + [f'Top{i}_Is_Valid' for i in range(1, 4)] + \
+                          [f'Top{i}_Is_Accurate' for i in range(1, 4)]
+        df[boolean_columns] = df[boolean_columns].astype(bool)
 
-        # Ensure 'Correct_Letter_Rank' is integer
+        # Convert 'Correct_Letter_Rank' to integer
         df['Correct_Letter_Rank'] = df['Correct_Letter_Rank'].astype(int)
-        
+
         # Remove duplicates
-        df.drop_duplicates(inplace=True)
+        initial_row_count = len(df)
+        df = df.drop_duplicates()
+        duplicates_removed = initial_row_count - len(df)
         
-        # Save the cleaned dataset
-        cleaned_file_path = file_path.parent / f"{file_path.stem}{file_path.suffix}"
-        df.to_csv(cleaned_file_path, index=False)
-        logging.info(f"Cleaned dataset saved to {cleaned_file_path}")
+        # Validation checks (e.g., predicted letters are single characters)
+        for i in range(1, 4):
+            df = df[df[f'Top{i}_Predicted_Letter'].apply(lambda x: len(str(x)) == 1)]
+        
+        # Filter by confidence threshold (example threshold: 0.1)
+        confidence_threshold = 0.1
+        df = df[df['Top1_Confidence'] >= confidence_threshold]
+        
+        # Save the cleaned dataset, overwriting the original file
+        df.to_csv(file_path, index=False)
+        
+        logging.info(f"Cleaned dataset overwritten at {file_path}. Duplicates removed: {duplicates_removed}.")
     except Exception as e:
         logging.error(f"Failed to clean {file_path.name} due to {e}")
 
