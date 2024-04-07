@@ -24,9 +24,8 @@ n_cols = 3
 n_rows = np.ceil(n_datasets / n_cols).astype(int)
 
 fig, axs = plt.subplots(n_rows, n_cols, figsize=(6 * n_cols, 4 * n_rows), squeeze=False)
-colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
+colors = plt.get_cmap('tab10').colors  # Use 'tab10' colormap
 
-# Function to plot the histogram for correct predictions within the dataset
 def plot_correct_predictions_histogram(ax, dataset, color, label):
     """
     Plots histograms for both correct and total predictions on the given axes.
@@ -37,7 +36,7 @@ def plot_correct_predictions_histogram(ax, dataset, color, label):
     # Plot histogram for all Top 1 Confidence values using the provided Axes object
     ax.hist(dataset["Top1_Confidence"], bins=30, color=color, alpha=0.5, label=f'All Predictions in {label}')
     # Overlay with histogram for correct predictions
-    ax.hist(correct_confidences, bins=30, color='yellow', alpha=0.7, label=f'Correct Predictions in {label}')
+    ax.hist(correct_confidences, bins=30, color=color, edgecolor='black', alpha=0.7, label=f'Correct Predictions in {label}')
     
     ax.set_xlabel('Top 1 Confidence')
     ax.set_ylabel('Frequency')
