@@ -5,9 +5,9 @@ from pathlib import Path
 
 # Applying improved style settings within function to avoid global side-effects
 def set_seaborn_style():
-    sns.set_style("whitegrid")
-    sns.set_context("talk")
-    sns.set_palette("Paired")
+    sns.set_style("whitegrid") # Setting the style to 'whitegrid' for better visibility of gridlines
+    sns.set_context("talk") # Setting the context to 'talk' for better readability
+    sns.set_palette("Paired") # Setting the palette to 'Paired' for better color contrast
 
 # Define the datasets paths
 datasets = {
@@ -31,7 +31,7 @@ def plot_rolling_average(data, title):
         metrics = ['Top1', 'Top2', 'Top3']
         accuracies = ['Accurate', 'Inaccurate']
 
-        with sns.color_palette("Paired", n_colors=len(metrics) * 2):
+        with sns.color_palette("Paired", n_colors=len(metrics) * 2): # Using the 'Paired' palette with adjusted color count
             colors = sns.color_palette()
 
             for i, metric in enumerate(metrics):

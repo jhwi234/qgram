@@ -16,14 +16,14 @@ datasets = {
 }
 
 # Load the datasets into a dictionary for easy access
-loaded_datasets = {name: pd.read_csv(Path(filepath)) for name, filepath in datasets.items()}
+loaded_datasets = {name: pd.read_csv(Path(filepath)) for name, filepath in datasets.items()} # Load all datasets
 
 # Setup the subplot grid
-n_datasets = len(loaded_datasets)
+n_datasets = len(loaded_datasets) 
 n_cols = 3
-n_rows = np.ceil(n_datasets / n_cols).astype(int)
+n_rows = np.ceil(n_datasets / n_cols).astype(int) # Calculate the number of rows needed
 
-fig, axs = plt.subplots(n_rows, n_cols, figsize=(6 * n_cols, 4 * n_rows), squeeze=False)
+fig, axs = plt.subplots(n_rows, n_cols, figsize=(6 * n_cols, 4 * n_rows), squeeze=False) # Create a grid of subplots
 colors = plt.get_cmap('tab10').colors  # Use 'tab10' colormap
 
 def plot_correct_predictions_histogram(ax, dataset, color, label):
