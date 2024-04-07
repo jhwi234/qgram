@@ -7,13 +7,11 @@ class Letters(Enum):
     VOWELS = 'aeèéiîouyæœ'
     CONSONANTS = 'bcdfghjklmnpqrstvwxz'
 
-    @staticmethod
-    def is_vowel(char):
-        return char in Letters.VOWELS.value
+def is_vowel(char):
+    return char.lower() in Letters.VOWELS.value
 
-    @staticmethod
-    def is_consonant(char):
-        return char in Letters.CONSONANTS.value
+def is_consonant(char):
+    return char.lower() in Letters.CONSONANTS.value
 
 def preprocess_data(file_path):
     data = pd.read_csv(file_path)
@@ -22,18 +20,17 @@ def preprocess_data(file_path):
     data['Normalized_Missing_Letter_Position'] = data.apply(lambda row: row['Missing_Letter_Position'] / (row['Word_Length'] - 1) if row['Word_Length'] > 1 else 0, axis=1)
     data['Normalized_Position_Bin'] = pd.cut(data['Normalized_Missing_Letter_Position'], bins=10, labels=range(10))
     if 'Correct_Letter' in data.columns:
-        data['letter_type'] = data['Correct_Letter'].apply(lambda x: 'vowel' if Letters.is_vowel(x.lower()) else 'consonant')
+        data['letter_type'] = data['Correct_Letter'].apply(lambda x: 'vowel' if is_vowel(x) else 'consonant')
         data['is_vowel'] = (data['letter_type'] == 'vowel').astype(int)
     return data
 
 def run_logistic_regression(data, dataset_name):
-    if 'is_vowel' in data.columns:
-        model = smf.logit(formula='Top1_Is_Accurate ~ is_vowel', data=data).fit()
-        print(f"Regression Summary for {dataset_name}:\n")
-        print(model.summary())
-    else:
-        print(f"Data preprocessing was not completed properly for {dataset_name}, or the 'Correct_Letter' column is missing.")
-
+    # Ensure 'Top1_Is_Accurate' is numeric and drop any potential NaN values
+    data['Top1_Is_Accurate'] = pd.to_numeric(data['Top1_Is_Accurate'], errors='coerce').dropna().astype(int)
+    model = smf.logit(formula='Top1_Is_Accurate ~ is_vowel', data=data).fit()
+    print(f"Regression Summary for {dataset_name}:\n")
+    print(model.summary())
+    
 def main():
     datasets = {
         "CLMET3": Path('data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange8-8_prediction.csv'),

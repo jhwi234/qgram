@@ -2,13 +2,11 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from pathlib import Path
 
-# Define functions for phonological category classification
 def is_vowel(char):
     vowels = 'aeiouyæœèéî'
     return char.lower() in vowels
 
 def classify_phonological_category(char):
-    char = char.lower()
     if char in "pbtdkg":
         return 'Plosive'
     elif char in "mn":
@@ -22,16 +20,19 @@ def classify_phonological_category(char):
     else:
         return 'Other'
 
-# Preprocess the data
 def preprocess_data_adjusted(df):
     df['Phonological_Category'] = df['Correct_Letter'].apply(classify_phonological_category)
+    # Attempt to convert 'Top1_Is_Accurate' to numeric, coercing errors
+    df['Top1_Is_Accurate'] = pd.to_numeric(df['Top1_Is_Accurate'], errors='coerce')
+    # Drop rows with NaN values in 'Top1_Is_Accurate'
+    df.dropna(subset=['Top1_Is_Accurate'], inplace=True)
+    # Ensure 'Top1_Is_Accurate' is integer
+    df['Top1_Is_Accurate'] = df['Top1_Is_Accurate'].astype(int)
     return df
 
-# Logistic regression analysis with phonological categories
 def run_logistic_regression_phonological_adjusted(df):
-    # Specify 'Vowel' as the reference category using C(variable, Treatment(reference='Vowel'))
+    print("Data types before regression:", df.dtypes)  # Debugging line
     formula = 'Top1_Is_Accurate ~ C(Phonological_Category, Treatment(reference="Vowel"))'
-    # Fit the logistic regression model
     model = smf.logit(formula, data=df).fit()
     print(model.summary())
 
