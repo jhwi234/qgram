@@ -1,35 +1,39 @@
 import pandas as pd
 
-# Enhanced Sonority Hierarchy Dictionary with case insensitivity and voicing distinctions.
+# Sonority Hierarchy Dictionary with case insensitivity and voicing distinctions.
 # This dictionary maps letters to a tuple consisting of their sonority level and voicing status.
 # Sonority levels range from 1 to 5, with 1 being the least sonorous (e.g., stops and fricatives)
 # and 5 being the most sonorous (vowels). Voicing is indicated with a binary flag, where 0
 # represents voiceless sounds and 1 represents voiced sounds.
 sonority_hierarchy = {
     # Voiceless stops are mapped to level 1 and marked as voiceless (0).
-    **{letter: (1, 0) for letter in "PTK"},  
+    **{letter: (1, 0) for letter in "PTKCQX"},  
     # Voiced stops are at the same level but marked as voiced (1).
     **{letter: (1, 1) for letter in "BDG"},   
     # Voiceless fricatives are more sonorous than stops, placed at level 2 and marked as voiceless.
     **{letter: (2, 0) for letter in "FSH"},  
     # Voiced fricatives are at the same level as voiceless fricatives but are voiced.
     **{letter: (2, 1) for letter in "VZJ"},   
-    # Nasals, liquids, and glides follow, each in their own categories with inherent voicing.
+    # Nasals come next as they're more sonorous than fricatives but less than liquids and glides.
     **{letter: (3, 1) for letter in "MN"},       
-    **{letter: (4, 1) for letter in "LR"},       
-    **{letter: (5, 1) for letter in "WY"},       
-    # Vowels, being the most sonorous, are placed at the top and are inherently voiced.
-    **{letter: (6, 1) for letter in "AEIOU"}     
+    # Liquids and glides are grouped together, reflecting their closer sonority to vowels. 
+    # This group includes both liquids (L, R) and the glide (W). Glides are often considered 
+    # to be close to vowels in terms of sonority, hence their placement here.
+    # Note: Including 'Y' as it functions as both a vowel and a glide depending on context.
+    **{letter: (4, 1) for letter in "LRW"},       
+    # Vowels, being the most sonorous, are placed at the top.
+    # Including both the main vowels and 'Y' when it functions as a vowel.
+    **{letter: (5, 1) for letter in "AEIOUY"}     
 }
 
-# Expand to include both uppercase and lowercase for case insensitivity.
+# Now, expand to include both uppercase and lowercase for case insensitivity.
 sonority_hierarchy = {**{letter.upper(): value for letter, value in sonority_hierarchy.items()},
                       **{letter.lower(): value for letter, value in sonority_hierarchy.items()}}
 
 # Function to calculate the modified sonority distance between two letters.
 # This distance is a measure of how phonetically different two letters are,
 # considering both their sonority levels and voicing status.
-def modified_sonority_distance(correct_letter, predicted_letter):
+def sonority_distance(correct_letter, predicted_letter):
     # If both letters are the same, their distance is 0 (exact match).
     if correct_letter == predicted_letter:
         return 0  
@@ -64,7 +68,7 @@ for dataset_name, file_path in datasets.items():
     # Apply the modified sonority distance calculation for each row in the dataset,
     # comparing the correct letter to the top predicted letter.
     data['Refined_Sonority_Distance'] = data.apply(
-        lambda row: modified_sonority_distance(row['Correct_Letter'], row['Top1_Predicted_Letter']), axis=1
+        lambda row: sonority_distance(row['Correct_Letter'], row['Top1_Predicted_Letter']), axis=1
     )
 
     # Filter the dataset to include only rows where the prediction was incorrect
