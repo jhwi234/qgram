@@ -6,20 +6,20 @@ from pathlib import Path
 
 def is_vowel(letter):
     """Check if a letter is a vowel."""
-    return letter.lower() in ['a', 'e', 'i', 'o', 'u']
+    return letter.lower() in ['a', 'e', 'i', 'o', 'u', 'y']
 
 def load_and_preprocess(path):
     """Load the dataset and preprocess it."""
     df = pd.read_csv(path)
-    df['Word_Length'] = df['Original_Word'].str.len()
-    df['Missing_Letter_Index'] = df['Original_Word'].str.find("_")
-    df['Relative_Position'] = df['Missing_Letter_Index'] / (df['Word_Length'] - 1)
+    df['Word_Length'] = df['Original_Word'].str.len() # Add a column for word length
+    df['Missing_Letter_Index'] = df['Original_Word'].str.find("_") # Find the index of the missing letter
+    df['Relative_Position'] = df['Missing_Letter_Index'] / (df['Word_Length'] - 1) # Calculate relative position
     df['Relative_Position'] = df['Relative_Position'].fillna(0)  # Handle division by zero
-    df['Top1_Predicted_Letter_is_Vowel'] = df['Top1_Predicted_Letter'].apply(is_vowel)
-    df['Correct_Letter_is_Vowel'] = df['Correct_Letter'].apply(is_vowel)
+    df['Top1_Predicted_Letter_is_Vowel'] = df['Top1_Predicted_Letter'].apply(is_vowel) # Check if the predicted letter is a vowel
+    df['Correct_Letter_is_Vowel'] = df['Correct_Letter'].apply(is_vowel) # Check if the correct letter is a vowel
     
-    features = df[['Word_Length', 'Relative_Position', 'Top1_Predicted_Letter_is_Vowel', 'Correct_Letter_is_Vowel']]
-    target = df['Top1_Is_Accurate']
+    features = df[['Word_Length', 'Relative_Position', 'Top1_Predicted_Letter_is_Vowel', 'Correct_Letter_is_Vowel']] # Select the features
+    target = df['Top1_Is_Accurate'] # Select the target
     
     return features, target
 
