@@ -26,21 +26,22 @@ n_rows = np.ceil(n_datasets / n_cols).astype(int)
 fig, axs = plt.subplots(n_rows, n_cols, figsize=(6 * n_cols, 4 * n_rows), squeeze=False)
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
 
+# Function to plot the histogram for correct predictions within the dataset
 def plot_correct_predictions_histogram(ax, dataset, color, label):
     """
     Plots histograms for both correct and total predictions on the given axes.
     Highlights the confidence levels for correct predictions.
     """
-    # Filter the dataset for correct and incorrect predictions based on 'Top1_Is_Accurate' column
     correct_confidences = dataset[dataset["Top1_Is_Accurate"] == 1]["Top1_Confidence"]
-    incorrect_confidences = dataset[dataset["Top1_Is_Accurate"] == 0]["Top1_Confidence"]
     
-    # Plot histogram for all Top 1 Confidence values
+    # Plot histogram for all Top 1 Confidence values using the provided Axes object
     ax.hist(dataset["Top1_Confidence"], bins=30, color=color, alpha=0.5, label=f'All Predictions in {label}')
     # Overlay with histogram for correct predictions
     ax.hist(correct_confidences, bins=30, color='yellow', alpha=0.7, label=f'Correct Predictions in {label}')
     
-    ax.set(title=f'{label} Dataset', xlabel='Top 1 Confidence', ylabel='Frequency')
+    ax.set_xlabel('Top 1 Confidence')
+    ax.set_ylabel('Frequency')
+    ax.set_title(f'{label} Dataset')
     ax.legend()
 
 # Plot histograms with overlays for each dataset
