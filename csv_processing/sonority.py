@@ -59,8 +59,15 @@ datasets = {
     "Brown": 'data/outputs/csv/brown_context_sensitive_split0.5_qrange7-7_prediction.csv'
 }
 
-# Loop through each dataset to calculate and report the average sonority distance
-# for incorrectly predicted letters.
+# Determine the maximum length of the dataset names for alignment
+max_name_length = max(len(name) for name in datasets.keys())
+# Define a fixed width for the sonority distance values
+distance_width = 10
+
+# Print the header for consistency and visual guide
+print(f"{'Dataset Name':<{max_name_length}} {'Sonority Distance':>{distance_width + 5}}")
+
+# Updated loop to process each dataset and report the average sonority distance
 for dataset_name, file_path in datasets.items():
     # Load the dataset from the given file path.
     data = pd.read_csv(file_path)
@@ -75,6 +82,6 @@ for dataset_name, file_path in datasets.items():
     # (distance != 0) and calculate the average distance for these incorrect predictions.
     average_distance_incorrect = data.loc[data['Refined_Sonority_Distance'] != 0, 'Refined_Sonority_Distance'].mean()
     
-    # Print out the average distance, providing an insight into the typical magnitude
-    # of phonetic prediction errors within each dataset.
-    print(f"Average Sonority Distance for Incorrect Predictions in {dataset_name}: {average_distance_incorrect}")
+    # Ensure the dataset name occupies a fixed-width field, and right-align the sonority distance
+    print(f"{dataset_name:<{max_name_length}}{' ':5}{average_distance_incorrect:>{distance_width}.5f}")
+
