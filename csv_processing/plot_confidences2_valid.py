@@ -41,7 +41,7 @@ def plot_valid_predictions_histogram_improved(ax, dataset, base_color, label):
     
     ax.set_xlabel('Top 1 Confidence', fontsize=14)
     ax.set_ylabel('Frequency', fontsize=14)
-    ax.set_title(f'{label} Dataset', fontsize=16)
+    ax.set_title(f'{label} Dataset', fontsize=14)
     ax.legend(fontsize=12)
 
 # Apply the improved plotting function to each dataset

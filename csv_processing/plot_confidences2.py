@@ -23,8 +23,8 @@ n_datasets = len(loaded_datasets)
 n_cols = 3
 n_rows = np.ceil(n_datasets / n_cols).astype(int)
 
-fig, axs = plt.subplots(n_rows, n_cols, figsize=(8 * n_cols, 6 * n_rows))
-colors = plt.get_cmap('tab10').colors
+fig, axs = plt.subplots(n_rows, n_cols, figsize=(6 * n_cols, 4 * n_rows), squeeze=False)  # Create a grid of subplots
+colors = plt.get_cmap('tab10').colors  # Use 'tab10' colormap for distinct colors
 
 def plot_accurate_vs_inaccurate_predictions_histogram(ax, dataset, base_color, label):
     """
@@ -40,7 +40,7 @@ def plot_accurate_vs_inaccurate_predictions_histogram(ax, dataset, base_color, l
     
     ax.set_xlabel('Top 1 Confidence', fontsize=14)
     ax.set_ylabel('Frequency', fontsize=14)
-    ax.set_title(f'{label} Dataset', fontsize=16)
+    ax.set_title(f'{label} Dataset', fontsize=14)
     ax.legend(fontsize=12)
 
 # Plot histograms with overlays for each dataset
