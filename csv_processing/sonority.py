@@ -17,13 +17,9 @@ sonority_hierarchy = {
     # Nasals come next as they're more sonorous than fricatives but less than liquids and glides.
     **{letter: (3, 1) for letter in "MN"},       
     # Liquids and glides are grouped together, reflecting their closer sonority to vowels. 
-    # This group includes both liquids (L, R) and the glide (W). Glides are often considered 
-    # to be close to vowels in terms of sonority, hence their placement here.
-    # Note: Including 'Y' as it functions as both a vowel and a glide depending on context.
     **{letter: (4, 1) for letter in "LRW"},       
-    # Vowels, being the most sonorous, are placed at the top.
-    # Including both the main vowels and 'Y' when it functions as a vowel.
-    **{letter: (5, 1) for letter in "AEIOUY"}     
+    # Vowels, being the most sonorous, are placed at the top, including uppercase "Æ" and "Œ".
+    **{letter: (5, 1) for letter in "ÆŒAEIOUY"}     
 }
 
 # Now, expand to include both uppercase and lowercase for case insensitivity.
@@ -34,21 +30,41 @@ sonority_hierarchy = {**{letter.upper(): value for letter, value in sonority_hie
 # This distance is a measure of how phonetically different two letters are,
 # considering both their sonority levels and voicing status.
 def sonority_distance(correct_letter, predicted_letter):
+    """
+    Calculate the refined sonority distance between two letters, incorporating new rules for
+    within-category differences and case insensitivity.
+    
+    Parameters:
+    - correct_letter (str): The correct letter in the prediction.
+    - predicted_letter (str): The predicted letter.
+    
+    Returns:
+    - float: The refined sonority distance between the correct and predicted letters.
+    """
     # If both letters are the same, their distance is 0 (exact match).
-    if correct_letter == predicted_letter:
-        return 0  
+    if correct_letter.lower() == predicted_letter.lower():
+        return 0
     
     # Retrieve the sonority level and voicing status for both letters.
     correct_val = sonority_hierarchy.get(correct_letter, (0, 0))
     predicted_val = sonority_hierarchy.get(predicted_letter, (0, 0))
     
     # Calculate the absolute difference in sonority levels between the two letters.
-    sonority_distance = abs(correct_val[0] - predicted_val[0])
-    # Calculate the difference in voicing status, scaled by 0.5 (since voicing is a "half step").
-    voicing_distance = abs(correct_val[1] - predicted_val[1]) * 0.5
+    sonority_level_difference = abs(correct_val[0] - predicted_val[0])
+    
+    # If the letters are at the same sonority level but not the same letter, assign 0.25.
+    # This is the new rule to capture within-category non-identical predictions.
+    if sonority_level_difference == 0 and correct_val != predicted_val:
+        return 0.25
+    
+    # Calculate the difference in voicing status, scaled by 0.5.
+    voicing_difference = abs(correct_val[1] - predicted_val[1]) * 0.5
     
     # The total distance is the sum of the sonority and voicing differences.
-    return sonority_distance + voicing_distance
+    # If there's a sonority level difference, ignore voicing (as it's a finer detail).
+    total_distance = sonority_level_difference if sonority_level_difference > 0 else voicing_difference
+    
+    return total_distance
 
 # Paths to various datasets containing letter predictions and their correct counterparts.
 datasets = {
