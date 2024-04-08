@@ -35,9 +35,9 @@ def plot_valid_predictions_histogram_improved(ax, dataset, base_color, label):
     invalid_predictions = dataset[dataset["Top1_Is_Valid"] == False]["Top1_Confidence"]
     
     # Unified bin edges for direct comparison
-    bins = np.histogram(np.hstack((valid_predictions, invalid_predictions)), bins=40)[1]
-    ax.hist(valid_predictions, bins=bins, color=base_color, alpha=0.75, label=f'Valid in {label}', edgecolor='black')
-    ax.hist(invalid_predictions, bins=bins, color='gray', alpha=0.65, label=f'Invalid in {label}', edgecolor='black')
+    bins = np.histogram(np.hstack((valid_predictions, invalid_predictions)), bins=30)[1]
+    ax.hist(valid_predictions, bins=bins, color=base_color, alpha=0.75, label=f'Valid', edgecolor='black')
+    ax.hist(invalid_predictions, bins=bins, color='gray', alpha=0.65, label=f'Invalid', edgecolor='black')
     
     ax.set_xlabel('Top 1 Confidence', fontsize=14)
     ax.set_ylabel('Frequency', fontsize=14)

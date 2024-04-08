@@ -16,36 +16,36 @@ datasets = {
 }
 
 # Load the datasets into a dictionary for easy access
-loaded_datasets = {name: pd.read_csv(Path(filepath)) for name, filepath in datasets.items()} # Load all datasets
+loaded_datasets = {name: pd.read_csv(Path(filepath)) for name, filepath in datasets.items()}
 
 # Setup the subplot grid
-n_datasets = len(loaded_datasets) 
+n_datasets = len(loaded_datasets)
 n_cols = 3
-n_rows = np.ceil(n_datasets / n_cols).astype(int) # Calculate the number of rows needed
+n_rows = np.ceil(n_datasets / n_cols).astype(int)
 
-fig, axs = plt.subplots(n_rows, n_cols, figsize=(6 * n_cols, 4 * n_rows), squeeze=False) # Create a grid of subplots
-colors = plt.get_cmap('tab10').colors  # Use 'tab10' colormap
+fig, axs = plt.subplots(n_rows, n_cols, figsize=(8 * n_cols, 6 * n_rows))
+colors = plt.get_cmap('tab10').colors
 
-def plot_correct_predictions_histogram(ax, dataset, color, label):
+def plot_accurate_vs_inaccurate_predictions_histogram(ax, dataset, base_color, label):
     """
-    Plots histograms for both correct and total predictions on the given axes.
-    Highlights the confidence levels for correct predictions.
+    Plots histograms for accurate vs. inaccurate predictions on the given axes.
     """
-    correct_confidences = dataset[dataset["Top1_Is_Accurate"] == 1]["Top1_Confidence"]
+    accurate_confidences = dataset[dataset["Top1_Is_Accurate"] == True]["Top1_Confidence"]
+    inaccurate_confidences = dataset[dataset["Top1_Is_Accurate"] == False]["Top1_Confidence"]
     
-    # Plot histogram for all Top 1 Confidence values using the provided Axes object
-    ax.hist(dataset["Top1_Confidence"], bins=30, color=color, alpha=0.5, label=f'All Predictions in {label}')
-    # Overlay with histogram for correct predictions
-    ax.hist(correct_confidences, bins=30, color=color, edgecolor='black', alpha=0.7, label=f'Correct Predictions in {label}')
+    # Unified bin edges for direct comparison
+    bins = np.histogram(np.hstack((accurate_confidences, inaccurate_confidences)), bins=30)[1]
+    ax.hist(accurate_confidences, bins=bins, color=base_color, alpha=0.75, label=f'Accurate', edgecolor='black')
+    ax.hist(inaccurate_confidences, bins=bins, color='gray', alpha=0.65, label=f'Inaccurate', edgecolor='black')
     
-    ax.set_xlabel('Top 1 Confidence')
-    ax.set_ylabel('Frequency')
-    ax.set_title(f'{label} Dataset')
-    ax.legend()
+    ax.set_xlabel('Top 1 Confidence', fontsize=14)
+    ax.set_ylabel('Frequency', fontsize=14)
+    ax.set_title(f'{label} Dataset', fontsize=16)
+    ax.legend(fontsize=12)
 
 # Plot histograms with overlays for each dataset
 for i, ((label, dataset), ax) in enumerate(zip(loaded_datasets.items(), axs.flatten())):
-    plot_correct_predictions_histogram(ax, dataset, colors[i % len(colors)], label)
+    plot_accurate_vs_inaccurate_predictions_histogram(ax, dataset, colors[i % len(colors)], label)
 
 # Remove unused subplots if the total number of datasets doesn't fill the grid
 for j in range(i + 1, n_rows * n_cols):
