@@ -72,7 +72,7 @@ class Config:
         self.csv_dir = self.output_dir / 'csv'
         self.sets_dir = self.output_dir / 'sets'
         self.seed = 42
-        self.q_range = [8, 8]
+        self.q_range = [7, 7]
         self.split_config = 0.5
         self.vowel_replacement_ratio = 0.2
         self.consonant_replacement_ratio = 0.8
