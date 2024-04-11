@@ -19,7 +19,7 @@ sonority_hierarchy = {
     # Liquids and glides are grouped together, reflecting their closer sonority to vowels. 
     **{letter: (4, 1) for letter in "LRW"},       
     # Vowels, being the most sonorous, are placed at the top, including uppercase "Æ" and "Œ".
-    **{letter: (5, 1) for letter in "ÆŒAEIOUY"}     
+    **{letter: (5, 1) for letter in "AEIOUYÆŒ"}     
 }
 
 # Now, expand to include both uppercase and lowercase for case insensitivity.
