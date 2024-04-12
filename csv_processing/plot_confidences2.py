@@ -28,18 +28,29 @@ colors = plt.get_cmap('tab10').colors  # Use 'tab10' colormap for distinct color
 
 def plot_accurate_vs_inaccurate_predictions_histogram(ax, dataset, base_color, label):
     """
-    Plots histograms for accurate vs. inaccurate predictions on the given axes.
+    Plots normalized histograms for accurate vs. inaccurate predictions on the given axes,
+    includes raw counts in the legend.
     """
     accurate_confidences = dataset[dataset["Top1_Is_Accurate"] == True]["Top1_Confidence"]
     inaccurate_confidences = dataset[dataset["Top1_Is_Accurate"] == False]["Top1_Confidence"]
     
     # Unified bin edges for direct comparison
     bins = np.histogram(np.hstack((accurate_confidences, inaccurate_confidences)), bins=30)[1]
-    ax.hist(accurate_confidences, bins=bins, color=base_color, alpha=0.75, label=f'Accurate', edgecolor='black')
-    ax.hist(inaccurate_confidences, bins=bins, color='gray', alpha=0.65, label=f'Inaccurate', edgecolor='black')
+    
+    # Calculate normalized counts
+    accurate_counts, _ = np.histogram(accurate_confidences, bins=bins)
+    inaccurate_counts, _ = np.histogram(inaccurate_confidences, bins=bins)
+    
+    # Normalize the counts
+    accurate_heights = accurate_counts / accurate_counts.sum()
+    inaccurate_heights = inaccurate_counts / inaccurate_counts.sum()
+    
+    # Stack histograms
+    ax.bar(bins[:-1], accurate_heights, width=np.diff(bins), align='edge', color=base_color, alpha=0.75, label=f'Accurate (Count: {accurate_counts.sum()})', edgecolor='black')
+    ax.bar(bins[:-1], inaccurate_heights, width=np.diff(bins), align='edge', color='gray', alpha=0.65, label=f'Inaccurate (Count: {inaccurate_counts.sum()})', edgecolor='black', bottom=accurate_heights)
     
     ax.set_xlabel('Top 1 Confidence', fontsize=14)
-    ax.set_ylabel('Frequency', fontsize=14)
+    ax.set_ylabel('Normalized Frequency', fontsize=14)
     ax.set_title(f'{label} Dataset', fontsize=14)
     ax.legend(fontsize=12)
 
@@ -53,7 +64,3 @@ for j in range(i + 1, n_rows * n_cols):
 
 plt.tight_layout()
 plt.show()
-
-"""
-stack and normalize the heights to between 0 and 1 bins.
-"""

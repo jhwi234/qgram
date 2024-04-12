@@ -19,34 +19,44 @@ loaded_datasets = {name: pd.read_csv(Path(filepath)) for name, filepath in datas
 plt.style.use('seaborn-v0_8-colorblind')
 
 # Setup the subplot grid with numpy
-n_datasets = len(loaded_datasets) 
+n_datasets = len(loaded_datasets)
 n_cols = 3
 n_rows = np.ceil(n_datasets / n_cols).astype(int)  # Calculate the number of rows needed
 
 fig, axs = plt.subplots(n_rows, n_cols, figsize=(6 * n_cols, 4 * n_rows), squeeze=False)  # Create a grid of subplots
 colors = plt.get_cmap('tab10').colors  # Use 'tab10' colormap for distinct colors
 
-def plot_valid_predictions_histogram_improved(ax, dataset, base_color, label):
+def plot_valid_predictions_histogram(ax, dataset, base_color, label):
     """
     Improved plotting function for valid and invalid predictions histograms
-    with added borders around the histogram bins.
+    with normalized and stacked histograms, displaying raw counts in the legend.
     """
     valid_predictions = dataset[dataset["Top1_Is_Valid"] == True]["Top1_Confidence"]
     invalid_predictions = dataset[dataset["Top1_Is_Valid"] == False]["Top1_Confidence"]
     
     # Unified bin edges for direct comparison
     bins = np.histogram(np.hstack((valid_predictions, invalid_predictions)), bins=30)[1]
-    ax.hist(valid_predictions, bins=bins, color=base_color, alpha=0.75, label=f'Valid', edgecolor='black')
-    ax.hist(invalid_predictions, bins=bins, color='gray', alpha=0.65, label=f'Invalid', edgecolor='black')
+    
+    # Calculate normalized counts
+    valid_counts, _ = np.histogram(valid_predictions, bins=bins)
+    invalid_counts, _ = np.histogram(invalid_predictions, bins=bins)
+    
+    # Normalize the counts
+    valid_heights = valid_counts / valid_counts.sum()
+    invalid_heights = invalid_counts / invalid_counts.sum()
+    
+    # Stack histograms
+    ax.bar(bins[:-1], valid_heights, width=np.diff(bins), align='edge', color=base_color, alpha=0.75, label=f'Valid (Count: {valid_counts.sum()})', edgecolor='black')
+    ax.bar(bins[:-1], invalid_heights, width=np.diff(bins), align='edge', color='gray', alpha=0.65, label=f'Invalid (Count: {invalid_counts.sum()})', edgecolor='black', bottom=valid_heights)
     
     ax.set_xlabel('Top 1 Confidence', fontsize=14)
-    ax.set_ylabel('Frequency', fontsize=14)
+    ax.set_ylabel('Normalized Frequency', fontsize=14)
     ax.set_title(f'{label} Dataset', fontsize=14)
     ax.legend(fontsize=12)
 
 # Apply the improved plotting function to each dataset
 for i, ((label, dataset), ax) in enumerate(zip(loaded_datasets.items(), axs.flatten())):
-    plot_valid_predictions_histogram_improved(ax, dataset, colors[i % len(colors)], label)
+    plot_valid_predictions_histogram(ax, dataset, colors[i % len(colors)], label)
 
 # Hide unused subplot axes for a cleaner look
 for j in range(i + 1, n_rows * n_cols):
@@ -54,7 +64,3 @@ for j in range(i + 1, n_rows * n_cols):
 
 plt.tight_layout()  # Adjust layout for a neat presentation
 plt.show()
-
-"""
-stack and normalize the heights to between 0 and 1 bins.
-"""

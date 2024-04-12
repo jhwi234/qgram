@@ -3,6 +3,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Paths to your datasets
 dataset_paths = {
@@ -13,40 +17,53 @@ dataset_paths = {
     "Brown": Path('data/outputs/csv/brown_context_sensitive_split0.5_qrange7-7_prediction.csv')
 }
 
-for name, path in dataset_paths.items():
-    print(f"Processing {name} dataset...")
-    # Load the dataset
-    data = pd.read_csv(path)
+def load_data(path):
+    try:
+        data = pd.read_csv(path)
+        logging.info(f"Data loaded successfully from {path}")
+        return data
+    except FileNotFoundError:
+        logging.error(f"File not found: {path}")
+        return None
 
-    # Calculate word length if not already a column
-    if 'Word_Length' not in data.columns:
-        data['Word_Length'] = data['Original_Word'].apply(len)
-    
-    # Ensure the accuracy column is binary and suitable for logistic regression
+def prepare_data(data):
+    if 'Top1_Is_Accurate' not in data.columns:
+        logging.error("Required column 'Top1_Is_Accurate' is missing")
+        return None
     data['Top1_Is_Accurate'] = data['Top1_Is_Accurate'].astype(int)
+    data['Normalized_Index'] = data.index / (len(data) - 1)
+    return data
 
-    # Define the independent variable (word length) and dependent variable (accuracy)
-    X = data[['Word_Length']]
-    y = data['Top1_Is_Accurate']
+def fit_model(X, y, n_splines=25):
+    gam = LogisticGAM(s(0, n_splines=n_splines)).fit(X, y)
+    logging.info("Model fitting complete")
+    return gam
 
-    # Fit a GAM with a logistic link function for binary classification
-    gam = LogisticGAM(s(0, n_splines=25)).fit(X, y)
-
-    # Generating predictions for plotting
-    XX = np.linspace(X.min(), X.max(), 500)
-    proba = gam.predict_proba(XX)
-
-    # Plotting
-    plt.figure(figsize=(10, 6))
-    plt.plot(XX, proba, label='Model Prediction')
-    plt.scatter(X, y, facecolor='gray', edgecolors='none', alpha=0.5, label='Actual Data')
-    plt.xlabel('Word Length')
-    plt.ylabel('Prediction Accuracy')
-    plt.title(f'Effect of Word Length on Prediction Accuracy in {name} Dataset')
-    plt.legend()
+def plot_results(XX, proba, X, y, title):
+    plt.figure(figsize=(14, 8))
+    # Use a colorblind-friendly color for the plot line
+    plt.plot(XX, proba, label='Model Prediction', color='blue', linewidth=2)
+    # Adjust scatter plot to be colorblind-friendly and more distinct
+    plt.scatter(X, y, facecolor='orange', edgecolors='black', alpha=0.7, label='Actual Data', marker='^', s=50)
+    plt.xlabel('Normalized Index Position', fontsize=12)
+    plt.ylabel('Prediction Accuracy', fontsize=12)
+    plt.title(title, fontsize=14)
+    plt.legend(fontsize=12)
+    plt.grid(True)  # Add grid
+    plt.tight_layout()  # Adjust layout to make room for label
     plt.show()
 
+def process_dataset(name, path):
+    data = load_data(path)
+    if data is not None:
+        data = prepare_data(data)
+        if data is not None:
+            X = data[['Normalized_Index']]
+            y = data['Top1_Is_Accurate']
+            gam = fit_model(X, y)
+            XX = np.linspace(X.min(), X.max(), 500)
+            proba = gam.predict_proba(XX)
+            plot_results(XX, proba, X, y, f'Effect of Normalized Index Position on Prediction Accuracy in {name} Dataset')
 
-"""
-y-axis accruate/not accruate, predictor variable needs to be the normalized index position but not binned.
-"""
+for name, path in dataset_paths.items():
+    process_dataset(name, path)
