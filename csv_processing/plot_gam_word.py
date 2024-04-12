@@ -45,3 +45,8 @@ for name, path in dataset_paths.items():
     plt.title(f'Effect of Word Length on Prediction Accuracy in {name} Dataset')
     plt.legend()
     plt.show()
+
+
+"""
+y-axis accruate/not accruate, predictor variable needs to be the normalized index position but not binned.
+"""

@@ -97,3 +97,8 @@ for dataset_name, dataset_path in dataset_paths.items():
     detailed_analysis = analyze_mispredictions(dataset_path)
     print(detailed_analysis)
     print("\n" + "="*50 + "\n")
+
+
+"""
+do a confusion matrix for the most common substtituion for each missed letters 26x26 heat map. leave the diagnoal blank. heatmap shows all the data.
+"""

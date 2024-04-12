@@ -54,3 +54,7 @@ for j in range(i + 1, n_rows * n_cols):
 
 plt.tight_layout()  # Adjust layout for a neat presentation
 plt.show()
+
+"""
+stack and normalize the heights to between 0 and 1 bins.
+"""

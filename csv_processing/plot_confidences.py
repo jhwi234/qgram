@@ -57,3 +57,7 @@ for name, path in datasets.items():
     data = pd.read_csv(Path(path))
     data_preprocessed = preprocess_data(data)
     plot_rolling_average(data_preprocessed, name)
+
+"""
+bootstrap confidence intervals for the TOP 1 2 and 3 accruate and inaccruate
+"""
