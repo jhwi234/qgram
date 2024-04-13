@@ -49,7 +49,7 @@ def adjust_y_axis(proba):
     margin = 0.15  # Margin of 15% above and below the center point
     plt.ylim([max(0, center_point - margin), min(1, center_point + margin)])
 
-def plot_results(XX, proba, X, y, title, config):
+def plot_results(XX, proba, X, y, title, config, output_path):
     plt.figure(figsize=config.get('figsize', (14, 8)))
     plt.plot(XX, proba, label='Model Prediction', color=config.get('prediction_color', 'blue'), linewidth=2)
     plt.scatter(X, y, color=config.get('data_color', 'black'), alpha=0.7, label='Actual Data')
@@ -58,17 +58,17 @@ def plot_results(XX, proba, X, y, title, config):
     plt.title(title, fontsize=14)
     plt.legend()
     plt.grid(True)
-
-    # Set x-axis ticks and labels
-    ticks = np.arange(0.1, 1.1, 0.1)  # Generates ticks from 0.1 to 1.0
-    plt.xticks(ticks, labels=[f"{tick:.1f}" for tick in ticks])  # Set tick labels to one decimal place
-
+    ticks = np.arange(0.1, 1.1, 0.1)
+    plt.xticks(ticks, labels=[f"{tick:.1f}" for tick in ticks])
     if config.get('dynamic_range', True):
         adjust_y_axis(proba)
     plt.tight_layout()
-    plt.show()
+    plt.savefig(output_path)  # Save the figure to the specified path
+    plt.close()  # Close the figure to free up memory
 
 def process_dataset(name, path, config):
+    output_dir = Path('output/gams')
+    output_dir.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
     data = load_data(path)
     if data is not None:
         prepared_data = prepare_data(data)
@@ -79,7 +79,8 @@ def process_dataset(name, path, config):
             if gam:
                 XX = np.linspace(0, 1, 500)[:, None]
                 proba = gam.predict_proba(XX)
-                plot_results(XX.ravel(), proba, X.to_numpy().ravel(), y, f'Effect of Normalized Index Position on Prediction Accuracy in {name}', config)
+                output_path = output_dir / f"{name}_GAM.png"  # Define the path for saving the plot
+                plot_results(XX.ravel(), proba, X.to_numpy().ravel(), y, f'Effect of Normalized Index Position on Prediction Accuracy in {name}', config, output_path)
 
 default_plot_config = {
     'figsize': (14, 8),
