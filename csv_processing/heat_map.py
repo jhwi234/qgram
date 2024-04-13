@@ -2,7 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
-import numpy as np
 
 # Set a color-blind friendly style for plots
 plt.style.use('seaborn-v0_8-colorblind')
@@ -30,31 +29,34 @@ def calculate_confusion_matrix(mispredictions):
             confusion_matrix.at[letter, letter] = None
     return confusion_matrix.div(confusion_matrix.sum(axis=1), axis=0)
 
-def plot_heatmap(confusion_matrix, dataset_name):
-    """Plot a heatmap for the confusion matrix with enhanced visual features."""
-    plt.figure(figsize=(12, 10))  # Larger figure to improve readability
+def plot_heatmap(confusion_matrix, dataset_name, threshold=0.1, figsize=(14, 12), annot_fmt=".2f"):
+    """Enhanced heatmap plotting function with customizable parameters."""
+    plt.figure(figsize=figsize)
     ax = sns.heatmap(
         confusion_matrix,
-        annot=True,  # Annotate each cell with the numeric value
-        fmt=".2f",   # Formatting annotations to 2 decimal places
+        annot=True,
+        fmt=annot_fmt,
+        cmap='viridis',  # Using 'viridis' for better color differentiation
         cbar=True,
-        cbar_kws={'label': 'Frequency Proportion'}  # Labeling the color bar
+        cbar_kws={'label': 'Frequency Proportion'}
     )
-    plt.title(f'Heatmap of Most Common Substitutions for Missed Letters in {dataset_name}', fontsize=14)
-    plt.xlabel('Predicted Letter', fontsize=12)
-    plt.ylabel('Actual Letter', fontsize=12)
-    plt.xticks(rotation=45)  # Rotating x-ticks to avoid text overlapping
-    plt.yticks(rotation=0)   # Ensure y-ticks are readable
-    plt.tight_layout()  # Adjust layout to make room for tick labels
+    plt.title(f'Heatmap of Most Common Substitutions for Missed Letters in {dataset_name}', fontsize=16)
+    plt.xlabel('Predicted Letter', fontsize=14)
+    plt.ylabel('Actual Letter', fontsize=14)
+    plt.xticks(rotation=45)
+    plt.yticks(rotation=0)
+    plt.tight_layout()
+    annotate_heatmap(ax, threshold)
+    plt.show()
 
-    # Apply threshold for annotations to enhance visibility of significant values
-    threshold = 0.1  # Define the threshold for significant values
+def annotate_heatmap(ax, threshold):
+    """Apply conditional formatting to heatmap annotations based on a threshold."""
     for text in ax.texts:
         t = float(text.get_text())
-        if t < threshold:  # Clear annotation if value is below threshold
-            text.set_text('')
-    
-    plt.show()
+        if t == 0:  # Check if the value is exactly zero
+            text.set_text('')  # Clear the text
+        elif t < threshold:
+            text.set_color('gray')  # De-emphasize less important annotations
 
 # Paths to datasets
 dataset_paths = {
