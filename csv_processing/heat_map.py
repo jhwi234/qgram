@@ -29,7 +29,7 @@ def calculate_confusion_matrix(mispredictions):
             confusion_matrix.at[letter, letter] = None
     return confusion_matrix.div(confusion_matrix.sum(axis=1), axis=0)
 
-def plot_heatmap(confusion_matrix, dataset_name, threshold=0.1, figsize=(14, 12), annot_fmt=".2f"):
+def plot_heatmap(confusion_matrix, dataset_name, threshold=0.15, figsize=(12, 10), annot_fmt=".2f"):
     """Enhanced heatmap plotting function with customizable parameters."""
     plt.figure(figsize=figsize)
     ax = sns.heatmap(
@@ -53,10 +53,15 @@ def annotate_heatmap(ax, threshold):
     """Apply conditional formatting to heatmap annotations based on a threshold."""
     for text in ax.texts:
         t = float(text.get_text())
+        print(f"Annotation value: {t}")  # Print the value of each annotation
         if t == 0:  # Check if the value is exactly zero
             text.set_text('')  # Clear the text
+            print("Annotation cleared (value is zero)")  # Print a message indicating the annotation is cleared
         elif t < threshold:
             text.set_color('gray')  # De-emphasize less important annotations
+            print(f"Annotation de-emphasized (value {t} is less than threshold {threshold})")  # Print a message indicating the annotation is de-emphasized
+        else:
+            print(f"Annotation kept (value {t} is greater than or equal to threshold {threshold})")  # Print a message indicating the annotation is kept
 
 # Paths to datasets
 dataset_paths = {
