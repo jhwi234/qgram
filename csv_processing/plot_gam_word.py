@@ -18,7 +18,6 @@ dataset_paths = {
 }
 
 def load_data(filepath):
-    """Load dataset from specified filepath."""
     try:
         data = pd.read_csv(filepath)
         logging.info(f"Data loaded successfully from {filepath}")
@@ -28,21 +27,14 @@ def load_data(filepath):
         return None
 
 def prepare_data(data):
-    """Prepare data by ensuring necessary columns exist and indexing is normalized."""
-    required_columns = ['Top1_Is_Accurate']
-    if not all(column in data.columns for column in required_columns):
+    required_columns = {'Top1_Is_Accurate'}
+    if not required_columns.issubset(data.columns):
         logging.error("Required column 'Top1_Is_Accurate' is missing")
         return None
-    try:
-        data['Top1_Is_Accurate'] = data['Top1_Is_Accurate'].astype(int)
-        data['Normalized_Index'] = data.index / (len(data))
-        return data
-    except Exception as e:
-        logging.error(f"Error preparing data: {str(e)}")
-        return None
+    data['Top1_Is_Accurate'] = data['Top1_Is_Accurate'].astype(int)
+    return data
 
 def fit_model(X, y, n_splines=25):
-    """Fit a logistic GAM to the data."""
     try:
         gam = LogisticGAM(s(0, n_splines=n_splines)).fit(X, y)
         logging.info("Model fitting complete")
@@ -51,8 +43,13 @@ def fit_model(X, y, n_splines=25):
         logging.error(f"Error fitting model: {str(e)}")
         return None
 
+def adjust_y_axis(proba):
+    """Adjust the y-axis of the plot based on the median of model predictions."""
+    center_point = np.median(proba)  # Using the median of predictions as the center point
+    margin = 0.15  # Margin of 15% above and below the center point
+    plt.ylim([max(0, center_point - margin), min(1, center_point + margin)])
+
 def plot_results(XX, proba, X, y, title, config):
-    """Generate plots of model predictions and actual data."""
     plt.figure(figsize=config.get('figsize', (14, 8)))
     plt.plot(XX, proba, label='Model Prediction', color=config.get('prediction_color', 'blue'), linewidth=2)
     plt.scatter(X, y, color=config.get('data_color', 'black'), alpha=0.7, label='Actual Data')
@@ -61,30 +58,28 @@ def plot_results(XX, proba, X, y, title, config):
     plt.title(title, fontsize=14)
     plt.legend()
     plt.grid(True)
+
+    # Set x-axis ticks and labels
+    ticks = np.arange(0.1, 1.1, 0.1)  # Generates ticks from 0.1 to 1.0
+    plt.xticks(ticks, labels=[f"{tick:.1f}" for tick in ticks])  # Set tick labels to one decimal place
+
     if config.get('dynamic_range', True):
-        adjust_y_axis(y)
+        adjust_y_axis(proba)
     plt.tight_layout()
     plt.show()
 
-def adjust_y_axis(y):
-    """Adjust the y-axis of the plot based on data percentiles."""
-    y_min, y_max = np.percentile(y, [10, 90])
-    y_range = y_max - y_min
-    plt.ylim([y_min - 0.1 * y_range, y_max + 0.1 * y_range])
-
 def process_dataset(name, path, config):
-    """Process each dataset: load, prepare, model, and plot results."""
     data = load_data(path)
-    if data is not None and not data.empty:  # Check if data is not None and not empty
+    if data is not None:
         prepared_data = prepare_data(data)
         if prepared_data is not None:
-            X = prepared_data[['Normalized_Index']]
+            X = prepared_data.index.to_frame(index=False) / len(prepared_data)
             y = prepared_data['Top1_Is_Accurate']
             gam = fit_model(X, y)
             if gam:
-                XX = np.linspace(X['Normalized_Index'].min(), X['Normalized_Index'].max(), 500)
+                XX = np.linspace(0, 1, 500)[:, None]
                 proba = gam.predict_proba(XX)
-                plot_results(XX.ravel(), proba, X['Normalized_Index'].to_numpy(), y, f'Effect of Normalized Index Position on Prediction Accuracy in {name}', config)
+                plot_results(XX.ravel(), proba, X.to_numpy().ravel(), y, f'Effect of Normalized Index Position on Prediction Accuracy in {name}', config)
 
 default_plot_config = {
     'figsize': (14, 8),

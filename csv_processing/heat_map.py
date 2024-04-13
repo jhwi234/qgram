@@ -29,8 +29,8 @@ def calculate_confusion_matrix(mispredictions):
             confusion_matrix.at[letter, letter] = None
     return confusion_matrix.div(confusion_matrix.sum(axis=1), axis=0)
 
-def plot_heatmap(confusion_matrix, dataset_name, threshold=0.15, figsize=(12, 10), annot_fmt=".2f"):
-    """Enhanced heatmap plotting function with customizable parameters."""
+def plot_heatmap(confusion_matrix, dataset_name, output_dir, threshold=0.20, figsize=(12, 10), annot_fmt=".2f"):
+    """Enhanced heatmap plotting function with customizable parameters and saving to file."""
     plt.figure(figsize=figsize)
     ax = sns.heatmap(
         confusion_matrix,
@@ -47,21 +47,20 @@ def plot_heatmap(confusion_matrix, dataset_name, threshold=0.15, figsize=(12, 10
     plt.yticks(rotation=0)
     plt.tight_layout()
     annotate_heatmap(ax, threshold)
-    plt.show()
+    # Ensure the output directory exists
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    # Save the figure
+    plt.savefig(Path(output_dir, f"{dataset_name}_heatmap.png"))
+    plt.close()  # Close the plot to free up memory
 
 def annotate_heatmap(ax, threshold):
     """Apply conditional formatting to heatmap annotations based on a threshold."""
     for text in ax.texts:
         t = float(text.get_text())
-        print(f"Annotation value: {t}")  # Print the value of each annotation
         if t == 0:  # Check if the value is exactly zero
             text.set_text('')  # Clear the text
-            print("Annotation cleared (value is zero)")  # Print a message indicating the annotation is cleared
         elif t < threshold:
             text.set_color('gray')  # De-emphasize less important annotations
-            print(f"Annotation de-emphasized (value {t} is less than threshold {threshold})")  # Print a message indicating the annotation is de-emphasized
-        else:
-            print(f"Annotation kept (value {t} is greater than or equal to threshold {threshold})")  # Print a message indicating the annotation is kept
 
 # Paths to datasets
 dataset_paths = {
@@ -72,10 +71,12 @@ dataset_paths = {
     "Brown": 'data/outputs/csv/brown_context_sensitive_split0.5_qrange7-7_prediction.csv'
 }
 
+output_directory = 'output/heatmaps'  # Define the directory to store the output images
+
 # Process each dataset
 for name, path in dataset_paths.items():
     data = load_dataset(Path(path))
     mispredictions = filter_mispredictions(data)
     if not mispredictions.empty:
         confusion_matrix = calculate_confusion_matrix(mispredictions)
-        plot_heatmap(confusion_matrix, name)
+        plot_heatmap(confusion_matrix, name, output_directory)

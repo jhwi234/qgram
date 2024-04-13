@@ -27,18 +27,14 @@ def plot_normalized_stacked_histogram(ax, dataset, base_color, label):
     total_counts[total_counts == 0] = np.inf
     valid_proportions = valid_counts / total_counts
     invalid_proportions = invalid_counts / total_counts
-    # Plot bars for valid predictions with a black edge
     ax.bar(bins[:-1], valid_proportions, width=np.diff(bins), align='edge', color=base_color, alpha=0.75, label=f'Valid (Count: {valid_counts.sum()})', edgecolor='black')
-    # Plot bars for invalid predictions with a black edge
     ax.bar(bins[:-1], invalid_proportions, width=np.diff(bins), align='edge', color='gray', alpha=0.65, label=f'Invalid (Count: {invalid_counts.sum()})', bottom=valid_proportions, edgecolor='black')
     
     ax.set_xlabel('Top 1 Confidence')
     ax.set_ylabel('Proportion')
     ax.set_title(f'{label} Dataset')
-    # Adjust legend size using fontsize and prop
     ax.legend(fontsize='large', prop={'size': 12})  # Increase legend text and icon size
 
-# Setting a color-blind friendly style
 plt.style.use('seaborn-v0_8-colorblind')
 
 datasets = {
@@ -55,7 +51,6 @@ n_cols = 2
 n_rows = (n_datasets + n_cols - 1) // n_cols  # Ensure enough rows
 fig, axs = plt.subplots(n_rows, n_cols, figsize=(12, 4 * n_rows), squeeze=False)
 
-# Assign a unique color from the 'tab10' colormap to each dataset
 colors = [plt.get_cmap('tab10')(i) for i in range(n_datasets)]
 
 for (label, dataset), color, ax in zip(loaded_datasets.items(), colors, axs.flatten()):
@@ -65,4 +60,11 @@ for ax in axs.flatten()[len(loaded_datasets):]:
     ax.set_visible(False)  # Hide unused axes
 
 plt.tight_layout()
-plt.show()
+
+# Define the output directory and ensure it exists
+output_dir = Path('output/confs')
+output_dir.mkdir(parents=True, exist_ok=True)
+
+# Save the figure
+fig.savefig(output_dir / 'normalized_valid_stacked_histograms.png')
+plt.close(fig)  # Close the plot to free up memory
