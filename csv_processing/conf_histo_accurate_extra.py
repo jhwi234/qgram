@@ -11,7 +11,7 @@ def load_dataset(path):
         print(f"File not found: {path}")
         return pd.DataFrame()  # Return an empty DataFrame if file is not found
 
-def plot_normalized_stacked_histogram(ax, dataset, base_color, label, accuracy_threshold=0.8):
+def plot_normalized_stacked_histogram(ax, dataset, base_color, label, accuracy_threshold=0.51):
     """Enhanced plotting to highlight the first bin where accurate predictions exceed a given threshold."""
     if dataset.empty:
         ax.text(0.5, 0.5, 'Data Unavailable', horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
