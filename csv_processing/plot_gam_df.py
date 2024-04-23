@@ -27,18 +27,16 @@ def load_data(filepath):
         return None
 
 def prepare_data(data):
-    required_columns = {'Top1_Is_Accurate', 'Tested_Word'} # Add 'Tested_Word' to the required columns
+    required_columns = {'Top1_Is_Accurate'}
     if not required_columns.issubset(data.columns):
-        logging.error("Required columns are missing")
+        logging.error("Required column 'Top1_Is_Accurate' is missing")
         return None
-    data['Normalized_Index'] = data['Tested_Word'].apply(lambda x: np.arange(len(x)) / len(x) if len(x) > 0 else np.array([]))
-    data = data.explode('Normalized_Index')  # This will expand each word into its characters with normalized indices
     data['Top1_Is_Accurate'] = data['Top1_Is_Accurate'].astype(int)
     return data
 
-def fit_model(X, y, n_splines=25):
+def fit_model(X, y, n_splines=25): # Default number of splines is set to 25
     try:
-        gam = LogisticGAM(s(0, n_splines=n_splines)).fit(X, y)
+        gam = LogisticGAM(s(0, n_splines=n_splines)).fit(X, y) # Fit the model with the specified number of splines
         logging.info("Model fitting complete")
         return gam
     except Exception as e:
@@ -46,8 +44,9 @@ def fit_model(X, y, n_splines=25):
         return None
 
 def adjust_y_axis(proba):
-    center_point = np.median(proba)
-    margin = 0.25
+    """Adjust the y-axis of the plot based on the median of model predictions."""
+    center_point = np.median(proba)  # Using the median of predictions as the center point
+    margin = 0.15  # Margin of 15% above and below the center point
     plt.ylim([max(0, center_point - margin), min(1, center_point + margin)])
 
 def plot_results(XX, proba, X, y, title, config, output_path):
@@ -59,27 +58,28 @@ def plot_results(XX, proba, X, y, title, config, output_path):
     plt.title(title, fontsize=14)
     plt.legend()
     plt.grid(True)
-    plt.xticks(np.arange(0, 1.1, 0.1), labels=[f"{tick:.1f}" for tick in np.arange(0, 1.1, 0.1)])
+    ticks = np.arange(0.1, 1.1, 0.1)
+    plt.xticks(ticks, labels=[f"{tick:.1f}" for tick in ticks])
     if config.get('dynamic_range', True):
         adjust_y_axis(proba)
     plt.tight_layout()
-    plt.savefig(output_path)
-    plt.close()
+    plt.savefig(output_path)  # Save the figure to the specified path
+    plt.close()  # Close the figure to free up memory
 
 def process_dataset(name, path, config):
     output_dir = Path('output/gams')
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
     data = load_data(path)
     if data is not None:
-        prepared_data = prepare_data(data)
+        prepared_data = prepare_data(data) # Prepare the data for modeling
         if prepared_data is not None:
-            X = prepared_data[['Normalized_Index']]
-            y = prepared_data['Top1_Is_Accurate']
-            gam = fit_model(X, y)
+            X = prepared_data.index.to_frame(index=False) / len(prepared_data) # Normalize the index
+            y = prepared_data['Top1_Is_Accurate'] # Use the 'Top1_Is_Accurate' column as the target variable
+            gam = fit_model(X, y) # Fit the GAM model
             if gam:
-                XX = np.linspace(0, 1, 500)[:, None]
-                proba = gam.predict_proba(XX)
-                output_path = output_dir / f"{name}_GAM_df.png"
+                XX = np.linspace(0, 1, 500)[:, None] # Generate 500 points between 0 and 1
+                proba = gam.predict_proba(XX) # Predict the probabilities for the generated points
+                output_path = output_dir / f"{name}_GAM.png"  # Define the path for saving the plot
                 plot_results(XX.ravel(), proba, X.to_numpy().ravel(), y, f'Effect of Normalized Index Position on Prediction Accuracy in {name}', config, output_path)
 
 default_plot_config = {
