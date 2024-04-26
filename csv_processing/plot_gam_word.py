@@ -38,7 +38,7 @@ def prepare_data(data):
     data['Top1_Is_Accurate'] = data['Top1_Is_Accurate'].astype(int)
     return data
 
-def fit_model(X, y, n_splines=10):
+def fit_model(X, y, n_splines=20):
     try:
         gam = LogisticGAM(s(0, n_splines=n_splines)).fit(X, y)
         logging.info("Model fitting complete")

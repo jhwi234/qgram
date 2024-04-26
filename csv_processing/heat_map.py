@@ -80,3 +80,7 @@ for name, path in dataset_paths.items():
     if not mispredictions.empty:
         confusion_matrix = calculate_confusion_matrix(mispredictions)
         plot_heatmap(confusion_matrix, name, output_directory)
+
+"""
+log scale these values
+"""
