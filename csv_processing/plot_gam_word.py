@@ -31,12 +31,14 @@ def prepare_data(data):
     if not required_columns.issubset(data.columns):
         logging.error("Required columns are missing")
         return None
-    data['Normalized_Index'] = data['Tested_Word'].apply(lambda x: np.arange(len(x)) / len(x) if len(x) > 0 else np.array([]))
+    data['Normalized_Index'] = data['Tested_Word'].apply(lambda x: np.arange(len(x)) / (len(x)-1)  if len(x) > 0 else np.array([]))
+    # Use linspace instead of arange to ensure the last index is exactly 1
+    # np.linspace(0, 1, len(x)) if len(x) > 0 else np.array([])
     data = data.explode('Normalized_Index')  # This will expand each word into its characters with normalized indices
     data['Top1_Is_Accurate'] = data['Top1_Is_Accurate'].astype(int)
     return data
 
-def fit_model(X, y, n_splines=25):
+def fit_model(X, y, n_splines=10):
     try:
         gam = LogisticGAM(s(0, n_splines=n_splines)).fit(X, y)
         logging.info("Model fitting complete")
