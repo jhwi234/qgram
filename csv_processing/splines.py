@@ -54,7 +54,7 @@ def main():
     for name, path in dataset_paths.items():
         X, y = load_data(path)
         if X is not None and y is not None:
-            for num_splines in range(5, 41):  # Testing spline counts more granularly
+            for num_splines in range(10, 31):  # Testing spline counts more granularly
                 avg_cv_scores = perform_cross_validation(X, y, num_splines)
                 results.append((name, num_splines, *avg_cv_scores))
                 logging.info(f"Processed {name} with {num_splines} splines: {avg_cv_scores}")
