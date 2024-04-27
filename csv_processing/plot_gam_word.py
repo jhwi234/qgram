@@ -31,14 +31,15 @@ def prepare_data(data):
     if not required_columns.issubset(data.columns):
         logging.error("Required columns are missing")
         return None
-    data['Normalized_Index'] = data['Tested_Word'].apply(lambda x: np.arange(len(x)) / (len(x)-1)  if len(x) > 0 else np.array([]))
-    # Use linspace instead of arange to ensure the last index is exactly 1
-    # np.linspace(0, 1, len(x)) if len(x) > 0 else np.array([])
+    # Calculate lengths of each word
+    data['Word_Length'] = data['Tested_Word'].str.len()
+    # Generate a series of arrays for each word where each array is a normalized range
+    data['Normalized_Index'] = data['Word_Length'].apply(lambda l: np.linspace(0, 1, l) if l > 0 else np.array([]))
     data = data.explode('Normalized_Index')  # This will expand each word into its characters with normalized indices
     data['Top1_Is_Accurate'] = data['Top1_Is_Accurate'].astype(int)
     return data
 
-def fit_model(X, y, n_splines=20):
+def fit_model(X, y, n_splines=15):
     try:
         gam = LogisticGAM(s(0, n_splines=n_splines)).fit(X, y)
         logging.info("Model fitting complete")
@@ -49,7 +50,7 @@ def fit_model(X, y, n_splines=20):
 
 def adjust_y_axis(proba):
     center_point = np.median(proba)
-    margin = 0.25
+    margin = 0.30
     plt.ylim([max(0, center_point - margin), min(1, center_point + margin)])
 
 def plot_results(XX, proba, X, y, title, config, output_path):
