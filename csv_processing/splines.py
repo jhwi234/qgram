@@ -20,43 +20,37 @@ dataset_paths = {
 
 def load_data(path):
     data = pd.read_csv(path)
-    logging.info(f"Columns in {path}: {data.columns}")
+    logging.info(f"Loaded {path} with columns {data.columns}")
     if 'Top1_Is_Accurate' not in data.columns:
-        logging.error(f"Required column 'Top1_Is_Accurate' is missing in the file {path}")
+        logging.error(f"Required column 'Top1_Is_Accurate' is missing in {path}")
         return None, None
-    # Calculate normalized index for the first character of each word
-    data['Normalized_Index'] = data['Tested_Word'].apply(lambda x: 1/len(x) if len(x) > 0 else 0)
-    X = data[['Normalized_Index']]  # Use normalized index as a predictor
+    data['Normalized_Index'] = data['Tested_Word'].apply(lambda x: 1 / len(x) if len(x) > 0 else 0)
+    X = data[['Normalized_Index']]
     y = data['Top1_Is_Accurate'].astype(int)
     return X, y
 
 def calculate_metrics(model, X, y):
     predictions = model.predict(X)
     predicted_probabilities = model.predict_proba(X)
-    accuracy = accuracy_score(y, predictions)
-    loss = log_loss(y, predicted_probabilities)
-    aic = model.statistics_.get('AIC', np.nan)  # Use np.nan instead of 'Not available'
-    bic = model.statistics_.get('BIC', np.nan)  # Use np.nan instead of 'Not available'
-    return accuracy, loss, aic, bic
+    return accuracy_score(y, predictions), log_loss(y, predicted_probabilities), model.statistics_['AIC']
 
-# Fitting models and calculating metrics
 results = []
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 for name, path in dataset_paths.items():
     X, y = load_data(path)
     if X is None or y is None:
         continue
-    for num_splines in range(5, 41, 5):  # Testing with 5, 10, 15, ..., 40 splines
-        gam = LogisticGAM(s(0, n_splines=num_splines)).fit(X, y)
+    for num_splines in range(5, 41):  # More granular spline count
+        gam = LogisticGAM(s(0, n_splines=num_splines))
         cv_scores = []
         for train_index, test_index in kf.split(X):
             X_train, X_test = X.iloc[train_index], X.iloc[test_index]
             y_train, y_test = y.iloc[train_index], y.iloc[test_index]
             gam.fit(X_train, y_train)
-            accuracy, loss, aic, bic = calculate_metrics(gam, X_test, y_test)
-            cv_scores.append((accuracy, loss, aic, bic))
-        avg_cv_scores = pd.DataFrame(cv_scores, columns=['Accuracy', 'LogLoss', 'AIC', 'BIC']).mean()
-        results.append((name, num_splines, *avg_cv_scores))
+            accuracy, loss, aic = calculate_metrics(gam, X_test, y_test)
+            cv_scores.append((accuracy, loss, aic))
+        avg_cv_scores = pd.DataFrame(cv_scores, columns=['Accuracy', 'LogLoss', 'AIC']).mean()
+        results.append((name, num_splines, avg_cv_scores['Accuracy'], avg_cv_scores['LogLoss'], avg_cv_scores['AIC']))
 
-results_df = pd.DataFrame(results, columns=['Dataset', 'Splines', 'Average Accuracy', 'Average LogLoss', 'Average AIC', 'Average BIC'])
+results_df = pd.DataFrame(results, columns=['Dataset', 'Splines', 'Average Accuracy', 'Average LogLoss', 'Average AIC'])
 print(results_df)
