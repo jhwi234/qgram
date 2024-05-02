@@ -27,10 +27,23 @@ def load_data(filepath):
         return None
 
 def prepare_data(data):
-    required_columns = {'Top1_Is_Accurate'}
+    # Check for required columns
+    required_columns = {'Top1_Is_Accurate', 'Tested_Word', 'Original_Word'}  # Include 'Original_Word' if used in normalization
     if not required_columns.issubset(data.columns):
-        logging.error("Required column 'Top1_Is_Accurate' is missing")
+        logging.error("Required columns are missing")
         return None
+
+    # Calculate the normalized index for missing letter positions
+    def calculate_normalized_index(row):
+        if '_' in row['Tested_Word']:
+            missing_index = row['Tested_Word'].index('_')
+            return missing_index / (len(row['Original_Word']) - 1)
+        return None
+
+    # Apply the calculation to the data
+    data['Normalized_Missing_Index'] = data.apply(calculate_normalized_index, axis=1)
+
+    # Convert the 'Top1_Is_Accurate' column to integer for modeling
     data['Top1_Is_Accurate'] = data['Top1_Is_Accurate'].astype(int)
     return data
 

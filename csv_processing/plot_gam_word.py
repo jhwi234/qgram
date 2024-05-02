@@ -1,10 +1,9 @@
-import pandas as pd
-import numpy as np
-from pygam import LogisticGAM, s
-from sklearn.model_selection import KFold
-from sklearn.metrics import accuracy_score, log_loss
 import logging
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 from pathlib import Path
+from pygam import LogisticGAM, s
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -18,43 +17,94 @@ dataset_paths = {
     "Brown": Path('data/outputs/csv/brown_context_sensitive_split0.5_qrange7-7_prediction.csv')
 }
 
-def load_and_prepare_data(path):
-    data = pd.read_csv(path)
-    logging.info(f"Loaded {path} with columns {data.columns}")
+def load_data(filepath):
+    try:
+        data = pd.read_csv(filepath)
+        logging.info(f"Data loaded successfully from {filepath}")
+        return data
+    except FileNotFoundError:
+        logging.error(f"File not found: {filepath}")
+        return None
+
+def prepare_data(data):
     required_columns = {'Top1_Is_Accurate', 'Tested_Word'}
     if not required_columns.issubset(data.columns):
         logging.error("Required columns are missing")
         return None
+
+    # Calculate lengths of each word
     data['Word_Length'] = data['Tested_Word'].str.len()
+
+    # Calculate the normalized index of the missing letter (assuming underscore as the placeholder)
+    def calculate_missing_index(row):
+        try:
+            # Find the index of the underscore, if present
+            missing_pos = row['Tested_Word'].index('_')
+            return missing_pos / (row['Word_Length'] - 1)
+        except ValueError:
+            return np.nan  # Return NaN if no underscore is present
+
+    data['Normalized_Missing_Index'] = data.apply(calculate_missing_index, axis=1)
+
+    # Generate a series of arrays for each word where each array is a normalized range
     data['Normalized_Index'] = data['Word_Length'].apply(lambda l: np.linspace(0, 1, l) if l > 0 else np.array([]))
-    data = data.explode('Normalized_Index')
+    data = data.explode('Normalized_Index')  # This will expand each word into its characters with normalized indices
     data['Top1_Is_Accurate'] = data['Top1_Is_Accurate'].astype(int)
-    X = data[['Normalized_Index']]
-    y = data['Top1_Is_Accurate']
-    return X, y
+    return data
 
-def calculate_metrics(model, X, y):
-    predictions = model.predict(X)
-    predicted_probabilities = model.predict_proba(X)
-    return accuracy_score(y, predictions), log_loss(y, predicted_probabilities), model.statistics_.get('AIC', np.nan)
+def fit_model(X, y, n_splines=15):
+    try:
+        gam = LogisticGAM(s(0, n_splines=n_splines)).fit(X, y)
+        logging.info("Model fitting complete")
+        return gam
+    except Exception as e:
+        logging.error(f"Error fitting model: {str(e)}")
+        return None
 
-results = []
-kf = KFold(n_splits=5, shuffle=True, random_state=42)
+def adjust_y_axis(proba):
+    center_point = np.median(proba)
+    margin = 0.30
+    plt.ylim([max(0, center_point - margin), min(1, center_point + margin)])
+
+def plot_results(XX, proba, X, y, title, config, output_path):
+    plt.figure(figsize=config.get('figsize', (14, 8)))
+    plt.plot(XX, proba, label='Model Prediction', color=config.get('prediction_color', 'blue'), linewidth=2)
+    plt.scatter(X, y, color=config.get('data_color', 'black'), alpha=0.7, label='Actual Data')
+    plt.xlabel('Normalized Index Position', fontsize=12)
+    plt.ylabel('Prediction Accuracy', fontsize=12)
+    plt.title(title, fontsize=14)
+    plt.legend()
+    plt.grid(True)
+    plt.xticks(np.arange(0, 1.1, 0.1), labels=[f"{tick:.1f}" for tick in np.arange(0, 1.1, 0.1)])
+    if config.get('dynamic_range', True):
+        adjust_y_axis(proba)
+    plt.tight_layout()
+    plt.savefig(output_path)
+    plt.close()
+
+def process_dataset(name, path, config):
+    output_dir = Path('output/gams')
+    output_dir.mkdir(parents=True, exist_ok=True)
+    data = load_data(path)
+    if data is not None:
+        prepared_data = prepare_data(data)
+        if prepared_data is not None:
+            X = prepared_data[['Normalized_Index']]
+            y = prepared_data['Top1_Is_Accurate']
+            gam = fit_model(X, y)
+            if gam:
+                XX = np.linspace(0, 1, 500)[:, None]
+                proba = gam.predict_proba(XX)
+                output_path = output_dir / f"{name}_GAM_df.png"
+                plot_results(XX.ravel(), proba, X.to_numpy().ravel(), y, f'Effect of Normalized Index Position on Prediction Accuracy in {name}', config, output_path)
+
+default_plot_config = {
+    'figsize': (14, 8),
+    'style': 'seaborn-darkgrid',
+    'prediction_color': 'blue',
+    'data_color': 'black',
+    'dynamic_range': True
+}
+
 for name, path in dataset_paths.items():
-    X, y = load_and_prepare_data(path)
-    if X is None or y is None:
-        continue
-    for num_splines in range(5, 41):  # More granular spline count
-        gam = LogisticGAM(s(0, n_splines=num_splines))
-        cv_scores = []
-        for train_index, test_index in kf.split(X):
-            X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-            y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-            gam.fit(X_train, y_train)
-            accuracy, loss, aic = calculate_metrics(gam, X_test, y_test)
-            cv_scores.append((accuracy, loss, aic))
-        avg_cv_scores = pd.DataFrame(cv_scores, columns=['Accuracy', 'LogLoss', 'AIC']).mean()
-        results.append((name, num_splines, avg_cv_scores['Accuracy'], avg_cv_scores['LogLoss'], avg_cv_scores['AIC']))
-
-results_df = pd.DataFrame(results, columns=['Dataset', 'Splines', 'Average Accuracy', 'Average LogLoss', 'Average AIC'])
-print(results_df)
+    process_dataset(name, path, default_plot_config)
