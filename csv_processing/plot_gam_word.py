@@ -1,9 +1,9 @@
-import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 from pygam import LogisticGAM, s
+import logging
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -32,24 +32,12 @@ def prepare_data(data):
         logging.error("Required columns are missing")
         return None
 
-    # Calculate lengths of each word
+    # Calculate lengths of each word and the normalized index of the missing letter
     data['Word_Length'] = data['Tested_Word'].str.len()
-
-    # Calculate the normalized index of the missing letter (assuming underscore as the placeholder)
-    def calculate_missing_index(row):
-        try:
-            # Find the index of the underscore, if present
-            missing_pos = row['Tested_Word'].index('_')
-            return missing_pos / (row['Word_Length'] - 1)
-        except ValueError:
-            return np.nan  # Return NaN if no underscore is present
-
-    data['Normalized_Missing_Index'] = data.apply(calculate_missing_index, axis=1)
-
-    # Generate a series of arrays for each word where each array is a normalized range
-    data['Normalized_Index'] = data['Word_Length'].apply(lambda l: np.linspace(0, 1, l) if l > 0 else np.array([]))
-    data = data.explode('Normalized_Index')  # This will expand each word into its characters with normalized indices
-    data['Top1_Is_Accurate'] = data['Top1_Is_Accurate'].astype(int)
+    data['Normalized_Missing_Index'] = data['Tested_Word'].apply(
+        lambda word: word.index('_') / (len(word) - 1) if '_' in word else np.nan
+    )
+    
     return data
 
 def fit_model(X, y, n_splines=15):
@@ -70,7 +58,7 @@ def plot_results(XX, proba, X, y, title, config, output_path):
     plt.figure(figsize=config.get('figsize', (14, 8)))
     plt.plot(XX, proba, label='Model Prediction', color=config.get('prediction_color', 'blue'), linewidth=2)
     plt.scatter(X, y, color=config.get('data_color', 'black'), alpha=0.7, label='Actual Data')
-    plt.xlabel('Normalized Index Position', fontsize=12)
+    plt.xlabel('Normalized Missing Index', fontsize=12)
     plt.ylabel('Prediction Accuracy', fontsize=12)
     plt.title(title, fontsize=14)
     plt.legend()
@@ -89,14 +77,14 @@ def process_dataset(name, path, config):
     if data is not None:
         prepared_data = prepare_data(data)
         if prepared_data is not None:
-            X = prepared_data[['Normalized_Index']]
-            y = prepared_data['Top1_Is_Accurate']
+            X = prepared_data[['Normalized_Missing_Index']].dropna()
+            y = prepared_data.loc[X.index, 'Top1_Is_Accurate']
             gam = fit_model(X, y)
             if gam:
                 XX = np.linspace(0, 1, 500)[:, None]
                 proba = gam.predict_proba(XX)
                 output_path = output_dir / f"{name}_GAM_df.png"
-                plot_results(XX.ravel(), proba, X.to_numpy().ravel(), y, f'Effect of Normalized Index Position on Prediction Accuracy in {name}', config, output_path)
+                plot_results(XX.ravel(), proba, X.to_numpy().ravel(), y, f'Effect of Normalized Missing Index on Prediction Accuracy in {name}', config, output_path)
 
 default_plot_config = {
     'figsize': (14, 8),
