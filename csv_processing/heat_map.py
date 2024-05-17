@@ -56,11 +56,14 @@ def plot_heatmap(confusion_matrix, dataset_name, output_dir, threshold=0.20, fig
 def annotate_heatmap(ax, threshold):
     """Apply conditional formatting to heatmap annotations based on a threshold."""
     for text in ax.texts:
-        t = float(text.get_text())
-        if t == 0:  # Check if the value is exactly zero
-            text.set_text('')  # Clear the text
-        elif t < threshold:
-            text.set_color('gray')  # De-emphasize less important annotations
+        try:
+            t = float(text.get_text())
+            if t == 0:  # Check if the value is exactly zero
+                text.set_text('')  # Clear the text
+            elif t < threshold:
+                text.set_color('gray')  # De-emphasize less important annotations
+        except ValueError:
+            continue  # Handle the case where the text is not a number
 
 # Paths to datasets
 dataset_paths = {

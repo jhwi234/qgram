@@ -1,10 +1,5 @@
-Size y axis, and position x axis
-the numbers in the table will be the values of number correct over number predicted.
+The Y-axis represents the size of the word, while the X-axis represents the position of the missing letter. The values in the table cells are calculated as the number of correct predictions divided by the number of predictions made for that specific size and position.
 
-rows are the position of the missing letter, columns are the size of the missing letter.
+Each row corresponds to a different position of the missing letter, and each column corresponds to a different word size. The word size (number of letters) will limit the number of positions available for the rows. For instance, a word of size four will only have four rows, a word of size five will have five rows, and so on. The maximum word size to be considered is eight.
 
-the size of the word, the number of the letters will be less than the position for some of the rows for instance size of four will only have four rows, size of 5 will have 5 rows, etc.
-
-number of correct over number of predicted will be the value of the cell.
-
-cut size off around 8.
+The value of each cell in the table is the ratio of the number of correct predictions to the total number of predictions for that specific word size and missing letter position.

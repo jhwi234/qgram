@@ -59,7 +59,41 @@ class Predictions:
         all_predictions = heapq.nlargest(len(normalized_probabilities), normalized_probabilities.items(), key=lambda item: item[1])
         return all_predictions
 
-    # Context-sensitive prediction using boundary markers
+    # Predicts the missing letter at a specific position using context-sensitive approach
+    def _predict_missing_letter(self, test_word, missing_letter_index, with_boundaries=True):
+        log_probabilities = defaultdict(list)
+
+        for q in self.q_range:
+            model = self.model.get(q)
+            if model is None:
+                continue
+
+            left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=with_boundaries)
+
+            for letter in self.unique_characters:
+                sequence = f"{left_context} {letter} {right_context}".strip()
+                log_prob = model.score(sequence)
+                log_probabilities[letter].append(log_prob)
+
+        sum_log_probabilities = {letter: np.logaddexp.reduce(log_probs) for letter, log_probs in log_probabilities.items()}
+        predictions = self._select_all_predictions(sum_log_probabilities)
+        return predictions[0][0]  # Return the most probable letter
+
+    # Predicts multiple missing letters iteratively
+    def predict_multiple_missing_letters(self, test_word, with_boundaries=True):
+        # Find the indices of all missing letters in the word
+        missing_letter_indices = [i for i, char in enumerate(test_word) if char == '_']
+        test_word_list = list(test_word)
+
+        # Iterate over each missing letter index and predict the most probable letter
+        for missing_letter_index in missing_letter_indices:
+            predicted_letter = self._predict_missing_letter(test_word_list, missing_letter_index, with_boundaries=with_boundaries)
+            test_word_list[missing_letter_index] = predicted_letter
+
+        # Join the list back into a single string and return the predicted word
+        return ''.join(test_word_list)
+
+    # Context-sensitive prediction using boundary markers for a single missing letter
     def context_sensitive(self, test_word):
         # Find the index of the missing letter
         missing_letter_index = test_word.index('_')
