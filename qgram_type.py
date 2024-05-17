@@ -1,6 +1,5 @@
 import logging
 from pathlib import Path
-
 from corpus_class import CorpusManager
 from evaluation_class import EvaluateModel
 
@@ -89,7 +88,6 @@ def run(corpus_name, config):
     # Export details and summary
     eval_model.export_prediction_details_to_csv(predictions, prediction_method.__name__)
     eval_model.save_summary_stats_txt(evaluation_metrics, predictions, prediction_method.__name__)
-    eval_model.save_recall_precision_stats(evaluation_metrics)
 
     logging.info('-' * 45)
 

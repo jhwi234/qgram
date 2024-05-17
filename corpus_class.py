@@ -4,67 +4,51 @@ import regex as reg
 from pathlib import Path
 import subprocess
 from enum import Enum
-
 import nltk
 import kenlm
 
-# Define constants for vowels and consonants using Enum for better organization
+# Enum to define constants for vowels and consonants
 class Letters(Enum):
-    # Updated to include the specified vowels, removing non-vowel characters from the list
-    VOWELS = 'aeèéiîouyæœ'
-    
-    # Updated to ensure all alphabetic characters are represented, either as vowels or consonants
-    # Removed vowels from the consonant string to maintain accuracy
-    CONSONANTS = 'bcdfghjklmnpqrstvwxzȝ'
+    VOWELS = 'aeèéiîouyæœ'  # Vowel characters
+    CONSONANTS = 'bcdfghjklmnpqrstvwxzȝ'  # Consonant characters
 
     @staticmethod
     def is_vowel(char):
-        return char in Letters.VOWELS.value
+        return char in Letters.VOWELS.value  # Check if character is a vowel
 
     @staticmethod
     def is_consonant(char):
-        return char in Letters.CONSONANTS.value
+        return char in Letters.CONSONANTS.value  # Check if character is a consonant
 
 # Function to build language models with KenLM for specified q-gram sizes
 def build_kenlm_model(corpus_name, q, corpus_path, model_directory) -> tuple[int, str]:
-    """
-    Builds KenLM language models for specified q-gram sizes.
-    Generates an ARPA file and then converts it to a binary format for efficiency.
-    """
-    arpa_file = model_directory / f"{corpus_name}_{q}gram.arpa"
-    binary_file = model_directory / f"{corpus_name}_{q}gram.klm"
+    arpa_file = model_directory / f"{corpus_name}_{q}gram.arpa"  # ARPA file path
+    binary_file = model_directory / f"{corpus_name}_{q}gram.klm"  # Binary file path
 
-    # Attempt to build the ARPA model file
+    # Build the ARPA model file
     if not run_command(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
                        "lmplz failed to generate ARPA model"):
-        return q, None  # Early return on failure
+        return q, None
 
-    # Attempt to convert the ARPA model to binary format
+    # Convert the ARPA model to binary format
     if not run_command(['build_binary', '-s', str(arpa_file), str(binary_file)],
                        "build_binary failed to convert ARPA model to binary format"):
-        return q, None  # Early return on failure
+        return q, None
 
-    # If both commands succeed, no need to log success explicitly here
-    return q, str(binary_file)  # Ensure the path is returned as a string for compatibility
+    return q, str(binary_file)
 
+# Function to run a command as a subprocess and log any errors
 def run_command(command, error_message):
-    """
-    Executes a command as a subprocess and logs any errors encountered.
-    Returns True if the command executes successfully, or False if an error occurs.
-    """
     try:
-        result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True)
+        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True)
         return True
     except subprocess.CalledProcessError as e:
         logging.error(f"{error_message}: {e.stderr.decode()}")
         return False
 
+# Class to manage the corpus and handle data processing
 class CorpusManager:
-    # Regex pattern for extracting words, including hyphenated words, in various scripts.
-    # \b indicates word boundaries.
-    # \p{L}+ matches one or more Unicode letters, covering a wide range of characters beyond ASCII.
-    # (?:-\p{L}+)* allows for optional hyphenated parts, matching additional Unicode letters after a hyphen.
-    CLEAN_PATTERN = reg.compile(r'\b\p{L}+(?:-\p{L}+)*\b')
+    CLEAN_PATTERN = reg.compile(r'\b\p{L}+(?:-\p{L}+)*\b')  # Regex pattern to extract words
 
     @staticmethod
     def format_corpus_name(corpus_name) -> str:
@@ -91,138 +75,119 @@ class CorpusManager:
         self.prepare_datasets()
         self.generate_and_load_models()
 
+    # Extract unique characters from the corpus
     def extract_unique_characters(self) -> set:
-        # Use set comprehension for efficiency
         return {char for word in self.corpus for char in word}
 
+    # Clean the text by extracting words and filtering based on minimum length
     def clean_text(self, text: str) -> set[str]:
-        # Extract and clean words from the given text using the defined regex pattern
-        # Lowercase each word part and filter by minimum length requirement
         return {part.lower() for word in self.CLEAN_PATTERN.findall(text) for part in word.split('-') if len(part) >= self.config.min_word_length}
 
+    # Load the corpus from a text file or NLTK corpus
     def load_corpus(self) -> set[str]:
-        # Check if the corpus is a text file
         file_path = self.config.corpus_dir / f'{self.corpus_name}.txt'
         if file_path.is_file():
             with file_path.open('r', encoding='utf-8') as file:
-                # Read the file and clean the text, then store the unique words in self.corpus
-                self.corpus = {word for word in self.clean_text(file.read())}
+                self.corpus = self.clean_text(file.read())
         else:
-            # If the corpus is not a file, attempt to load it as an NLTK corpus
             try:
                 nltk_corpus_name = self.corpus_name.replace('.txt', '')
                 nltk.download(nltk_corpus_name, quiet=True)
-                # Retrieve words from the NLTK corpus, clean them, and store in self.corpus
-                self.corpus = {word for word in self.clean_text(' '.join(getattr(nltk.corpus, nltk_corpus_name).words()))}
+                self.corpus = self.clean_text(' '.join(getattr(nltk.corpus, nltk_corpus_name).words()))
             except AttributeError:
-                # This exception is raised if the NLTK corpus does not exist
                 raise ValueError(f"File '{file_path}' does not exist and NLTK corpus '{nltk_corpus_name}' not found.")
             except Exception as e:
-                # Catch any other unexpected exceptions and provide a more informative error message
                 raise RuntimeError(f"Failed to load corpus '{self.corpus_name}': {e}")
 
         return self.corpus
 
+    # Shuffle and split the corpus into training and test sets
     def _shuffle_and_split_corpus(self) -> tuple[set[str], set[str]]:
-        # Convert the corpus to a list, shuffle it, and then split into training and test sets.
-        total_size = len(self.corpus)
         shuffled_corpus = list(self.corpus)
-        self.rng.shuffle(shuffled_corpus)  # Randomize the order of the corpus elements
-        train_size = int(total_size * self.config.split_config)  # Calculate the size of the training set
-        # Split the shuffled corpus into training and test sets and return
+        self.rng.shuffle(shuffled_corpus)
+        train_size = int(len(self.corpus) * self.config.split_config)
         return set(shuffled_corpus[:train_size]), set(shuffled_corpus[train_size:])
 
-    def prepare_datasets(self) -> tuple[set[str], set[str]]:
-        # Prepare training and test datasets from the corpus
+    # Prepare training and test datasets from the corpus
+    def prepare_datasets(self):
         self.train_set, unprocessed_test_set = self._shuffle_and_split_corpus()
-
-        # Save the formatted training set for KenLM
         formatted_train_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_train_set.txt'
         self.generate_formatted_corpus(self.train_set, formatted_train_set_path)
 
-        # Process the test set by replacing letters in each word with underscores
         formatted_test_set = []
         for word in unprocessed_test_set:
-            num_replacements = min(self.config.num_replacements, len(word))  # Ensure replacements do not exceed word length
-            modified_word = word
-            missing_letters = []
-            for _ in range(num_replacements):
-                if self.has_replaceable_letter(modified_word):
-                    modified_word, missing_letter, _ = self.replace_random_letter(modified_word)
-                    missing_letters.append(missing_letter)
-            if missing_letters:  # Ensure we only add words with replaced letters
+            num_replacements = min(self.config.num_replacements, len(word))
+            modified_word, missing_letters = self._replace_letters(word, num_replacements)
+            if missing_letters:
                 formatted_test_set.append((modified_word, tuple(missing_letters), word))
 
         self.test_set = set(formatted_test_set)
         self.all_words = self.train_set.union({original_word for _, _, original_word in self.test_set})
 
-        # Save additional sets in debug mode, including the regular training set
         if self.debug:
             self.save_set_to_file(self.train_set, f'{self.corpus_name}_train_set.txt')
             self.save_set_to_file(self.test_set, f'{self.corpus_name}_formatted_test_set.txt')
             self.save_set_to_file(self.all_words, f'{self.corpus_name}_all_words.txt')
 
+    # Generate a formatted corpus file for KenLM training
     def generate_formatted_corpus(self, data_set, formatted_corpus_path) -> Path:
-        # Prepare a corpus file formatted for KenLM training, with each word on a new line
-        formatted_text = [' '.join(word) for word in data_set]
-        formatted_corpus = '\n'.join(formatted_text)
-
-        # Save the formatted corpus to a file
+        formatted_text = '\n'.join(' '.join(word) for word in data_set)
         with formatted_corpus_path.open('w', encoding='utf-8') as f:
-            f.write(formatted_corpus)
-
+            f.write(formatted_text)
         return formatted_corpus_path
 
+    # Generate and load KenLM models for the corpus
     def generate_models_from_corpus(self, corpus_path):
-        # Create the directory for storing language models
         model_directory = self.config.model_dir / self.corpus_name
         model_directory.mkdir(parents=True, exist_ok=True)
 
         model_loaded = False
         for q in self.config.q_range:
             if q not in self.model:
-                # Generate and load KenLM models for each q-gram size
                 _, binary_file = build_kenlm_model(self.corpus_name, q, corpus_path, model_directory)
                 if binary_file:
-                    self.model[q] = kenlm.Model(str(binary_file))
+                    self.model[q] = kenlm.Model(binary_file)
                     model_loaded = True
 
         if model_loaded:
             logging.info(f'Model for {q}-gram loaded from {self.corpus_name}')
 
+    # Generate and load models if not already loaded
     def generate_and_load_models(self):
-        # Generate and load models only if they haven't been loaded for the specified q-range
-        for q in self.config.q_range:
-            if q not in self.model:
-                formatted_train_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_train_set.txt'
-                self.generate_formatted_corpus(self.train_set, formatted_train_set_path)
-                self.generate_models_from_corpus(formatted_train_set_path)
+        formatted_train_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_train_set.txt'
+        self.generate_formatted_corpus(self.train_set, formatted_train_set_path)
+        self.generate_models_from_corpus(formatted_train_set_path)
 
-    def replace_random_letter(self, word) -> tuple[str, str, str]:
-        vowel_indices = [i for i, letter in enumerate(word) if letter in Letters.VOWELS.value]
-        consonant_indices = [i for i, letter in enumerate(word) if letter in Letters.CONSONANTS.value]
+    # Replace letters in the word with underscores
+    def _replace_letters(self, word, num_replacements) -> tuple[str, list[str]]:
+        modified_word = word
+        missing_letters = []
+        for _ in range(num_replacements):
+            if self.has_replaceable_letter(modified_word):
+                modified_word, missing_letter = self._replace_random_letter(modified_word)
+                missing_letters.append(missing_letter)
+        return modified_word, missing_letters
+
+    # Replace a random letter in the word based on configuration
+    def _replace_random_letter(self, word) -> tuple[str, str]:
+        vowel_indices = [i for i, letter in enumerate(word) if Letters.is_vowel(letter)]
+        consonant_indices = [i for i, letter in enumerate(word) if Letters.is_consonant(letter)]
 
         if not vowel_indices and not consonant_indices:
             raise ValueError(f"Unable to replace a letter in word: '{word}'.")
 
-        # Prioritize based on the configured ratios
-        if self.rng.random() < self.config.vowel_replacement_ratio and vowel_indices:
-            letter_indices = vowel_indices
-        elif consonant_indices:
-            letter_indices = consonant_indices
-        else:
-            letter_indices = vowel_indices
-
+        letter_indices = vowel_indices if self.rng.random() < self.config.vowel_replacement_ratio and vowel_indices else consonant_indices or vowel_indices
         letter_index = self.rng.choice(letter_indices)
         missing_letter = word[letter_index]
         modified_word = word[:letter_index] + '_' + word[letter_index + 1:]
 
-        return modified_word, missing_letter, word
+        return modified_word, missing_letter
     
+    # Check if the word has any replaceable letters
     def has_replaceable_letter(self, word) -> bool:
-        # Check if there are any vowels or consonants that can be replaced in the word
-        return any(letter in Letters.VOWELS.value for letter in word) or any(letter in Letters.CONSONANTS.value for letter in word)
+        return any(Letters.is_vowel(letter) for letter in word) or any(Letters.is_consonant(letter) for letter in word)
 
+    # Save a dataset to a file
     def save_set_to_file(self, data_set, file_name):
         file_path = self.config.sets_dir / file_name
         with file_path.open('w', encoding='utf-8') as file:

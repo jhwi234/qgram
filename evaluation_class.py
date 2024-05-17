@@ -6,23 +6,18 @@ class EvaluateModel:
     def __init__(self, corpus_manager, split_type=None, log_initialization_details=True):
         # Initialization and dataset preparation using the provided corpus_manager
         self.corpus_manager = corpus_manager
-        self.corpus_name = corpus_manager.corpus_name 
+        self.corpus_name = corpus_manager.corpus_name
         self.config = corpus_manager.config
         self.model = corpus_manager.model  # Loaded language models
         self.corpus = corpus_manager.corpus
         self.train_set = corpus_manager.train_set
         self.test_set = corpus_manager.test_set
         self.all_words = corpus_manager.all_words
-        self.split_type = split_type 
+        self.split_type = split_type
 
         # Extract unique characters from the corpus
         unique_characters = corpus_manager.extract_unique_characters()
         self.unique_character_count = len(unique_characters)
-
-        # Initialize counts for calculating recall and precision
-        self.actual_missing_letter_occurrences = {char: 0 for char in unique_characters}
-        self.correct_top_predictions = {char: 0 for char in unique_characters}
-        self.top_predicted_counts = {char: 0 for char in unique_characters}
 
         # Initialize prediction class
         self.q_range = range(self.config.q_range[0], self.config.q_range[1] + 1)
@@ -52,152 +47,58 @@ class EvaluateModel:
         logging.info(f'Consonant Replacement Ratio: {self.config.consonant_replacement_ratio}')
         logging.info(f'Unique Character Count: {self.unique_character_count}')
         logging.info(f'Minimum Word Length: {self.config.min_word_length}')
+        logging.info(f'Number of Replacements per Word: {self.config.num_replacements}')  # Log the number of replacements
 
-    def compute_accuracy(self, predictions) -> dict:
-        # Initialize a dictionary to track accuracy for three ranks: TOP1, TOP2, and TOP3.
-        accuracy_counts = {1: 0, 2: 0, 3: 0}  # Ensuring all ranks are initialized.
+    def compute_metrics(self, predictions) -> dict:
+        # Initialize dictionaries to track accuracy and validity for three ranks: TOP1, TOP2, and TOP3.
+        accuracy_counts = {1: 0, 2: 0, 3: 0}
+        validity_counts = {1: 0, 2: 0, 3: 0}
         total_test_words = len(self.test_set)  # Total number of words in the test set.
 
-        for _, missing_letters, _, all_predictions, _ in predictions:
+        for modified_word, missing_letters, _, all_predictions, _ in predictions:
             correct_rank = None
             for rank, (predicted_letter, _) in enumerate(all_predictions, start=1):
                 if predicted_letter in missing_letters:
                     correct_rank = rank
                     break
-            
-            # If a correct prediction is made, increment accuracy counts for that rank and all higher ranks.
+
             if correct_rank:
-                for rank in range(correct_rank, 4):  # Loop from correct rank to 3.
-                    accuracy_counts[rank] += 1  # Increment the count for each relevant rank.
+                for rank in range(correct_rank, 4):
+                    accuracy_counts[rank] += 1
 
-        # Calculate total accuracy for each rank (1, 2, 3) by dividing the number of accurate predictions by total test words.
-        total_accuracy = {k: accuracy_counts[k] / total_test_words for k in accuracy_counts}
-        return total_accuracy
-
-    def compute_validity(self, predictions) -> dict:
-        # Initialize a dictionary to track validity for three ranks: TOP1, TOP2, and TOP3.
-        validity_counts = {1: 0, 2: 0, 3: 0}
-        total_test_words = len(self.test_set)  # Total number of words in the test set.
-
-        for modified_word, _, _, all_predictions, _ in predictions:
-            valid_word_found = False  # Flag to indicate if a valid word has been found.
+            valid_word_found = False
             for rank, (predicted_letter, _) in enumerate(all_predictions, start=1):
-                # If a valid word hasn't been found yet, check the current prediction.
                 if not valid_word_found:
                     reconstructed_word = modified_word.replace('_', predicted_letter)
                     if reconstructed_word in self.all_words:
-                        # If valid, increment validity counts for that rank and all higher ranks.
-                        for i in range(rank, 4):  # Loop from current rank to 3.
+                        for i in range(rank, 4):
                             validity_counts[i] += 1
-                        valid_word_found = True  # Update flag since a valid word is found.
+                        valid_word_found = True
 
-        # Calculate total validity for each rank (1, 2, 3) by dividing the number of valid predictions by total test words.
+        # Calculate total accuracy and validity for each rank (1, 2, 3) by dividing the counts by the total number of test words.
+        total_accuracy = {k: accuracy_counts[k] / total_test_words for k in accuracy_counts}
         total_validity = {k: validity_counts[k] / total_test_words for k in validity_counts}
-        return total_validity
-
-    def compute_metric(self, correct_counts, total_counts) -> dict:
-        # Generalized method to calculate metrics like recall and precision.
-        return {
-            char: (correct_counts[char] / total_counts[char] if total_counts[char] > 0 else 0)
-            for char in correct_counts
-        }
+        
+        return {'accuracy': total_accuracy, 'validity': total_validity, 'total_words': total_test_words}
 
     def evaluate_character_predictions(self, prediction_method) -> tuple[dict, list]:
         predictions = []
 
         # Iterate over each word in the test set to evaluate predictions.
         for modified_word, target_letters, original_word in self.test_set:
-            # Increment the count of occurrences of the target letters for recall calculation.
-            for letter in target_letters:
-                self.actual_missing_letter_occurrences[letter] += 1
-
             # Get predictions for the modified word using the provided prediction method.
             all_predictions = prediction_method(modified_word)
-            if all_predictions:
-                top_predicted_char = all_predictions[0][0]
-                self.top_predicted_counts[top_predicted_char] += 1
-
-                # If the top prediction matches any of the target letters, increment the correct prediction count.
-                if top_predicted_char in target_letters:
-                    self.correct_top_predictions[top_predicted_char] += 1
 
             # Determine the rank at which the correct letter is predicted, if at all.
-            correct_letter_rank = next((rank for rank, (retrieved_letter, _) in enumerate(all_predictions, start=1) 
+            correct_letter_rank = next((rank for rank, (retrieved_letter, _) in enumerate(all_predictions, start=1)
                                         if retrieved_letter in target_letters), None)
             # Append the detailed prediction information for each test word.
             predictions.append((modified_word, target_letters, original_word, all_predictions[:3], correct_letter_rank))
 
-        # Compute various evaluation metrics including accuracy, validity, recall, and precision.
-        accuracy_metrics = self.compute_accuracy(predictions)
-        validity_metrics = self.compute_validity(predictions)
-        recall_metrics = self.compute_metric(self.correct_top_predictions, self.actual_missing_letter_occurrences)
-        precision_metrics = self.compute_metric(self.correct_top_predictions, self.top_predicted_counts)
-
-        # Return a comprehensive dictionary of all computed metrics.
-        return {'accuracy': accuracy_metrics, 'validity': validity_metrics, 
-                'recall': recall_metrics, 'precision': precision_metrics, 
-                'total_words': len(self.test_set)}, predictions
-
-    def save_recall_precision_stats(self, evaluation_metrics):
-        # Retrieve recall and precision metrics from the evaluation_metrics dictionary
-        recall_metrics = evaluation_metrics['recall']
-        precision_metrics = evaluation_metrics['precision']
-
-        # Compute F1-score for each character
-        f1_scores = {}
-        for char in recall_metrics:
-            precision = precision_metrics[char]
-            recall = recall_metrics[char]
-            f1 = (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-            f1_scores[char] = f1
-
-        # Sort metrics by F1-score in descending order
-        sorted_metrics = sorted(
-            [(char, self.actual_missing_letter_occurrences[char], self.correct_top_predictions[char], self.top_predicted_counts[char], recall_metrics[char], precision_metrics[char], f1_scores[char]) for char in recall_metrics],
-            key=lambda item: item[6], reverse=True  # Sort by F1-score
-        )
-
-        # Save sorted metrics to a file
-        metrics_file_path = self.config.csv_dir / f'{self.corpus_name}_recall_precision_f1.csv'
-        with metrics_file_path.open('w', encoding='utf-8') as file:
-            file.write('Character,Total_Missing_Letter_Occurrences,Total_Correctly_Retrieved,Total_Predictions,Recall,Precision,F1-Score\n')
-            for char, total_relevant, correctly_retrieved, total_predictions, recall, precision, f1_score in sorted_metrics:
-                file.write(f'{char},{total_relevant},{correctly_retrieved},{total_predictions},{recall:.4f},{precision:.4f},{f1_score:.4f}\n')
-    
-    def export_prediction_details_to_csv(self, predictions, prediction_method_name):
-        split_type_str = f"_{self.split_type}" if self.split_type else ""
-        csv_file_path = self.config.csv_dir / (
-            f'{self.corpus_name}_{prediction_method_name}{split_type_str}_split'
-            f'{self.config.split_config}_qrange{self.config.q_range[0]}-'
-            f'{self.config.q_range[1]}_prediction.csv'
-        )
-        with csv_file_path.open('w', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-
-            writer.writerow([
-                'Tested_Word', 'Original_Word', 'Correct_Letter(s)', 
-                'Top1_Predicted_Letter', 'Top1_Confidence', 'Top1_Is_Valid', 'Top1_Is_Accurate',
-                'Top2_Predicted_Letter', 'Top2_Confidence', 'Top2_Is_Valid', 'Top2_Is_Accurate',
-                'Top3_Predicted_Letter', 'Top3_Confidence', 'Top3_Is_Valid', 'Top3_Is_Accurate',
-                'Correct_Letter_Rank', 'In_Training_Set'
-            ])
-
-            # Adjusted to directly convert self.train_set to a set without unpacking
-            training_words_set = set(self.train_set)
-            for mod_word, miss_letters, orig_word, top_preds, cor_letter_rank in predictions:
-                row = [mod_word, orig_word, ','.join(miss_letters)]
-
-                for predicted_letter, confidence in top_preds:
-                    reconstructed_word = mod_word.replace('_', predicted_letter)
-                    is_valid = 1 if reconstructed_word in self.all_words else 0
-                    is_accurate = 1 if predicted_letter in miss_letters else 0
-
-                    row.extend([predicted_letter, confidence, is_valid, is_accurate])
-
-                row.append(cor_letter_rank)
-                row.append(1 if orig_word in training_words_set else 0)  # Check if in training set
-
-                writer.writerow(row)
+        # Compute various evaluation metrics including accuracy and validity.
+        evaluation_metrics = self.compute_metrics(predictions)
+        
+        return evaluation_metrics, predictions
 
     def save_summary_stats_txt(self, evaluation_metrics, predictions, prediction_method_name):
         # File path for saving prediction summary
@@ -222,7 +123,7 @@ class EvaluateModel:
             # Configuration details
             file.write(f'Train Size: {len(self.train_set)}, Test Size: {len(self.test_set)}\n')
             file.write(f'Vowel Ratio: {self.config.vowel_replacement_ratio}, '
-                    f'Consonant Ratio: {self.config.consonant_replacement_ratio}\n\n')
+                       f'Consonant Ratio: {self.config.consonant_replacement_ratio}\n\n')
 
             # Detailed prediction results
             for mod_word, miss_letters, orig_word, top_preds, cor_letter_rank in predictions:
@@ -234,7 +135,40 @@ class EvaluateModel:
                     is_valid_word = reconstructed_word in self.all_words
 
                     file.write(f"Rank {rank}: '{pred_letter}' (Confidence: {confidence:.8f}), "
-                            f"Valid: {is_valid_word}\n")
-                
+                               f"Valid: {is_valid_word}\n")
+
                 file.write('\n')
 
+    def export_prediction_details_to_csv(self, predictions, prediction_method_name):
+        split_type_str = f"_{self.split_type}" if self.split_type else ""
+        csv_file_path = self.config.csv_dir / (
+            f'{self.corpus_name}_{prediction_method_name}{split_type_str}_split'
+            f'{self.config.split_config}_qrange{self.config.q_range[0]}-'
+            f'{self.config.q_range[1]}_prediction.csv'
+        )
+        with csv_file_path.open('w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+
+            writer.writerow([
+                'Tested_Word', 'Original_Word', 'Correct_Letter(s)', 
+                'Top1_Predicted_Letter', 'Top1_Confidence', 'Top1_Is_Valid', 'Top1_Is_Accurate',
+                'Top2_Predicted_Letter', 'Top2_Confidence', 'Top2_Is_Valid', 'Top2_Is_Accurate',
+                'Top3_Predicted_Letter', 'Top3_Confidence', 'Top3_Is_Valid', 'Top3_Is_Accurate',
+                'Correct_Letter_Rank', 'In_Training_Set'
+            ])
+
+            training_words_set = set(self.train_set)
+            for mod_word, miss_letters, orig_word, top_preds, cor_letter_rank in predictions:
+                row = [mod_word, orig_word, ','.join(miss_letters)]
+
+                for predicted_letter, confidence in top_preds:
+                    reconstructed_word = mod_word.replace('_', predicted_letter)
+                    is_valid = 1 if reconstructed_word in self.all_words else 0
+                    is_accurate = 1 if predicted_letter in miss_letters else 0
+
+                    row.extend([predicted_letter, confidence, is_valid, is_accurate])
+
+                row.append(cor_letter_rank)
+                row.append(1 if orig_word in training_words_set else 0)  # Check if in training set
+
+                writer.writerow(row)

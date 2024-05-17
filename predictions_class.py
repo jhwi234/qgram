@@ -15,7 +15,6 @@ class Predictions:
         max_context_size = q - 1
 
         # Dynamically calculate the size of the left context based on the position of the missing letter
-        # Ensuring the context size does not exceed the maximum size determined by the q-gram model
         left_context_size = min(missing_letter_index, max_context_size)
 
         # Similarly, calculate the size of the right context, taking into account the word length and position of the missing letter
@@ -23,11 +22,11 @@ class Predictions:
 
         # If with_boundaries is True, include boundary markers at the start and end of the word
         if with_boundaries:
-            test_word = f"<s> {test_word} </s>"  # Adding start <s> and end </s> markers
+            test_word_with_boundaries = f"<s> {test_word} </s>"  # Adding start <s> and end </s> markers
             # Extract the left context, considering the added boundary markers and adjusted context size
-            left_context = test_word[max(4, missing_letter_index - left_context_size + 4):missing_letter_index + 4]
+            left_context = test_word_with_boundaries[max(4, missing_letter_index - left_context_size + 4):missing_letter_index + 4]
             # Extract the right context similarly, adjusting for the added boundary markers
-            right_context = test_word[missing_letter_index + 5:missing_letter_index + 5 + right_context_size]
+            right_context = test_word_with_boundaries[missing_letter_index + 5:missing_letter_index + 5 + right_context_size]
         else:
             # Extract contexts without boundary markers, using the dynamically calculated context sizes
             left_context = test_word[:missing_letter_index][-left_context_size:]
@@ -63,18 +62,22 @@ class Predictions:
     def _predict_missing_letter(self, test_word, missing_letter_index, with_boundaries=True):
         log_probabilities = defaultdict(list)
 
+        # Iterate over the range of q-gram models
         for q in self.q_range:
             model = self.model.get(q)
             if model is None:
-                continue
+                continue  # Skip if the model for the current q is not available
 
+            # Extract the left and right contexts
             left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=with_boundaries)
 
+            # Calculate log probabilities for each possible letter
             for letter in self.unique_characters:
                 sequence = f"{left_context} {letter} {right_context}".strip()
                 log_prob = model.score(sequence)
                 log_probabilities[letter].append(log_prob)
 
+        # Sum the log probabilities for each letter
         sum_log_probabilities = {letter: np.logaddexp.reduce(log_probs) for letter, log_probs in log_probabilities.items()}
         predictions = self._select_all_predictions(sum_log_probabilities)
         return predictions[0][0]  # Return the most probable letter
@@ -86,9 +89,17 @@ class Predictions:
         test_word_list = list(test_word)
 
         # Iterate over each missing letter index and predict the most probable letter
-        for missing_letter_index in missing_letter_indices:
-            predicted_letter = self._predict_missing_letter(test_word_list, missing_letter_index, with_boundaries=with_boundaries)
-            test_word_list[missing_letter_index] = predicted_letter
+        while missing_letter_indices:
+            predictions = {}
+            for idx in missing_letter_indices:
+                predicted_letter = self._predict_missing_letter(test_word_list, idx, with_boundaries=with_boundaries)
+                predictions[idx] = predicted_letter
+            
+            # Update the word with the highest confidence prediction
+            for idx in sorted(predictions, key=lambda x: predictions[x][1], reverse=True):
+                test_word_list[idx] = predictions[idx]
+                missing_letter_indices.remove(idx)
+                break
 
         # Join the list back into a single string and return the predicted word
         return ''.join(test_word_list)
@@ -101,20 +112,19 @@ class Predictions:
 
         for q in self.q_range:
             model = self.model.get(q)
-            # Skip if the model for the current q is not available
             if model is None:
-                continue
+                continue  # Skip if the model for the current q is not available
 
             # Extract contexts considering boundary markers
             left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=True)
 
+            # Calculate log probabilities for each possible letter
             for letter in self.unique_characters:
-                # Create sequences for each letter and calculate their probabilities
                 sequence = f"{left_context} {letter} {right_context}".strip()
                 log_prob = model.score(sequence)
                 log_probabilities[letter].append(log_prob)
 
-        # Sum log probabilities for each letter across different q models
+        # Sum the log probabilities for each letter
         sum_log_probabilities = {letter: sum(log_probs) for letter, log_probs in log_probabilities.items()}
         return self._select_all_predictions(sum_log_probabilities)
 
@@ -125,20 +135,19 @@ class Predictions:
 
         for q in self.q_range:
             model = self.model.get(q)
-            # Skip if the model for the current q is not available
             if not model:
-                continue
+                continue  # Skip if the model for the current q is not available
 
             # Extract contexts without considering boundary markers
             left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=False)
 
+            # Calculate log probabilities for each possible letter
             for letter in self.unique_characters:
-                # Create sequences for each letter and calculate their probabilities
                 sequence = self._format_sequence(left_context, letter, right_context)
                 log_prob = self._calculate_log_probability(model, sequence, bos=False, eos=False)
                 log_probabilities[letter].append(log_prob)
 
-        # Sum log probabilities for each letter across different q models
+        # Sum the log probabilities for each letter
         sum_log_probabilities = {letter: sum(log_probs) for letter, log_probs in log_probabilities.items() if log_probs}
         return self._select_all_predictions(sum_log_probabilities)
 
@@ -156,8 +165,8 @@ class Predictions:
         if not model:
             return []
 
+        # Calculate log probabilities for each possible letter
         for letter in self.unique_characters:
-            # Replace underscore with each letter and calculate probabilities
             candidate_word = formatted_test_word[:missing_letter_index * 2] + letter + formatted_test_word[missing_letter_index * 2 + 1:]
             log_probability = self._calculate_log_probability(model, candidate_word, bos=False, eos=False)
             log_probabilities[letter] = log_probability
