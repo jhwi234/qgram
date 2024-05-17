@@ -57,26 +57,23 @@ class EvaluateModel:
 
         for modified_word, missing_letters, _, all_predictions, _ in predictions:
             correct_rank = next((rank for rank, (predicted_letter, _) in enumerate(all_predictions, start=1)
-                                 if predicted_letter in missing_letters), None)
+                                if predicted_letter in missing_letters), None)
 
             if correct_rank:
                 for rank in range(correct_rank, 4):
                     accuracy_counts[rank] += 1
 
-            # Handle multiple missing letters in validity calculation
-            valid_word_found = [False] * 3  # Track validity for TOP1, TOP2, TOP3
+            # Track validity for each rank ensuring each word is only counted once per rank
+            valid_word_checked = [False] * 3  # Tracks if a valid word has been checked for each rank
 
-            for rank, (predicted_letter, _) in enumerate(all_predictions, start=1):
-                if any(valid_word_found):
-                    break
-                reconstructed_word = modified_word
-                for pred_letter in missing_letters:
-                    reconstructed_word = reconstructed_word.replace('_', pred_letter, 1)
-                if reconstructed_word in self.all_words:
-                    for i in range(rank, 4):
-                        if not valid_word_found[i - 1]:
-                            validity_counts[i] += 1
-                            valid_word_found[i - 1] = True
+            for rank, (predicted_letter, _) in enumerate(all_predictions[:3], start=1):
+                if not valid_word_checked[rank-1]:
+                    reconstructed_word = modified_word.replace('_', predicted_letter, 1)
+                    if reconstructed_word in self.all_words:
+                        for i in range(rank, 4):
+                            if not valid_word_checked[i-1]:
+                                validity_counts[i] += 1
+                                valid_word_checked[i-1] = True
 
         # Calculate total accuracy and validity for each rank (1, 2, 3) by dividing the counts by the total number of test words.
         total_accuracy = {k: accuracy_counts[k] / total_test_words for k in accuracy_counts}
