@@ -1,0 +1,10 @@
+Size y axis, and position x axis
+the numbers in the table will be the values of number correct over number predicted.
+
+rows are the position of the missing letter, columns are the size of the missing letter.
+
+the size of the word, the number of the letters will be less than the position for some of the rows for instance size of four will only have four rows, size of 5 will have 5 rows, etc.
+
+number of correct over number of predicted will be the value of the cell.
+
+cut size off around 8.
