@@ -5,14 +5,14 @@ from predictions_class import Predictions
 class EvaluateModel:
     def __init__(self, corpus_manager, split_type=None, log_initialization_details=True):
         # Initialization and dataset preparation using the provided corpus_manager
-        self.corpus_manager = corpus_manager
-        self.corpus_name = corpus_manager.corpus_name
-        self.config = corpus_manager.config
+        self.corpus_manager = corpus_manager # Store the corpus manager
+        self.corpus_name = corpus_manager.corpus_name # Name of the corpus
+        self.config = corpus_manager.config # Configuration details
         self.model = corpus_manager.model  # Loaded language models
-        self.corpus = corpus_manager.corpus
-        self.train_set = corpus_manager.train_set
-        self.test_set = corpus_manager.test_set
-        self.all_words = corpus_manager.all_words
+        self.corpus = corpus_manager.corpus # Loaded corpus
+        self.train_set = corpus_manager.train_set # Train set
+        self.test_set = corpus_manager.test_set # Test set
+        self.all_words = corpus_manager.all_words # All words in the corpus
         self.split_type = split_type
 
         # Extract unique characters from the corpus
@@ -56,29 +56,32 @@ class EvaluateModel:
         total_test_words = len(self.test_set)  # Total number of words in the test set.
 
         for modified_word, missing_letters, _, all_predictions, _ in predictions:
-            correct_rank = None
-            for rank, (predicted_letter, _) in enumerate(all_predictions, start=1):
-                if predicted_letter in missing_letters:
-                    correct_rank = rank
-                    break
+            correct_rank = next((rank for rank, (predicted_letter, _) in enumerate(all_predictions, start=1)
+                                 if predicted_letter in missing_letters), None)
 
             if correct_rank:
                 for rank in range(correct_rank, 4):
                     accuracy_counts[rank] += 1
 
-            valid_word_found = False
+            # Handle multiple missing letters in validity calculation
+            valid_word_found = [False] * 3  # Track validity for TOP1, TOP2, TOP3
+
             for rank, (predicted_letter, _) in enumerate(all_predictions, start=1):
-                if not valid_word_found:
-                    reconstructed_word = modified_word.replace('_', predicted_letter)
-                    if reconstructed_word in self.all_words:
-                        for i in range(rank, 4):
+                if any(valid_word_found):
+                    break
+                reconstructed_word = modified_word
+                for pred_letter in missing_letters:
+                    reconstructed_word = reconstructed_word.replace('_', pred_letter, 1)
+                if reconstructed_word in self.all_words:
+                    for i in range(rank, 4):
+                        if not valid_word_found[i - 1]:
                             validity_counts[i] += 1
-                        valid_word_found = True
+                            valid_word_found[i - 1] = True
 
         # Calculate total accuracy and validity for each rank (1, 2, 3) by dividing the counts by the total number of test words.
         total_accuracy = {k: accuracy_counts[k] / total_test_words for k in accuracy_counts}
         total_validity = {k: validity_counts[k] / total_test_words for k in validity_counts}
-        
+
         return {'accuracy': total_accuracy, 'validity': total_validity, 'total_words': total_test_words}
 
     def evaluate_character_predictions(self, prediction_method) -> tuple[dict, list]:
@@ -97,7 +100,7 @@ class EvaluateModel:
 
         # Compute various evaluation metrics including accuracy and validity.
         evaluation_metrics = self.compute_metrics(predictions)
-        
+
         return evaluation_metrics, predictions
 
     def save_summary_stats_txt(self, evaluation_metrics, predictions, prediction_method_name):

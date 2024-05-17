@@ -82,7 +82,6 @@ class Predictions:
         predictions = self._select_all_predictions(sum_log_probabilities)
         return predictions[0][0]  # Return the most probable letter
 
-    # Predicts multiple missing letters iteratively
     def predict_multiple_missing_letters(self, test_word, with_boundaries=True):
         # Find the indices of all missing letters in the word
         missing_letter_indices = [i for i, char in enumerate(test_word) if char == '_']
@@ -91,15 +90,18 @@ class Predictions:
         # Iterate over each missing letter index and predict the most probable letter
         while missing_letter_indices:
             predictions = {}
+            
+            # Collect predictions for all missing indices
             for idx in missing_letter_indices:
                 predicted_letter = self._predict_missing_letter(test_word_list, idx, with_boundaries=with_boundaries)
                 predictions[idx] = predicted_letter
-            
+
             # Update the word with the highest confidence prediction
-            for idx in sorted(predictions, key=lambda x: predictions[x][1], reverse=True):
+            for idx in sorted(predictions.keys()):
                 test_word_list[idx] = predictions[idx]
-                missing_letter_indices.remove(idx)
-                break
+
+            # Recalculate missing indices
+            missing_letter_indices = [i for i, char in enumerate(test_word_list) if char == '_']
 
         # Join the list back into a single string and return the predicted word
         return ''.join(test_word_list)

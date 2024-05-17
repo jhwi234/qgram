@@ -10,6 +10,7 @@ class Config:
         self.base_dir = Path(base_dir if base_dir else __file__).parent
         self._set_directories()
         self._set_values()
+        self.create_directories()
 
     def _set_directories(self):
         """Setup various directories needed for the application."""
@@ -21,6 +22,10 @@ class Config:
         self.text_dir = self.output_dir / 'texts'
         self.csv_dir = self.output_dir / 'csv'
         self.sets_dir = self.output_dir / 'sets'
+        self.directories = [
+            self.data_dir, self.model_dir, self.log_dir, self.corpus_dir,
+            self.output_dir, self.sets_dir, self.text_dir, self.csv_dir
+        ]
 
     def _set_values(self):
         """Values for testing."""
@@ -31,31 +36,24 @@ class Config:
         self.consonant_replacement_ratio = 0.8
         self.min_word_length = 3
         self.prediction_method_name = 'context_sensitive'
-        self.num_replacements = 1  # Default number of replacements
+        self.num_replacements = 2  # Default number of replacements
         self.log_level = logging.INFO
 
     def setup_logging(self):
         """Setup logging with file and console handlers."""
         self.log_dir.mkdir(parents=True, exist_ok=True)
         logfile = self.log_dir / 'logfile.log'
-        file_handler = logging.FileHandler(logfile, mode='a')
-        file_format = logging.Formatter('%(asctime)s - %(message)s')
-        file_handler.setFormatter(file_format)
-
-        console_handler = logging.StreamHandler()
-        console_format = logging.Formatter('%(message)s')
-        console_handler.setFormatter(console_format)
-
-        logging.basicConfig(level=self.log_level, handlers=[file_handler, console_handler])
+        logging.basicConfig(level=self.log_level,
+                            format='%(asctime)s - %(message)s',
+                            handlers=[
+                                logging.FileHandler(logfile, mode='a'),
+                                logging.StreamHandler()
+                            ])
 
     def create_directories(self):
         """Create necessary directories if they don't exist."""
-        directories = [
-            self.data_dir, self.model_dir, self.log_dir, self.corpus_dir,
-            self.output_dir, self.sets_dir, self.text_dir, self.csv_dir
-        ]
-        for directory in directories:
-            directory.mkdir(exist_ok=True)
+        for directory in self.directories:
+            directory.mkdir(parents=True, exist_ok=True)
 
 def log_evaluation_results(evaluation_metrics, corpus_name, prediction_method_name):
     """Helper function to log standard evaluation results."""
@@ -95,7 +93,6 @@ def main():
     """Setup logging and create necessary directories."""
     config = Config()
     config.setup_logging()
-    config.create_directories()
 
     # Iterating over each corpus for processing
     corpora = ['cmudict', 'brown', 'CLMET3.txt', 'sorted_tokens_lampeter.txt', 'sorted_tokens_openEdges.txt']
