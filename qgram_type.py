@@ -32,6 +32,7 @@ class Config:
         self.consonant_replacement_ratio = 0.8
         self.min_word_length = 3
         self.prediction_method_name = 'context_sensitive'
+        self.num_replacements = 1  # Default number of replacements
         self.log_level = logging.INFO
 
     def setup_logging(self):
@@ -46,8 +47,7 @@ class Config:
         console_format = logging.Formatter('%(message)s')
         console_handler.setFormatter(console_format)
 
-        logging.basicConfig(level=self.log_level, 
-                            handlers=[file_handler, console_handler])
+        logging.basicConfig(level=self.log_level, handlers=[file_handler, console_handler])
 
     def create_directories(self):
         """Create necessary directories if they don't exist."""
@@ -58,7 +58,6 @@ class Config:
         for directory in directories:
             directory.mkdir(exist_ok=True)
 
-
 def log_evaluation_results(evaluation_metrics, corpus_name, prediction_method_name):
     """Helper function to log standard evaluation results."""
     logging.info(f'Evaluated with: {prediction_method_name}')
@@ -67,7 +66,6 @@ def log_evaluation_results(evaluation_metrics, corpus_name, prediction_method_na
         accuracy = evaluation_metrics['accuracy'].get(i, 0.0)
         validity = evaluation_metrics['validity'].get(i, 0.0)
         logging.info(f'TOP{i} ACCURACY: {accuracy:.2%} | TOP{i} VALIDITY: {validity:.2%}')
-
 
 def run(corpus_name, config):
     """
@@ -83,8 +81,7 @@ def run(corpus_name, config):
     eval_model = EvaluateModel(corpus_manager)
     prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
 
-    evaluation_metrics, predictions = eval_model.evaluate_character_predictions(
-        prediction_method)
+    evaluation_metrics, predictions = eval_model.evaluate_character_predictions(prediction_method)
 
     # Log evaluation results using the new function
     log_evaluation_results(evaluation_metrics, corpus_name, prediction_method.__name__)
@@ -96,7 +93,6 @@ def run(corpus_name, config):
 
     logging.info('-' * 45)
 
-
 def main():
     """Setup logging and create necessary directories."""
     config = Config()
@@ -104,11 +100,9 @@ def main():
     config.create_directories()
 
     # Iterating over each corpus for processing
-    corpora = ['cmudict', 'brown', 'CLMET3.txt', 'sorted_tokens_lampeter.txt', 
-               'sorted_tokens_openEdges.txt']
+    corpora = ['cmudict', 'brown', 'CLMET3.txt', 'sorted_tokens_lampeter.txt', 'sorted_tokens_openEdges.txt']
     for corpus_name in corpora:
         run(corpus_name, config)
-
 
 if __name__ == '__main__':
     main()

@@ -8,14 +8,14 @@ from enum import Enum
 import nltk
 import kenlm
 
-# Define constants for vowels and consonants using Enum for better organizationclass Letters(Enum):
+# Define constants for vowels and consonants using Enum for better organization
 class Letters(Enum):
     # Updated to include the specified vowels, removing non-vowel characters from the list
     VOWELS = 'aeèéiîouyæœ'
     
     # Updated to ensure all alphabetic characters are represented, either as vowels or consonants
     # Removed vowels from the consonant string to maintain accuracy
-    CONSONANTS = 'bcdfghjklmnpqrstvwxz'
+    CONSONANTS = 'bcdfghjklmnpqrstvwxzȝ'
 
     @staticmethod
     def is_vowel(char):
@@ -58,6 +58,7 @@ def run_command(command, error_message):
     except subprocess.CalledProcessError as e:
         logging.error(f"{error_message}: {e.stderr.decode()}")
         return False
+
 class CorpusManager:
     # Regex pattern for extracting words, including hyphenated words, in various scripts.
     # \b indicates word boundaries.
@@ -139,11 +140,18 @@ class CorpusManager:
         formatted_train_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_train_set.txt'
         self.generate_formatted_corpus(self.train_set, formatted_train_set_path)
 
-        # Process the test set by replacing a letter in each word with an underscore
+        # Process the test set by replacing letters in each word with underscores
         formatted_test_set = []
         for word in unprocessed_test_set:
-            modified_word, missing_letter, _ = self.replace_random_letter(word)
-            formatted_test_set.append((modified_word, missing_letter, word))
+            num_replacements = min(self.config.num_replacements, len(word))  # Ensure replacements do not exceed word length
+            modified_word = word
+            missing_letters = []
+            for _ in range(num_replacements):
+                if self.has_replaceable_letter(modified_word):
+                    modified_word, missing_letter, _ = self.replace_random_letter(modified_word)
+                    missing_letters.append(missing_letter)
+            if missing_letters:  # Ensure we only add words with replaced letters
+                formatted_test_set.append((modified_word, tuple(missing_letters), word))
 
         self.test_set = set(formatted_test_set)
         self.all_words = self.train_set.union({original_word for _, _, original_word in self.test_set})
@@ -211,6 +219,10 @@ class CorpusManager:
 
         return modified_word, missing_letter, word
     
+    def has_replaceable_letter(self, word) -> bool:
+        # Check if there are any vowels or consonants that can be replaced in the word
+        return any(letter in Letters.VOWELS.value for letter in word) or any(letter in Letters.CONSONANTS.value for letter in word)
+
     def save_set_to_file(self, data_set, file_name):
         file_path = self.config.sets_dir / file_name
         with file_path.open('w', encoding='utf-8') as file:

@@ -58,9 +58,12 @@ class EvaluateModel:
         accuracy_counts = {1: 0, 2: 0, 3: 0}  # Ensuring all ranks are initialized.
         total_test_words = len(self.test_set)  # Total number of words in the test set.
 
-        for _, missing_letter, _, all_predictions, _ in predictions:
-            # Identify the highest rank (1, 2, or 3) where the correct prediction (missing_letter) is made.
-            correct_rank = next((rank for rank, (predicted_letter, _) in enumerate(all_predictions, start=1) if predicted_letter == missing_letter), None)
+        for _, missing_letters, _, all_predictions, _ in predictions:
+            correct_rank = None
+            for rank, (predicted_letter, _) in enumerate(all_predictions, start=1):
+                if predicted_letter in missing_letters:
+                    correct_rank = rank
+                    break
             
             # If a correct prediction is made, increment accuracy counts for that rank and all higher ranks.
             if correct_rank:
@@ -81,9 +84,7 @@ class EvaluateModel:
             for rank, (predicted_letter, _) in enumerate(all_predictions, start=1):
                 # If a valid word hasn't been found yet, check the current prediction.
                 if not valid_word_found:
-                    # Reconstruct the word by replacing the underscore with the predicted letter.
                     reconstructed_word = modified_word.replace('_', predicted_letter)
-                    # Check if the reconstructed word exists in the corpus (valid word).
                     if reconstructed_word in self.all_words:
                         # If valid, increment validity counts for that rank and all higher ranks.
                         for i in range(rank, 4):  # Loop from current rank to 3.
@@ -96,9 +97,6 @@ class EvaluateModel:
 
     def compute_metric(self, correct_counts, total_counts) -> dict:
         # Generalized method to calculate metrics like recall and precision.
-        # 'correct_counts' is a dictionary of how many times each character was correctly predicted.
-        # 'total_counts' is a dictionary of the total occurrences for recall or total predictions for precision.
-        # The metric is calculated as a ratio of correct counts to total counts for each character.
         return {
             char: (correct_counts[char] / total_counts[char] if total_counts[char] > 0 else 0)
             for char in correct_counts
@@ -108,26 +106,26 @@ class EvaluateModel:
         predictions = []
 
         # Iterate over each word in the test set to evaluate predictions.
-        for modified_word, target_letter, original_word in self.test_set:
-            # Increment the count of occurrences of the target letter for recall calculation.
-            self.actual_missing_letter_occurrences[target_letter] += 1
+        for modified_word, target_letters, original_word in self.test_set:
+            # Increment the count of occurrences of the target letters for recall calculation.
+            for letter in target_letters:
+                self.actual_missing_letter_occurrences[letter] += 1
 
             # Get predictions for the modified word using the provided prediction method.
             all_predictions = prediction_method(modified_word)
             if all_predictions:
-                # Increment count of predictions for precision calculation.
                 top_predicted_char = all_predictions[0][0]
                 self.top_predicted_counts[top_predicted_char] += 1
 
-                # If the top prediction matches the target letter, increment the correct prediction count.
-                if top_predicted_char == target_letter:
-                    self.correct_top_predictions[target_letter] += 1
+                # If the top prediction matches any of the target letters, increment the correct prediction count.
+                if top_predicted_char in target_letters:
+                    self.correct_top_predictions[top_predicted_char] += 1
 
             # Determine the rank at which the correct letter is predicted, if at all.
             correct_letter_rank = next((rank for rank, (retrieved_letter, _) in enumerate(all_predictions, start=1) 
-                                        if retrieved_letter == target_letter), None)
+                                        if retrieved_letter in target_letters), None)
             # Append the detailed prediction information for each test word.
-            predictions.append((modified_word, target_letter, original_word, all_predictions[:3], correct_letter_rank))
+            predictions.append((modified_word, target_letters, original_word, all_predictions[:3], correct_letter_rank))
 
         # Compute various evaluation metrics including accuracy, validity, recall, and precision.
         accuracy_metrics = self.compute_accuracy(predictions)
@@ -177,24 +175,22 @@ class EvaluateModel:
             writer = csv.writer(file)
 
             writer.writerow([
-                'Tested_Word', 'Original_Word', 'Correct_Letter', 
+                'Tested_Word', 'Original_Word', 'Correct_Letter(s)', 
                 'Top1_Predicted_Letter', 'Top1_Confidence', 'Top1_Is_Valid', 'Top1_Is_Accurate',
                 'Top2_Predicted_Letter', 'Top2_Confidence', 'Top2_Is_Valid', 'Top2_Is_Accurate',
                 'Top3_Predicted_Letter', 'Top3_Confidence', 'Top3_Is_Valid', 'Top3_Is_Accurate',
-
                 'Correct_Letter_Rank', 'In_Training_Set'
             ])
 
             # Adjusted to directly convert self.train_set to a set without unpacking
             training_words_set = set(self.train_set)
-            for mod_word, miss_letter, orig_word, top_preds, cor_letter_rank in predictions:
-                row = [mod_word, orig_word, miss_letter]
+            for mod_word, miss_letters, orig_word, top_preds, cor_letter_rank in predictions:
+                row = [mod_word, orig_word, ','.join(miss_letters)]
 
                 for predicted_letter, confidence in top_preds:
                     reconstructed_word = mod_word.replace('_', predicted_letter)
                     is_valid = 1 if reconstructed_word in self.all_words else 0
-                    is_accurate = 1 if predicted_letter == miss_letter else 0
-
+                    is_accurate = 1 if predicted_letter in miss_letters else 0
 
                     row.extend([predicted_letter, confidence, is_valid, is_accurate])
 
@@ -229,8 +225,8 @@ class EvaluateModel:
                     f'Consonant Ratio: {self.config.consonant_replacement_ratio}\n\n')
 
             # Detailed prediction results
-            for mod_word, miss_letter, orig_word, top_preds, cor_letter_rank in predictions:
-                file.write(f'Test Word: {mod_word}, Correct Letter: {miss_letter}\n')
+            for mod_word, miss_letters, orig_word, top_preds, cor_letter_rank in predictions:
+                file.write(f'Test Word: {mod_word}, Correct Letters: {",".join(miss_letters)}\n')
                 file.write(f'Correct Letter Rank: {cor_letter_rank}\n')
 
                 for rank, (pred_letter, confidence) in enumerate(top_preds, start=1):
@@ -241,3 +237,4 @@ class EvaluateModel:
                             f"Valid: {is_valid_word}\n")
                 
                 file.write('\n')
+
