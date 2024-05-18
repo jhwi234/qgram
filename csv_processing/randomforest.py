@@ -24,7 +24,7 @@ def load_and_preprocess(path):
     df['Missing_Letter_Index'] = df['Original_Word'].str.find("_") # Find the index of the missing letter
     df['Relative_Position'] = df['Missing_Letter_Index'] / df['Word_Length'].clip(lower=1)  # Avoid division by zero
     df['Top1_Predicted_Letter_is_Vowel'] = df['Top1_Predicted_Letter'].apply(is_vowel) # Check if the predicted letter is a vowel
-    df['Correct_Letter_is_Vowel'] = df['Correct_Letter'].apply(is_vowel) # Check if the correct letter is a vowel
+    df['Correct_Letter_is_Vowel'] = df['Correct_Letter(s)'].apply(is_vowel) # Check if the correct letter is a vowel
 
     features = df[['Word_Length', 'Relative_Position', 'Top1_Predicted_Letter_is_Vowel', 'Correct_Letter_is_Vowel']]
     target = df['Top1_Is_Accurate']
