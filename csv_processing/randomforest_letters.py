@@ -17,7 +17,7 @@ def run_analysis(dataset_path):
     df = create_top1_letter_features(df)
     
     # Ensure only binary letter columns are selected
-    binary_columns = [col for col in df.columns if col.startswith('Top1_') and len(col) > 5 and df[col].dtype in [np.int64, np.float64]]
+    binary_columns = [col for col in df.columns if col.startswith('Top1_') and df[col].dtype in [np.int64, np.float64]]
     
     # Define features and target
     features = df[binary_columns]
@@ -34,18 +34,8 @@ def run_analysis(dataset_path):
     feature_importances = rf_model.feature_importances_
     feature_names = features.columns
     
-    # Separate confidence feature and letter features
-    confidence_importance = feature_importances[0]
-    letter_importances = feature_importances[1:]
-    letter_features = feature_names[1:]
-    
-    # Normalize the letter importances to sum to 100%
-    normalized_letter_importances = letter_importances / letter_importances.sum()
-    
     # Combine the results
-    importance_data = {'Feature': ['Top1_Confidence'] + list(letter_features),
-                       'Importance': [confidence_importance] + list(normalized_letter_importances)}
-    
+    importance_data = {'Feature': feature_names, 'Importance': feature_importances}
     importance_df = pd.DataFrame(importance_data)
     importance_df = importance_df.sort_values(by='Importance', ascending=False)
     
@@ -64,5 +54,6 @@ dataset_paths = {
 for name, path in dataset_paths.items():
     print(f"Running analysis for {name} dataset...")
     importance_df = run_analysis(path)
-    importance_df.to_csv(f'feature_importance_{name}.csv', index=False)
-    print(f"Feature importance for {name} dataset saved to feature_importance_{name}.csv")
+    print(f"Feature importance for {name} dataset:")
+    print(importance_df)
+    print("\n" + "="*80 + "\n")
