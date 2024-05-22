@@ -5,24 +5,26 @@ import matplotlib.pyplot as plt
 # Function to calculate the correct prediction ratio table
 def calculate_correct_prediction_ratios(df, min_word_size=3, max_word_size=8):
     # Initialize dictionaries to hold the correct predictions and total counts
-    results = {size: [0] * size for size in range(min_word_size, max_word_size + 1)}
-    counts = {size: [0] * size for size in range(min_word_size, max_word_size + 1)}
+    results = {size: [0] * max_word_size for size in range(min_word_size, max_word_size + 1)}
+    counts = {size: [0] * max_word_size for size in range(min_word_size, max_word_size + 1)}
     
     # Process each row in the dataframe
     for index, row in df.iterrows():
         word = row['Original_Word']
+        if pd.isna(word) or not isinstance(word, str):
+            continue
         word_size = len(word)
         if word_size < min_word_size or word_size > max_word_size:
             continue
         
-        for position in range(word_size):
-            if row['Top1_Is_Accurate']:
-                results[word_size][position] += 1
-            counts[word_size][position] += 1
+        position = row['Tested_Word'].find('_')
+        if position != -1 and row['Top1_Is_Accurate']:
+            results[word_size][position] += 1
+        counts[word_size][position] += 1
     
     # Calculate the ratios
     ratios = {size: [round(results[size][i] / counts[size][i], 2) if counts[size][i] > 0 else 0 
-                     for i in range(size)] for size in range(min_word_size, max_word_size + 1)}
+                     for i in range(max_word_size)] for size in range(min_word_size, max_word_size + 1)}
     
     # Convert to DataFrame for easier display
     ratio_df = pd.DataFrame.from_dict(ratios, orient='index', columns=[f'Position {i+1}' for i in range(max_word_size)])
