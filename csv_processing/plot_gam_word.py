@@ -18,6 +18,9 @@ dataset_paths = {
 }
 
 def load_data(filepath):
+    """
+    Load data from a CSV file.
+    """
     try:
         data = pd.read_csv(filepath)
         logging.info(f"Data loaded successfully from {filepath}")
@@ -27,6 +30,9 @@ def load_data(filepath):
         return None
 
 def prepare_data(data):
+    """
+    Prepare data by calculating word length and normalized missing letter index.
+    """
     required_columns = {'Top1_Is_Accurate', 'Tested_Word'}
     if not required_columns.issubset(data.columns):
         logging.error("Required columns are missing")
@@ -41,6 +47,9 @@ def prepare_data(data):
     return data
 
 def fit_model(X, y, n_splines=15):
+    """
+    Fit a logistic GAM model.
+    """
     try:
         gam = LogisticGAM(s(0, n_splines=n_splines)).fit(X, y)
         logging.info("Model fitting complete")
@@ -50,11 +59,17 @@ def fit_model(X, y, n_splines=15):
         return None
 
 def adjust_y_axis(proba):
+    """
+    Adjust the y-axis based on the median of the predicted probabilities.
+    """
     center_point = np.median(proba)
     margin = 0.30
     plt.ylim([max(0, center_point - margin), min(1, center_point + margin)])
 
 def plot_results(XX, proba, X, y, title, config, output_path):
+    """
+    Plot the results of the GAM model predictions against the actual data.
+    """
     plt.figure(figsize=config.get('figsize', (14, 8)))
     plt.plot(XX, proba, label='Model Prediction', color=config.get('prediction_color', 'blue'), linewidth=2)
     plt.scatter(X, y, color=config.get('data_color', 'black'), alpha=0.7, label='Actual Data')
@@ -71,6 +86,9 @@ def plot_results(XX, proba, X, y, title, config, output_path):
     plt.close()
 
 def process_dataset(name, path, config):
+    """
+    Process each dataset: load data, prepare it, fit the model, and plot results.
+    """
     output_dir = Path('output/gams')
     output_dir.mkdir(parents=True, exist_ok=True)
     data = load_data(path)
@@ -81,7 +99,7 @@ def process_dataset(name, path, config):
             y = prepared_data.loc[X.index, 'Top1_Is_Accurate']
             gam = fit_model(X, y)
             if gam:
-                XX = np.linspace(0, 1, 500)[:, None]
+                XX = np.linspace(0, 1, 1000)[:, None]
                 proba = gam.predict_proba(XX)
                 output_path = output_dir / f"{name}_GAM_df.png"
                 plot_results(XX.ravel(), proba, X.to_numpy().ravel(), y, f'Effect of Normalized Missing Index on Prediction Accuracy in {name}', config, output_path)
