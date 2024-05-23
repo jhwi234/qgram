@@ -44,9 +44,11 @@ def plot_normalized_stacked_histogram(ax, dataset, valid_color, invalid_color, l
     
     # Highlight the bin where valid predictions first exceed the threshold
     if valid_proportions[first_threshold_bin_index] >= threshold:
-        ax.axvline(first_threshold_bin, color='black', linestyle='--', label=f'Threshold at {threshold*100:.0f}%: {first_threshold_bin:.2f}')
+        ax.axvline(first_threshold_bin, color='black', linestyle='--')
         ax.annotate(f'{first_threshold_bin:.2f}', xy=(first_threshold_bin, 0.9), xytext=(first_threshold_bin + 0.05, 0.85),
                     arrowprops=dict(facecolor='black', shrink=0.05), fontsize=16, color='black', fontweight='bold')
+        # Add a separate legend entry for the threshold without the confidence level
+        ax.plot([], [], color='black', linestyle='--', label=f'Threshold at {threshold*100:.0f}%')
 
     ax.set_xlabel('Top 1 Confidence', fontsize=14)
     ax.set_ylabel('Proportion', fontsize=14)
