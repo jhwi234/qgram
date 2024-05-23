@@ -19,7 +19,7 @@ def load_dataset(path):
         logging.error(f"Error loading dataset from {path}: {e}")
         return pd.DataFrame()  # Return an empty DataFrame if any other error occurs
 
-def plot_normalized_stacked_histogram(ax, dataset, valid_color, invalid_color, label, column_name, threshold=0.90, bins=30):
+def plot_normalized_stacked_histogram(ax, dataset, valid_color, invalid_color, label, column_name, threshold=0.75, bins=30):
     """Enhanced plotting to highlight the first bin where proportions exceed a given threshold."""
     if dataset.empty:
         ax.text(0.5, 0.5, 'Data Unavailable', horizontalalignment='center', verticalalignment='center', transform=ax.transAxes, fontsize=16)
