@@ -1,18 +1,13 @@
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
-from joblib import Parallel, delayed
-from enum import Enum
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-class Accuracy(Enum):
-    ACCURATE = 'Accurate'
-    INACCURATE = 'Inaccurate'
 
 sns.set(style="whitegrid", context="notebook", palette="Paired")
 plt.style.use('seaborn-v0_8-colorblind')
@@ -26,7 +21,13 @@ datasets = {
     "Brown": 'data/outputs/csv/brown_context_sensitive_split0.5_qrange7-7_prediction.csv'
 }
 
-def plot_confidence_intervals(data, title, figure_size=(12, 8), font_size=12, ci=95):
+def ensure_directory_exists(directory):
+    """
+    Ensure that the given directory exists, create it if it doesn't.
+    """
+    os.makedirs(directory, exist_ok=True)
+
+def plot_confidence_intervals(data, title, figure_size=(12, 8), font_size=12, ci=95, save_path=None):
     """
     Plots confidence intervals for the given data using a bar chart.
     """
@@ -43,7 +44,7 @@ def plot_confidence_intervals(data, title, figure_size=(12, 8), font_size=12, ci
             if series.isnull().all():
                 logger.warning(f"No data available for {accuracy} {metric}. Skipping.")
                 continue
-            lower, upper, mean_confidence = parallel_bootstrap(series, ci=ci)
+            lower, upper, mean_confidence = bootstrap_confidence(series, ci=ci)
             ax.bar(index[i * 2 + j], mean_confidence, bar_width, color=colors[i][j], label=f'{accuracy} {metric}')
             ax.text(index[i * 2 + j], mean_confidence, f'{mean_confidence:.2%}', ha='center', va='bottom', fontsize=font_size)
 
@@ -53,24 +54,25 @@ def plot_confidence_intervals(data, title, figure_size=(12, 8), font_size=12, ci
     ax.set_xticks(index)
     ax.set_xticklabels([f'{acc} {met}' for met in metrics for acc in accuracies], rotation=45, fontsize=font_size)
     ax.tick_params(axis='both', labelsize=font_size)
-    plt.legend(fontsize=font_size)
     plt.tight_layout()
+    if save_path:
+        ensure_directory_exists(os.path.dirname(save_path))  # Ensure directory exists
+        plt.savefig(save_path)  # Save the plot as PNG
     plt.show()
 
 def get_color_palette():
     base_colors = sns.color_palette("Paired", 12)
     return [[base_colors[i + 1], base_colors[i]] for i in range(0, len(base_colors), 2)]
 
-def parallel_bootstrap(data, n_bootstrap=1000, ci=95):
+def bootstrap_confidence(data, n_bootstrap=1000, ci=95):
     if data.isnull().all():
         return None, None, None
 
-    def bootstrap_sample(sample_data):
-        return np.mean(np.random.choice(sample_data, len(sample_data), replace=True))
-
-    results = Parallel(n_jobs=-1)(delayed(bootstrap_sample)(data.dropna()) for _ in range(n_bootstrap))
-    confidence_bounds = np.percentile(results, [(100 - ci) / 2, 100 - (100 - ci) / 2])
-    return confidence_bounds[0], confidence_bounds[1], np.mean(results)
+    bootstrap_samples = np.random.choice(data, (len(data), n_bootstrap), replace=True)
+    bootstrap_means = np.mean(bootstrap_samples, axis=0)
+    confidence_bounds = np.percentile(bootstrap_means, [(100 - ci) / 2, 100 - (100 - ci) / 2])
+    mean_confidence = np.mean(data)
+    return confidence_bounds[0], confidence_bounds[1], mean_confidence
 
 def load_and_preprocess_data(path):
     try:
@@ -100,7 +102,11 @@ def process_datasets(datasets):
             continue
         data_preprocessed = load_and_preprocess_data(path)
         if data_preprocessed is not None:
-            plot_confidence_intervals(data_preprocessed, name)
+            save_path = f'output/bootstrap/{name}.png'  # Define the save path for the PNG
+            plot_confidence_intervals(data_preprocessed, name, save_path=save_path)  # Pass the save path
 
-if __name__ == '__main__':
+def main():
     process_datasets(datasets)
+
+if __name__ == "__main__":
+    main()
