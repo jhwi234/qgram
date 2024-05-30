@@ -29,7 +29,7 @@ def calculate_confusion_matrix(mispredictions):
             confusion_matrix.at[letter, letter] = None
     return confusion_matrix.div(confusion_matrix.sum(axis=1), axis=0)
 
-def plot_heatmap(confusion_matrix, dataset_name, output_dir, threshold=0.20, figsize=(12, 10), annot_fmt=".2f"):
+def plot_heatmap(confusion_matrix, dataset_name, output_dir, threshold=0.15, figsize=(12, 10), annot_fmt=".2f"):
     """Enhanced heatmap plotting function with customizable parameters and saving to file."""
     plt.figure(figsize=figsize)
     ax = sns.heatmap(
@@ -77,9 +77,17 @@ dataset_paths = {
 output_directory = 'output/heatmaps'  # Define the directory to store the output images
 
 # Process each dataset
+all_mispredictions = []
 for name, path in dataset_paths.items():
     data = load_dataset(Path(path))
     mispredictions = filter_mispredictions(data)
     if not mispredictions.empty:
+        all_mispredictions.append(mispredictions)
         confusion_matrix = calculate_confusion_matrix(mispredictions)
         plot_heatmap(confusion_matrix, name, output_directory)
+
+# Combine all mispredictions into one DataFrame
+if all_mispredictions:
+    combined_mispredictions = pd.concat(all_mispredictions, ignore_index=True)
+    combined_confusion_matrix = calculate_confusion_matrix(combined_mispredictions)
+    plot_heatmap(combined_confusion_matrix, "All_Datasets", output_directory)
