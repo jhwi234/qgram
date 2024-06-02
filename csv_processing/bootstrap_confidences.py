@@ -95,6 +95,7 @@ def load_and_preprocess_data(path):
         return None
 
 def process_datasets(datasets):
+    all_data = []
     for name, path in datasets.items():
         logger.info(f"Processing dataset: {name}")
         if not Path(path).exists():
@@ -102,8 +103,14 @@ def process_datasets(datasets):
             continue
         data_preprocessed = load_and_preprocess_data(path)
         if data_preprocessed is not None:
+            all_data.append(data_preprocessed)
             save_path = f'output/bootstrap/{name}.png'  # Define the save path for the PNG
             plot_confidence_intervals(data_preprocessed, name, save_path=save_path)  # Pass the save path
+    
+    if all_data:
+        combined_data = pd.concat(all_data, ignore_index=True)
+        save_path = 'output/bootstrap/All_Datasets.png'
+        plot_confidence_intervals(combined_data, 'All Datasets', save_path=save_path)
 
 def main():
     process_datasets(datasets)
