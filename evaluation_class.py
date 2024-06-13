@@ -5,14 +5,14 @@ from predictions_class import Predictions
 class EvaluateModel:
     def __init__(self, corpus_manager, split_type=None, log_initialization_details=True):
         # Initialization and dataset preparation using the provided corpus_manager
-        self.corpus_manager = corpus_manager # Store the corpus manager
-        self.corpus_name = corpus_manager.corpus_name # Name of the corpus
-        self.config = corpus_manager.config # Configuration details
-        self.model = corpus_manager.model  # Loaded language models
-        self.corpus = corpus_manager.corpus # Loaded corpus
-        self.train_set = corpus_manager.train_set # Train set
-        self.test_set = corpus_manager.test_set # Test set
-        self.all_words = corpus_manager.all_words # All words in the corpus
+        self.corpus_manager = corpus_manager
+        self.corpus_name = corpus_manager.corpus_name
+        self.config = corpus_manager.config
+        self.model = corpus_manager.model
+        self.corpus = corpus_manager.corpus
+        self.train_set = corpus_manager.train_set
+        self.test_set = corpus_manager.test_set
+        self.all_words = corpus_manager.all_words
         self.split_type = split_type
 
         # Extract unique characters from the corpus
@@ -47,7 +47,7 @@ class EvaluateModel:
         logging.info(f'Consonant Replacement Ratio: {self.config.consonant_replacement_ratio}')
         logging.info(f'Unique Character Count: {self.unique_character_count}')
         logging.info(f'Minimum Word Length: {self.config.min_word_length}')
-        logging.info(f'Number of Replacements per Word: {self.config.num_replacements}')  # Log the number of replacements
+        logging.info(f'Number of Replacements per Word: {self.config.num_replacements}')
 
     def compute_metrics(self, predictions) -> dict:
         # Initialize dictionaries to track accuracy and validity for three ranks: TOP1, TOP2, and TOP3.
@@ -56,6 +56,11 @@ class EvaluateModel:
         total_test_words = len(self.test_set)  # Total number of words in the test set.
 
         for modified_word, missing_letters, _, all_predictions, _ in predictions:
+            # Ensure all_predictions is a list of tuples
+            if not all(isinstance(pred, tuple) and len(pred) == 2 for pred in all_predictions):
+                logging.error(f'Invalid prediction format: {all_predictions}')
+                continue
+
             correct_rank = next((rank for rank, (predicted_letter, _) in enumerate(all_predictions, start=1)
                                 if predicted_letter in missing_letters), None)
 
@@ -88,6 +93,11 @@ class EvaluateModel:
         for modified_word, target_letters, original_word in self.test_set:
             # Get predictions for the modified word using the provided prediction method.
             all_predictions = prediction_method(modified_word)
+            
+            # Add debug prints to check the structure of all_predictions
+            if not isinstance(all_predictions, list) or not all(isinstance(pred, tuple) and len(pred) == 2 for pred in all_predictions):
+                logging.error(f'Unexpected prediction format for {modified_word}: {all_predictions}')
+                continue
 
             # Determine the rank at which the correct letter is predicted, if at all.
             correct_letter_rank = next((rank for rank, (retrieved_letter, _) in enumerate(all_predictions, start=1)
