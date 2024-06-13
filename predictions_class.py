@@ -6,10 +6,11 @@ class Predictions:
     def __init__(self, model, q_range, unique_characters):
         """
         Initialize the Predictions class with language models, a range of n-gram sizes, and unique characters from the corpus.
-
-        :param model: A dictionary of language models for different n-gram sizes.
-        :param q_range: A range of n-gram sizes.
-        :param unique_characters: A list of unique characters from the corpus.
+        
+        Parameters:
+        - model (dict): Dictionary of n-gram models keyed by n-gram size.
+        - q_range (list): List of n-gram sizes to use.
+        - unique_characters (list): List of unique characters in the corpus.
         """
         self.model = model
         self.q_range = q_range
@@ -17,13 +18,16 @@ class Predictions:
 
     def _extract_contexts(self, test_word, q, missing_letter_index, with_boundaries=True):
         """
-        Extracts left and right context around the missing letter.
+        Extract left and right contexts around the missing letter.
 
-        :param test_word: The word with the missing letter.
-        :param q: The size of the n-gram.
-        :param missing_letter_index: The index of the missing letter.
-        :param with_boundaries: Whether to include boundary markers.
-        :return: A tuple containing the left and right context.
+        Parameters:
+        - test_word (str): The word with the missing letter.
+        - q (int): The n-gram size.
+        - missing_letter_index (int): Index of the missing letter in the word.
+        - with_boundaries (bool): Whether to include boundary markers.
+
+        Returns:
+        - tuple: Left and right contexts as strings.
         """
         # Determine the maximum possible context size based on the q-gram model
         max_context_size = q - 1
@@ -34,205 +38,219 @@ class Predictions:
         # Similarly, calculate the size of the right context, taking into account the word length and position of the missing letter
         right_context_size = min(len(test_word) - missing_letter_index - 1, max_context_size)
 
-        # If with_boundaries is True, include boundary markers at the start and end of the word
         if with_boundaries:
-            test_word_with_boundaries = f"<s>{test_word}</s>"  # Adding start <s> and end </s> markers
-            adjusted_index = missing_letter_index + 3  # Adjust for the "<s>" at the beginning
-            # Extract the context, considering the added boundary markers and adjusted context size
-            context_start = max(0, adjusted_index - left_context_size)
-            context_end = adjusted_index + right_context_size + 1
-            context = test_word_with_boundaries[context_start:context_end]
+            # If with_boundaries is True, include boundary markers at the start and end of the word
+            test_word_with_boundaries = f"<s> {test_word} </s>"
+            # Extract the left context, considering the added boundary markers and adjusted context size
+            left_context = test_word_with_boundaries[max(4, missing_letter_index - left_context_size + 4):missing_letter_index + 4]
+            # Extract the right context similarly, adjusting for the added boundary markers
+            right_context = test_word_with_boundaries[missing_letter_index + 5:missing_letter_index + 5 + right_context_size]
         else:
-            # Extract context without boundary markers, using the dynamically calculated context sizes
-            context_start = max(0, missing_letter_index - left_context_size)
-            context_end = missing_letter_index + right_context_size + 1
-            context = test_word[context_start:context_end]
+            # Extract contexts without boundary markers, using the dynamically calculated context sizes
+            left_context = test_word[:missing_letter_index][-left_context_size:]
+            right_context = test_word[missing_letter_index + 1:][:right_context_size]
 
-        return context.strip()
+        # Return the extracted contexts, ensuring any leading or trailing whitespace is removed
+        return ' '.join(left_context.strip()), ' '.join(right_context.strip())
 
     def _format_sequence(self, left_context, letter, right_context):
         """
-        Formats a sequence by combining contexts with a candidate letter.
+        Format a sequence by combining contexts with a candidate letter.
 
-        :param left_context: The left context.
-        :param letter: The candidate letter.
-        :param right_context: The right context.
-        :return: The formatted sequence.
+        Parameters:
+        - left_context (str): Left context around the missing letter.
+        - letter (str): Candidate letter to fill the missing position.
+        - right_context (str): Right context around the missing letter.
+
+        Returns:
+        - str: The formatted sequence.
         """
+        # Concatenate left context, letter, and right context into a single string
         return f"{left_context} {letter} {right_context}".strip()
 
     def _calculate_log_probability(self, model, sequence, bos=True, eos=True):
         """
-        Calculates the log probability of a sequence using a specified language model.
+        Calculate the log probability of a sequence using a specified language model.
 
-        :param model: The language model to use.
-        :param sequence: The sequence to score.
-        :param bos: Include beginning-of-sequence marker.
-        :param eos: Include end-of-sequence marker.
-        :return: The log probability of the sequence.
+        Parameters:
+        - model (object): The language model to use.
+        - sequence (str): The sequence to evaluate.
+        - bos (bool): Whether to include beginning-of-sequence marker.
+        - eos (bool): Whether to include end-of-sequence marker.
+
+        Returns:
+        - float: The log probability of the sequence.
         """
+        # Compute the log probability of the sequence with the given model
         return model.score(sequence, bos=bos, eos=eos)
 
     def _select_all_predictions(self, log_probabilities):
         """
-        Selects all predictions based on their log probabilities and normalizes them.
+        Select all predictions based on their log probabilities and normalize them.
 
-        :param log_probabilities: A dictionary of log probabilities for each letter.
-        :return: A list of all predictions sorted by normalized probability.
+        Parameters:
+        - log_probabilities (dict): Dictionary of log probabilities keyed by letters.
+
+        Returns:
+        - list: List of letters sorted by their normalized probabilities.
         """
-        # Convert log probabilities to actual probabilities
+        # Convert log probabilities to actual probabilities for easier interpretation
         probabilities = {letter: np.exp(log_prob) for letter, log_prob in log_probabilities.items()}
 
-        # Normalize probabilities
+        # Normalize the probabilities so they sum up to 1
         total_prob = sum(probabilities.values())
         normalized_probabilities = {letter: prob / total_prob for letter, prob in probabilities.items()}
 
-        # Select all predictions sorted by normalized probability
+        # Select all predictions sorted by normalized probability in descending order
         all_predictions = heapq.nlargest(len(normalized_probabilities), normalized_probabilities.items(), key=lambda item: item[1])
         return all_predictions
 
-    def _predict_missing_letter(self, test_word, missing_letter_index, with_boundaries=True):
+    def _get_log_probabilities(self, test_word, missing_letter_index, with_boundaries):
         """
-        Predicts the missing letter at a specific position using a context-sensitive approach.
+        Get log probabilities for each candidate letter for a specific missing letter position.
 
-        :param test_word: The word with the missing letter.
-        :param missing_letter_index: The index of the missing letter.
-        :param with_boundaries: Whether to include boundary markers.
-        :return: The most probable letter.
+        Parameters:
+        - test_word (str): The word with the missing letter.
+        - missing_letter_index (int): Index of the missing letter in the word.
+        - with_boundaries (bool): Whether to include boundary markers.
+
+        Returns:
+        - dict: Dictionary of log probabilities keyed by letters.
         """
+        # Dictionary to store log probabilities of each letter
         log_probabilities = defaultdict(list)
 
-        # Iterate over the range of q-gram models
         for q in self.q_range:
             model = self.model.get(q)
             if model is None:
-                continue  # Skip if the model for the current q is not available
+                # Skip if the model for the current n-gram size is not available
+                continue
 
-            # Extract the left and right contexts
-            left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=with_boundaries)
+            # Extract the left and right contexts around the missing letter
+            left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries)
 
-            # Calculate log probabilities for each possible letter
             for letter in self.unique_characters:
-                sequence = f"{left_context} {letter} {right_context}".strip()
-                log_prob = self._calculate_log_probability(model, sequence)
+                # Create a sequence by inserting the candidate letter between contexts
+                sequence = self._format_sequence(left_context, letter, right_context)
+                # Calculate the log probability of this sequence
+                log_prob = self._calculate_log_probability(model, sequence, bos=with_boundaries, eos=with_boundaries)
+                # Append the log probability to the corresponding letter's list
                 log_probabilities[letter].append(log_prob)
 
-        # Sum the log probabilities for each letter
-        sum_log_probabilities = {letter: np.logaddexp.reduce(log_probs) for letter, log_probs in log_probabilities.items()}
-        predictions = self._select_all_predictions(sum_log_probabilities)
-        return predictions[0][0]  # Return the most probable letter
+        # Sum the log probabilities for each letter using logaddexp for numerical stability
+        return {letter: np.logaddexp.reduce(log_probs) for letter, log_probs in log_probabilities.items()}
+
+    def _predict_missing_letter(self, test_word, missing_letter_index, with_boundaries=True):
+        """
+        Predict the missing letter at a specific position using context-sensitive approach.
+
+        Parameters:
+        - test_word (str): The word with the missing letter.
+        - missing_letter_index (int): Index of the missing letter in the word.
+        - with_boundaries (bool): Whether to include boundary markers.
+
+        Returns:
+        - str: The most probable missing letter.
+        """
+        # Get log probabilities for each candidate letter for the specific missing letter position
+        log_probabilities = self._get_log_probabilities(test_word, missing_letter_index, with_boundaries)
+        # Select all predictions and return the most probable letter
+        predictions = self._select_all_predictions(log_probabilities)
+        return predictions[0][0]
 
     def predict_multiple_missing_letters(self, test_word, with_boundaries=True):
         """
-        Predicts multiple missing letters in a word.
+        Predict multiple missing letters in a word.
 
-        :param test_word: The word with missing letters.
-        :param with_boundaries: Whether to include boundary markers.
-        :return: The word with all missing letters predicted.
+        Parameters:
+        - test_word (str): The word with missing letters.
+        - with_boundaries (bool): Whether to include boundary markers.
+
+        Returns:
+        - str: The word with predicted missing letters filled in.
         """
         # Find the indices of all missing letters in the word
         missing_letter_indices = [i for i, char in enumerate(test_word) if char == '_']
+        # Convert the test word to a list to facilitate in-place modifications
         test_word_list = list(test_word)
 
-        # Iterate over each missing letter index and predict the most probable letter
         while missing_letter_indices:
-            predictions = {}
-
-            # Collect predictions for all missing indices
-            for idx in missing_letter_indices:
-                predicted_letter = self._predict_missing_letter(test_word_list, idx, with_boundaries=with_boundaries)
-                predictions[idx] = predicted_letter
-
-            # Update the word with the highest confidence prediction
+            # Dictionary to store predictions for each missing index
+            predictions = {idx: self._predict_missing_letter(test_word_list, idx, with_boundaries) for idx in missing_letter_indices}
+            # Update the word with the predicted letters
             for idx in sorted(predictions.keys()):
                 test_word_list[idx] = predictions[idx]
-
-            # Recalculate missing indices
+            # Recalculate the indices of missing letters after updating
             missing_letter_indices = [i for i, char in enumerate(test_word_list) if char == '_']
 
-        # Join the list back into a single string and return the predicted word
+        # Join the list back into a single string and return the word with all missing letters predicted
         return ''.join(test_word_list)
 
     def context_sensitive(self, test_word):
         """
         Context-sensitive prediction using boundary markers for a single missing letter.
 
-        :param test_word: The word with a single missing letter.
-        :return: Predictions sorted by their probabilities.
+        Parameters:
+        - test_word (str): The word with a single missing letter.
+
+        Returns:
+        - list: Sorted list of predicted letters and their probabilities.
         """
+        # Find the index of the missing letter in the word
         missing_letter_index = test_word.index('_')
-        log_probabilities = defaultdict(list)
-
-        for q in self.q_range:
-            model = self.model.get(q)
-            if model is None:
-                continue  # Skip if the model for the current q is not available
-
-            # Extract contexts considering boundary markers
-            left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=True)
-
-            # Calculate log probabilities for each possible letter
-            for letter in self.unique_characters:
-                sequence = f"{left_context} {letter} {right_context}".strip()
-                log_prob = self._calculate_log_probability(model, sequence)
-                log_probabilities[letter].append(log_prob)
-
-        # Sum the log probabilities for each letter
-        sum_log_probabilities = {letter: sum(log_probs) for letter, log_probs in log_probabilities.items()}
-        return self._select_all_predictions(sum_log_probabilities)
+        # Get log probabilities for each candidate letter for the specific missing letter position
+        log_probabilities = self._get_log_probabilities(test_word, missing_letter_index, with_boundaries=True)
+        # Select all predictions and return them sorted by probability
+        return self._select_all_predictions(log_probabilities)
 
     def context_no_boundary(self, test_word):
         """
-        Context prediction without boundary markers. Uses context from both sides of the missing letter, but doesn't consider boundary markers.
+        Context prediction without boundary markers.
 
-        :param test_word: The word with a single missing letter.
-        :return: Predictions sorted by their probabilities.
+        Parameters:
+        - test_word (str): The word with a single missing letter.
+
+        Returns:
+        - list: Sorted list of predicted letters and their probabilities.
         """
+        # Find the index of the missing letter in the word
         missing_letter_index = test_word.index('_')
-        log_probabilities = defaultdict(list)
-
-        for q in self.q_range:
-            model = self.model.get(q)
-            if not model:
-                continue  # Skip if the model for the current q is not available
-
-            # Extract contexts without considering boundary markers
-            left_context, right_context = self._extract_contexts(test_word, q, missing_letter_index, with_boundaries=False)
-
-            # Calculate log probabilities for each possible letter
-            for letter in self.unique_characters:
-                sequence = self._format_sequence(left_context, letter, right_context)
-                log_prob = self._calculate_log_probability(model, sequence, bos=False, eos=False)
-                log_probabilities[letter].append(log_prob)
-
-        # Sum the log probabilities for each letter
-        sum_log_probabilities = {letter: sum(log_probs) for letter, log_probs in log_probabilities.items() if log_probs}
-        return self._select_all_predictions(sum_log_probabilities)
+        # Get log probabilities for each candidate letter for the specific missing letter position
+        log_probabilities = self._get_log_probabilities(test_word, missing_letter_index, with_boundaries=False)
+        # Select all predictions and return them sorted by probability
+        return self._select_all_predictions(log_probabilities)
 
     def base_prediction(self, test_word):
         """
-        Base prediction method. Does not use any context. Does the minimum amount to query the language model correctly.
+        Base prediction method without any context.
 
-        :param test_word: The word with a single missing letter.
-        :return: Predictions sorted by their probabilities.
+        Parameters:
+        - test_word (str): The word with a single missing letter.
+
+        Returns:
+        - list: Sorted list of predicted letters and their probabilities.
         """
+        # Find the index of the missing letter in the word
         missing_letter_index = test_word.index('_')
+        # Dictionary to store log probabilities of each letter
         log_probabilities = {}
 
-        # Format the test word to match the training format
+        # Format the test word to match the training format by inserting spaces between characters
         formatted_test_word = " ".join(test_word)
 
-        # Choose the model with the largest n-gram (highest q-value)
+        # Choose the model with the largest n-gram size available
         max_q = max(self.q_range)
         model = self.model.get(max_q)
         if not model:
             return []
 
-        # Calculate log probabilities for each possible letter
         for letter in self.unique_characters:
+            # Create a candidate word by replacing the missing letter with the current candidate letter
             candidate_word = formatted_test_word[:missing_letter_index * 2] + letter + formatted_test_word[missing_letter_index * 2 + 1:]
+            # Calculate the log probability of this candidate word
             log_probability = self._calculate_log_probability(model, candidate_word, bos=False, eos=False)
+            # Store the log probability for the current letter
             log_probabilities[letter] = log_probability
 
-        # Select all letters sorted by their log probabilities
+        # Select all predictions and return them sorted by probability
         return self._select_all_predictions(log_probabilities)

@@ -30,7 +30,7 @@ class Config:
     def _set_values(self):
         """Values for testing."""
         self.seed = 42
-        self.q_range = [12, 12]
+        self.q_range = [7, 7]
         self.split_config = 0.5
         self.vowel_replacement_ratio = 0.2
         self.consonant_replacement_ratio = 0.8
