@@ -1,0 +1,20 @@
+digraph Predictions {
+    node [shape=box];
+    
+    init [label="Initialize Model\n(model, q_range, unique_characters)"];
+    format_sequence [label="Format Sequence\n(Context + Letter)"];
+    calc_log_prob [label="Calculate Log Probability\n(Model, Sequence)"];
+    get_log_probs [label="Compute Log Probabilities\n(Context Extraction,\nSequence Formation)"];
+    predict_single [label="Predict Missing Letter\n(Most Probable)"];
+    context_sensitive [label="Context-Sensitive Prediction"];
+    select_predictions [label="Select Top Predictions\n(Normalize and Rank)"];
+    
+    init -> context_sensitive;
+    
+    context_sensitive -> get_log_probs;
+    get_log_probs -> format_sequence [label="Loop: unique_characters"];
+    format_sequence -> calc_log_prob;
+    calc_log_prob -> get_log_probs;
+    get_log_probs -> select_predictions;
+    select_predictions -> predict_single;
+}
