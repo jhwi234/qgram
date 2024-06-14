@@ -1,0 +1,24 @@
+digraph {
+	test_word [label="Test Word
+<com_uter>" shape=ellipse style=filled]
+	extract_contexts [label="Extract Contexts
+(Left: com, Right: uter)" shape=ellipse style=filled]
+	possible_letters [label="Insert Possible Letters
+(a-z)" shape=ellipse style=filled]
+	calc_log_prob [label="Calculate Log Probability
+(Model, com + [a-z] + uter)" shape=ellipse style=filled]
+	agg_probs [label="Aggregate and Rank
+Log Probabilities" shape=ellipse style=filled]
+	select_predictions [label="Select Top 3
+Letters" shape=ellipse style=filled]
+	predict_single [label="Predict Missing
+Letter
+(p)" shape=ellipse style=filled]
+	test_word -> extract_contexts [label="Start Prediction"]
+	extract_contexts -> possible_letters [label="Generate Candidates"]
+	possible_letters -> calc_log_prob [label="Query Model"]
+	calc_log_prob -> agg_probs [label="Aggregate Scores"]
+	agg_probs -> select_predictions [label="Rank Candidates"]
+	select_predictions -> predict_single [label="Final Selection"]
+	rankdir=TB size="10,7"
+}

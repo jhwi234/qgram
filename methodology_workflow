@@ -1,0 +1,54 @@
+digraph {
+	data_prep [label="Data Preparation
+(Create Word Lists)" shape=ellipse]
+	preprocessing [label="Preprocessing
+(Extract, Lowercase,
+Separate Hyphens,
+Remove Non-qualifying Strings)" shape=box]
+	create_sets [label="Create Training and Test Sets
+(Shuffle, Split, Deduplicate)" shape=box]
+	no_overlap [label="Ensure No Overlap
+(No Same Word in Both Sets)" shape=box]
+	test_set [label="Create Test Set
+(Replace Letters with Underscores)" shape=box]
+	training_set [label="Create Training Set
+(Format Words for KenLM)" shape=box]
+	n_gram_models [label="N-Gram Models
+(Build and Parse)" shape=ellipse]
+	kn_smoothing [label="Kneser-Ney Smoothing
+(Handle Data Sparsity)" shape=ellipse]
+	predict_method [label="Prediction Method
+(Predict Missing Letters)" shape=ellipse]
+	init_predict [label="Initialize Prediction
+(Model, q_range,
+unique_characters)" shape=ellipse]
+	context_extract [label="Context Extraction
+(Left and Right Contexts)" shape=box]
+	format_seq [label="Format Sequences
+(Combine Contexts and Letter)" shape=box]
+	calc_prob [label="Calculate Log Probability
+(Model, Sequence)" shape=box]
+	agg_probs [label="Aggregate Log Probabilities
+(All Candidate Letters)" shape=box]
+	select_top [label="Select Top Predictions
+(Normalize and Rank)" shape=box]
+	evaluate [label="Evaluate Predictions
+(Predictive Accuracy,
+Word Validity)" shape=ellipse]
+	data_prep -> preprocessing
+	preprocessing -> create_sets
+	create_sets -> no_overlap
+	no_overlap -> test_set
+	no_overlap -> training_set
+	training_set -> n_gram_models
+	n_gram_models -> kn_smoothing
+	test_set -> predict_method
+	predict_method -> init_predict
+	init_predict -> context_extract
+	context_extract -> format_seq
+	format_seq -> calc_prob
+	kn_smoothing -> calc_prob
+	calc_prob -> agg_probs
+	agg_probs -> select_top
+	select_top -> evaluate
+}
