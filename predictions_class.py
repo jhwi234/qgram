@@ -160,7 +160,7 @@ class Predictions:
 
     def predict_multiple_missing_letters(self, test_word, with_boundaries=True):
         """
-        Predict multiple missing letters in a word.
+        Predict multiple missing letters in a word using optimized beam search and log probabilities.
 
         Parameters:
         - test_word (str): The word with missing letters.
@@ -171,20 +171,47 @@ class Predictions:
         """
         # Find the indices of all missing letters in the word
         missing_letter_indices = [i for i, char in enumerate(test_word) if char == '_']
-        # Convert the test word to a list to facilitate in-place modifications
-        test_word_list = list(test_word)
 
-        while missing_letter_indices:
-            # Dictionary to store predictions for each missing index
-            predictions = {idx: self._predict_missing_letter(test_word_list, idx, with_boundaries) for idx in missing_letter_indices}
-            # Update the word with the predicted letters
-            for idx in sorted(predictions.keys()):
-                test_word_list[idx] = predictions[idx]
-            # Recalculate the indices of missing letters after updating
-            missing_letter_indices = [i for i, char in enumerate(test_word_list) if char == '_']
+        # Initialize the beam with the original test word
+        beam = [(0, test_word, missing_letter_indices)]
 
-        # Join the list back into a single string and return the word with all missing letters predicted
-        return ''.join(test_word_list)
+        # Set the initial beam width and maximum beam width
+        beam_width = 6
+        max_beam_width = 12
+
+        # Iterate until all missing letters are predicted
+        while beam:
+            new_beam = []
+
+            for score, word, indices in beam:
+                if not indices:
+                    # If no more missing letters, add the word to the new beam
+                    heapq.heappush(new_beam, (score, word, indices))
+                else:
+                    # Select the next missing letter index to predict
+                    missing_letter_index = indices[0]
+
+                    # Get log probabilities for each candidate letter at the current missing index
+                    log_probabilities = self._get_log_probabilities(word, missing_letter_index, with_boundaries)
+
+                    # Sort the candidate letters by their log probabilities in descending order
+                    sorted_candidates = sorted(log_probabilities.items(), key=lambda x: x[1], reverse=True)
+
+                    # Dynamically expand the beam based on the quality of the candidates
+                    expanded_beam_width = min(len(sorted_candidates), max_beam_width)
+
+                    # Add the top candidate words to the new beam
+                    for letter, log_prob in sorted_candidates[:expanded_beam_width]:
+                        new_word = word[:missing_letter_index] + letter + word[missing_letter_index+1:]
+                        new_score = score + log_prob
+                        new_indices = indices[1:]
+                        heapq.heappush(new_beam, (new_score, new_word, new_indices))
+
+            # Update the beam with the top candidates for the next iteration
+            beam = heapq.nlargest(beam_width, new_beam)
+
+        # Return the word with the highest score
+        return beam[0][1]
 
     def context_sensitive(self, test_word):
         """

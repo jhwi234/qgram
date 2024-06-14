@@ -36,7 +36,7 @@ class Config:
         self.consonant_replacement_ratio = 0.8
         self.min_word_length = 3
         self.prediction_method_name = 'context_sensitive'
-        self.num_replacements = 1  # Default number of replacements
+        self.num_replacements = 2  # Default number of replacements
         self.log_level = logging.INFO
 
     def setup_logging(self):
