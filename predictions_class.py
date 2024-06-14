@@ -179,8 +179,18 @@ class Predictions:
         beam_width = 6
         max_beam_width = 12
 
-        # Iterate until all missing letters are predicted
-        while beam:
+        # Set the confidence threshold for early stopping
+        confidence_threshold = 0.9
+
+        # Set the maximum number of iterations
+        max_iterations = 100
+
+        # Initialize the cache for storing log probabilities
+        log_prob_cache = {}
+
+        # Iterate until all missing letters are predicted or the maximum number of iterations is reached
+        iteration = 0
+        while beam and iteration < max_iterations:
             new_beam = []
 
             for score, word, indices in beam:
@@ -191,24 +201,42 @@ class Predictions:
                     # Select the next missing letter index to predict
                     missing_letter_index = indices[0]
 
-                    # Get log probabilities for each candidate letter at the current missing index
-                    log_probabilities = self._get_log_probabilities(word, missing_letter_index, with_boundaries)
+                    # Check if the log probabilities are already cached
+                    if (word, missing_letter_index) in log_prob_cache:
+                        log_probabilities = log_prob_cache[(word, missing_letter_index)]
+                    else:
+                        # Get log probabilities for each candidate letter at the current missing index
+                        log_probabilities = self._get_log_probabilities(word, missing_letter_index, with_boundaries)
+                        log_prob_cache[(word, missing_letter_index)] = log_probabilities
 
-                    # Sort the candidate letters by their log probabilities in descending order
-                    sorted_candidates = sorted(log_probabilities.items(), key=lambda x: x[1], reverse=True)
+                    # Calculate confidence scores for each candidate letter
+                    confidence_scores = self._calculate_confidence_scores(log_probabilities)
+
+                    # Sort the candidate letters by their confidence scores in descending order
+                    sorted_candidates = sorted(confidence_scores.items(), key=lambda x: x[1], reverse=True)
 
                     # Dynamically expand the beam based on the quality of the candidates
                     expanded_beam_width = min(len(sorted_candidates), max_beam_width)
 
                     # Add the top candidate words to the new beam
-                    for letter, log_prob in sorted_candidates[:expanded_beam_width]:
+                    for letter, confidence_score in sorted_candidates[:expanded_beam_width]:
                         new_word = word[:missing_letter_index] + letter + word[missing_letter_index+1:]
-                        new_score = score + log_prob
+                        new_score = score + log_probabilities[letter]
                         new_indices = indices[1:]
-                        heapq.heappush(new_beam, (new_score, new_word, new_indices))
+
+                        # Assign positional weights to the score
+                        position_weight = self._get_position_weight(missing_letter_index, len(word))
+                        weighted_score = new_score * position_weight
+
+                        # Apply early stopping if the confidence score exceeds the threshold
+                        if confidence_score >= confidence_threshold:
+                            return new_word
+
+                        heapq.heappush(new_beam, (weighted_score, new_word, new_indices))
 
             # Update the beam with the top candidates for the next iteration
             beam = heapq.nlargest(beam_width, new_beam)
+            iteration += 1
 
         # Return the word with the highest score
         return beam[0][1]

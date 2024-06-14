@@ -77,6 +77,7 @@ class Config:
         self.vowel_replacement_ratio = 0.2
         self.consonant_replacement_ratio = 0.8
         self.min_word_length = 3
+        self.num_replacements = 1
         self.prediction_method_name = 'context_sensitive'
         self.log_level = logging.INFO
 
@@ -433,7 +434,6 @@ def run(corpus_name, config, split_type):
 
     eval_model.export_prediction_details_to_csv(predictions, prediction_method.__name__)
     eval_model.save_summary_stats_txt(evaluation_metrics, predictions, prediction_method.__name__)
-    eval_model.save_recall_precision_stats(evaluation_metrics)
 
     logging.info('-' * 45)
 
