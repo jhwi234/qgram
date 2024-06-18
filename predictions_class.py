@@ -172,7 +172,7 @@ class Predictions:
         # Find the indices of all missing letters in the word
         missing_letter_indices = [i for i, char in enumerate(test_word) if char == '_']
 
-        # Initialize the beam with the original test word
+        # Initialize the beam with the original test word and an initial score of 0
         beam = [(0, test_word, missing_letter_indices)]
 
         # Set the initial beam width and maximum beam width
@@ -209,30 +209,26 @@ class Predictions:
                         log_probabilities = self._get_log_probabilities(word, missing_letter_index, with_boundaries)
                         log_prob_cache[(word, missing_letter_index)] = log_probabilities
 
-                    # Calculate confidence scores for each candidate letter
-                    confidence_scores = self._calculate_confidence_scores(log_probabilities)
-
-                    # Sort the candidate letters by their confidence scores in descending order
-                    sorted_candidates = sorted(confidence_scores.items(), key=lambda x: x[1], reverse=True)
+                    # Sort the candidate letters by their log probabilities in descending order
+                    sorted_candidates = sorted(log_probabilities.items(), key=lambda x: x[1], reverse=True)
 
                     # Dynamically expand the beam based on the quality of the candidates
                     expanded_beam_width = min(len(sorted_candidates), max_beam_width)
 
-                    # Add the top candidate words to the new beam
-                    for letter, confidence_score in sorted_candidates[:expanded_beam_width]:
+                    for letter, log_prob in sorted_candidates[:expanded_beam_width]:
+                        # Create a new word by replacing the missing letter with the candidate letter
                         new_word = word[:missing_letter_index] + letter + word[missing_letter_index+1:]
-                        new_score = score + log_probabilities[letter]
+                        # Calculate the new score by adding the log probability
+                        new_score = score + log_prob
+                        # Update the indices to predict the next missing letter
                         new_indices = indices[1:]
 
-                        # Assign positional weights to the score
-                        position_weight = self._get_position_weight(missing_letter_index, len(word))
-                        weighted_score = new_score * position_weight
-
                         # Apply early stopping if the confidence score exceeds the threshold
-                        if confidence_score >= confidence_threshold:
+                        if np.exp(log_prob) >= confidence_threshold:
                             return new_word
 
-                        heapq.heappush(new_beam, (weighted_score, new_word, new_indices))
+                        # Add the new word with its score and remaining indices to the new beam
+                        heapq.heappush(new_beam, (new_score, new_word, new_indices))
 
             # Update the beam with the top candidates for the next iteration
             beam = heapq.nlargest(beam_width, new_beam)
