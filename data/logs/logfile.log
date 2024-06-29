@@ -56199,3 +56199,737 @@ ERROR
 2024-06-18 13:35:33,237 - TOP2 ACCURACY: 69.42% | TOP2 VALIDITY: 91.75%
 2024-06-18 13:35:33,237 - TOP3 ACCURACY: 78.16% | TOP3 VALIDITY: 95.63%
 2024-06-18 13:35:33,455 - ---------------------------------------------
+2024-06-28 16:26:59,414 - Processing cmudict Corpus
+2024-06-28 16:26:59,414 - ---------------------------------------------
+2024-06-28 16:27:03,537 - Model for 7-gram loaded from cmudict
+2024-06-28 16:27:03,562 - Language Model for cmudict initialized with:
+2024-06-28 16:27:03,563 - Seed: 42
+2024-06-28 16:27:03,563 - Q-gram Range: [7, 7]
+2024-06-28 16:27:03,563 - Train-Test Split Configuration: 0.01
+2024-06-28 16:27:03,563 - Training Set Size: 1154
+2024-06-28 16:27:03,563 - Testing Set Size: 114337
+2024-06-28 16:27:03,563 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:27:03,563 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:27:03,563 - Unique Character Count: 26
+2024-06-28 16:27:03,563 - Minimum Word Length: 3
+2024-06-28 16:27:03,563 - Number of Replacements per Word: 2
+2024-06-28 16:27:19,310 - Evaluated with: context_sensitive
+2024-06-28 16:27:19,311 - Model evaluation completed for: cmudict
+2024-06-28 16:27:19,311 - TOP1 ACCURACY: 28.65% | TOP1 VALIDITY: 0.00%
+2024-06-28 16:27:19,311 - TOP2 ACCURACY: 44.75% | TOP2 VALIDITY: 0.00%
+2024-06-28 16:27:19,311 - TOP3 ACCURACY: 57.14% | TOP3 VALIDITY: 0.00%
+2024-06-28 16:27:20,534 - ---------------------------------------------
+2024-06-28 16:27:20,592 - Processing brown Corpus
+2024-06-28 16:27:20,592 - ---------------------------------------------
+2024-06-28 16:27:24,121 - Model for 7-gram loaded from brown
+2024-06-28 16:27:24,131 - Language Model for brown initialized with:
+2024-06-28 16:27:24,131 - Seed: 42
+2024-06-28 16:27:24,131 - Q-gram Range: [7, 7]
+2024-06-28 16:27:24,132 - Train-Test Split Configuration: 0.01
+2024-06-28 16:27:24,132 - Training Set Size: 412
+2024-06-28 16:27:24,132 - Testing Set Size: 40796
+2024-06-28 16:27:24,132 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:27:24,132 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:27:24,132 - Unique Character Count: 26
+2024-06-28 16:27:24,132 - Minimum Word Length: 3
+2024-06-28 16:27:24,132 - Number of Replacements per Word: 2
+2024-06-28 16:27:37,927 - Processing cmudict Corpus
+2024-06-28 16:27:37,927 - ---------------------------------------------
+2024-06-28 16:27:40,865 - Model for 7-gram loaded from cmudict
+2024-06-28 16:27:40,893 - Language Model for cmudict initialized with:
+2024-06-28 16:27:40,893 - Seed: 42
+2024-06-28 16:27:40,893 - Q-gram Range: [7, 7]
+2024-06-28 16:27:40,893 - Train-Test Split Configuration: 0.01
+2024-06-28 16:27:40,893 - Training Set Size: 1154
+2024-06-28 16:27:40,893 - Testing Set Size: 114337
+2024-06-28 16:27:40,893 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:27:40,894 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:27:40,894 - Unique Character Count: 26
+2024-06-28 16:27:40,894 - Minimum Word Length: 3
+2024-06-28 16:27:40,894 - Number of Replacements per Word: 1
+2024-06-28 16:27:56,336 - Evaluated with: context_sensitive
+2024-06-28 16:27:56,336 - Model evaluation completed for: cmudict
+2024-06-28 16:27:56,336 - TOP1 ACCURACY: 33.46% | TOP1 VALIDITY: 42.58%
+2024-06-28 16:27:56,336 - TOP2 ACCURACY: 48.01% | TOP2 VALIDITY: 58.26%
+2024-06-28 16:27:56,336 - TOP3 ACCURACY: 58.07% | TOP3 VALIDITY: 68.08%
+2024-06-28 16:27:57,541 - ---------------------------------------------
+2024-06-28 16:27:57,601 - Processing brown Corpus
+2024-06-28 16:27:57,601 - ---------------------------------------------
+2024-06-28 16:28:00,562 - Model for 7-gram loaded from brown
+2024-06-28 16:28:00,572 - Language Model for brown initialized with:
+2024-06-28 16:28:00,573 - Seed: 42
+2024-06-28 16:28:00,573 - Q-gram Range: [7, 7]
+2024-06-28 16:28:00,573 - Train-Test Split Configuration: 0.01
+2024-06-28 16:28:00,573 - Training Set Size: 412
+2024-06-28 16:28:00,573 - Testing Set Size: 40796
+2024-06-28 16:28:00,573 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:28:00,573 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:28:00,573 - Unique Character Count: 26
+2024-06-28 16:28:00,573 - Minimum Word Length: 3
+2024-06-28 16:28:00,573 - Number of Replacements per Word: 1
+2024-06-28 16:28:06,154 - Evaluated with: context_sensitive
+2024-06-28 16:28:06,155 - Model evaluation completed for: brown
+2024-06-28 16:28:06,155 - TOP1 ACCURACY: 34.51% | TOP1 VALIDITY: 39.19%
+2024-06-28 16:28:06,155 - TOP2 ACCURACY: 49.22% | TOP2 VALIDITY: 54.73%
+2024-06-28 16:28:06,155 - TOP3 ACCURACY: 59.39% | TOP3 VALIDITY: 64.85%
+2024-06-28 16:28:06,588 - ---------------------------------------------
+2024-06-28 16:28:06,609 - Processing CLMET3 Corpus
+2024-06-28 16:28:06,609 - ---------------------------------------------
+2024-06-28 16:28:09,235 - Model for 7-gram loaded from CLMET3
+2024-06-28 16:28:09,283 - Language Model for CLMET3 initialized with:
+2024-06-28 16:28:09,283 - Seed: 42
+2024-06-28 16:28:09,283 - Q-gram Range: [7, 7]
+2024-06-28 16:28:09,283 - Train-Test Split Configuration: 0.01
+2024-06-28 16:28:09,284 - Training Set Size: 1484
+2024-06-28 16:28:09,284 - Testing Set Size: 146994
+2024-06-28 16:28:09,284 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:28:09,284 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:28:09,284 - Unique Character Count: 28
+2024-06-28 16:28:09,284 - Minimum Word Length: 3
+2024-06-28 16:28:09,284 - Number of Replacements per Word: 1
+2024-06-28 16:28:30,586 - Evaluated with: context_sensitive
+2024-06-28 16:28:30,586 - Model evaluation completed for: CLMET3.txt
+2024-06-28 16:28:30,586 - TOP1 ACCURACY: 36.08% | TOP1 VALIDITY: 43.38%
+2024-06-28 16:28:30,586 - TOP2 ACCURACY: 50.92% | TOP2 VALIDITY: 58.99%
+2024-06-28 16:28:30,586 - TOP3 ACCURACY: 61.02% | TOP3 VALIDITY: 68.74%
+2024-06-28 16:28:32,133 - ---------------------------------------------
+2024-06-28 16:28:32,222 - Processing sorted_tokens_lampeter Corpus
+2024-06-28 16:28:32,223 - ---------------------------------------------
+2024-06-28 16:28:33,277 - Model for 7-gram loaded from sorted_tokens_lampeter
+2024-06-28 16:28:33,287 - Language Model for sorted_tokens_lampeter initialized with:
+2024-06-28 16:28:33,288 - Seed: 42
+2024-06-28 16:28:33,288 - Q-gram Range: [7, 7]
+2024-06-28 16:28:33,288 - Train-Test Split Configuration: 0.01
+2024-06-28 16:28:33,288 - Training Set Size: 367
+2024-06-28 16:28:33,288 - Testing Set Size: 36427
+2024-06-28 16:28:33,288 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:28:33,288 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:28:33,288 - Unique Character Count: 28
+2024-06-28 16:28:33,288 - Minimum Word Length: 3
+2024-06-28 16:28:33,288 - Number of Replacements per Word: 1
+2024-06-28 16:28:38,590 - Evaluated with: context_sensitive
+2024-06-28 16:28:38,590 - Model evaluation completed for: sorted_tokens_lampeter.txt
+2024-06-28 16:28:38,590 - TOP1 ACCURACY: 35.59% | TOP1 VALIDITY: 40.41%
+2024-06-28 16:28:38,591 - TOP2 ACCURACY: 51.06% | TOP2 VALIDITY: 56.63%
+2024-06-28 16:28:38,591 - TOP3 ACCURACY: 61.17% | TOP3 VALIDITY: 66.68%
+2024-06-28 16:28:38,984 - ---------------------------------------------
+2024-06-28 16:28:39,004 - Processing sorted_tokens_openEdges Corpus
+2024-06-28 16:28:39,005 - ---------------------------------------------
+2024-06-28 16:28:40,502 - Model for 7-gram loaded from sorted_tokens_openEdges
+2024-06-28 16:28:40,522 - Language Model for sorted_tokens_openEdges initialized with:
+2024-06-28 16:28:40,523 - Seed: 42
+2024-06-28 16:28:40,523 - Q-gram Range: [7, 7]
+2024-06-28 16:28:40,523 - Train-Test Split Configuration: 0.01
+2024-06-28 16:28:40,523 - Training Set Size: 703
+2024-06-28 16:28:40,523 - Testing Set Size: 69598
+2024-06-28 16:28:40,523 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:28:40,523 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:28:40,523 - Unique Character Count: 28
+2024-06-28 16:28:40,523 - Minimum Word Length: 3
+2024-06-28 16:28:40,523 - Number of Replacements per Word: 1
+2024-06-28 16:28:50,671 - Evaluated with: context_sensitive
+2024-06-28 16:28:50,672 - Model evaluation completed for: sorted_tokens_openEdges.txt
+2024-06-28 16:28:50,672 - TOP1 ACCURACY: 34.04% | TOP1 VALIDITY: 41.58%
+2024-06-28 16:28:50,672 - TOP2 ACCURACY: 49.23% | TOP2 VALIDITY: 57.82%
+2024-06-28 16:28:50,672 - TOP3 ACCURACY: 59.03% | TOP3 VALIDITY: 67.41%
+2024-06-28 16:28:51,411 - ---------------------------------------------
+2024-06-28 16:29:31,299 - Processing cmudict Corpus
+2024-06-28 16:29:31,300 - ---------------------------------------------
+2024-06-28 16:29:34,238 - Model for 7-gram loaded from cmudict
+2024-06-28 16:29:34,266 - Language Model for cmudict initialized with:
+2024-06-28 16:29:34,266 - Seed: 42
+2024-06-28 16:29:34,267 - Q-gram Range: [7, 7]
+2024-06-28 16:29:34,267 - Train-Test Split Configuration: 0.001
+2024-06-28 16:29:34,267 - Training Set Size: 115
+2024-06-28 16:29:34,267 - Testing Set Size: 115376
+2024-06-28 16:29:34,267 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:29:34,267 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:29:34,267 - Unique Character Count: 26
+2024-06-28 16:29:34,268 - Minimum Word Length: 3
+2024-06-28 16:29:34,268 - Number of Replacements per Word: 1
+2024-06-28 16:29:49,860 - Evaluated with: context_sensitive
+2024-06-28 16:29:49,860 - Model evaluation completed for: cmudict
+2024-06-28 16:29:49,860 - TOP1 ACCURACY: 21.22% | TOP1 VALIDITY: 28.65%
+2024-06-28 16:29:49,860 - TOP2 ACCURACY: 34.04% | TOP2 VALIDITY: 43.52%
+2024-06-28 16:29:49,860 - TOP3 ACCURACY: 44.10% | TOP3 VALIDITY: 53.98%
+2024-06-28 16:29:51,073 - ---------------------------------------------
+2024-06-28 16:29:51,139 - Processing brown Corpus
+2024-06-28 16:29:51,139 - ---------------------------------------------
+2024-06-28 16:29:54,119 - Model for 7-gram loaded from brown
+2024-06-28 16:29:54,129 - Language Model for brown initialized with:
+2024-06-28 16:29:54,130 - Seed: 42
+2024-06-28 16:29:54,130 - Q-gram Range: [7, 7]
+2024-06-28 16:29:54,130 - Train-Test Split Configuration: 0.001
+2024-06-28 16:29:54,130 - Training Set Size: 41
+2024-06-28 16:29:54,130 - Testing Set Size: 41167
+2024-06-28 16:29:54,130 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:29:54,130 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:29:54,130 - Unique Character Count: 26
+2024-06-28 16:29:54,130 - Minimum Word Length: 3
+2024-06-28 16:29:54,130 - Number of Replacements per Word: 1
+2024-06-28 16:29:59,866 - Evaluated with: context_sensitive
+2024-06-28 16:29:59,866 - Model evaluation completed for: brown
+2024-06-28 16:29:59,866 - TOP1 ACCURACY: 21.87% | TOP1 VALIDITY: 25.79%
+2024-06-28 16:29:59,867 - TOP2 ACCURACY: 33.58% | TOP2 VALIDITY: 38.56%
+2024-06-28 16:29:59,867 - TOP3 ACCURACY: 41.82% | TOP3 VALIDITY: 47.36%
+2024-06-28 16:30:00,297 - ---------------------------------------------
+2024-06-28 16:30:00,317 - Processing CLMET3 Corpus
+2024-06-28 16:30:00,317 - ---------------------------------------------
+2024-06-28 16:30:02,883 - Model for 7-gram loaded from CLMET3
+2024-06-28 16:30:02,929 - Language Model for CLMET3 initialized with:
+2024-06-28 16:30:02,930 - Seed: 42
+2024-06-28 16:30:02,930 - Q-gram Range: [7, 7]
+2024-06-28 16:30:02,930 - Train-Test Split Configuration: 0.001
+2024-06-28 16:30:02,930 - Training Set Size: 148
+2024-06-28 16:30:02,930 - Testing Set Size: 148330
+2024-06-28 16:30:02,930 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:30:02,930 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:30:02,930 - Unique Character Count: 28
+2024-06-28 16:30:02,930 - Minimum Word Length: 3
+2024-06-28 16:30:02,930 - Number of Replacements per Word: 1
+2024-06-28 16:30:24,592 - Evaluated with: context_sensitive
+2024-06-28 16:30:24,592 - Model evaluation completed for: CLMET3.txt
+2024-06-28 16:30:24,592 - TOP1 ACCURACY: 25.06% | TOP1 VALIDITY: 31.18%
+2024-06-28 16:30:24,592 - TOP2 ACCURACY: 38.64% | TOP2 VALIDITY: 46.17%
+2024-06-28 16:30:24,592 - TOP3 ACCURACY: 48.93% | TOP3 VALIDITY: 56.70%
+2024-06-28 16:30:26,170 - ---------------------------------------------
+2024-06-28 16:30:26,257 - Processing sorted_tokens_lampeter Corpus
+2024-06-28 16:30:26,258 - ---------------------------------------------
+2024-06-28 16:30:27,306 - Model for 7-gram loaded from sorted_tokens_lampeter
+2024-06-28 16:30:27,317 - Language Model for sorted_tokens_lampeter initialized with:
+2024-06-28 16:30:27,317 - Seed: 42
+2024-06-28 16:30:27,317 - Q-gram Range: [7, 7]
+2024-06-28 16:30:27,317 - Train-Test Split Configuration: 0.001
+2024-06-28 16:30:27,317 - Training Set Size: 36
+2024-06-28 16:30:27,317 - Testing Set Size: 36758
+2024-06-28 16:30:27,317 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:30:27,317 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:30:27,317 - Unique Character Count: 28
+2024-06-28 16:30:27,317 - Minimum Word Length: 3
+2024-06-28 16:30:27,318 - Number of Replacements per Word: 1
+2024-06-28 16:30:32,677 - Evaluated with: context_sensitive
+2024-06-28 16:30:32,677 - Model evaluation completed for: sorted_tokens_lampeter.txt
+2024-06-28 16:30:32,677 - TOP1 ACCURACY: 19.79% | TOP1 VALIDITY: 23.15%
+2024-06-28 16:30:32,677 - TOP2 ACCURACY: 31.67% | TOP2 VALIDITY: 36.40%
+2024-06-28 16:30:32,678 - TOP3 ACCURACY: 40.39% | TOP3 VALIDITY: 45.66%
+2024-06-28 16:30:33,066 - ---------------------------------------------
+2024-06-28 16:30:33,085 - Processing sorted_tokens_openEdges Corpus
+2024-06-28 16:30:33,086 - ---------------------------------------------
+2024-06-28 16:30:34,542 - Model for 7-gram loaded from sorted_tokens_openEdges
+2024-06-28 16:30:34,562 - Language Model for sorted_tokens_openEdges initialized with:
+2024-06-28 16:30:34,562 - Seed: 42
+2024-06-28 16:30:34,562 - Q-gram Range: [7, 7]
+2024-06-28 16:30:34,562 - Train-Test Split Configuration: 0.001
+2024-06-28 16:30:34,562 - Training Set Size: 70
+2024-06-28 16:30:34,562 - Testing Set Size: 70231
+2024-06-28 16:30:34,562 - Vowel Replacement Ratio: 0.2
+2024-06-28 16:30:34,563 - Consonant Replacement Ratio: 0.8
+2024-06-28 16:30:34,563 - Unique Character Count: 28
+2024-06-28 16:30:34,563 - Minimum Word Length: 3
+2024-06-28 16:30:34,563 - Number of Replacements per Word: 1
+2024-06-28 16:30:44,826 - Evaluated with: context_sensitive
+2024-06-28 16:30:44,826 - Model evaluation completed for: sorted_tokens_openEdges.txt
+2024-06-28 16:30:44,826 - TOP1 ACCURACY: 23.89% | TOP1 VALIDITY: 29.90%
+2024-06-28 16:30:44,826 - TOP2 ACCURACY: 36.90% | TOP2 VALIDITY: 44.58%
+2024-06-28 16:30:44,826 - TOP3 ACCURACY: 46.52% | TOP3 VALIDITY: 54.54%
+2024-06-28 16:30:45,580 - ---------------------------------------------
+2024-06-28 17:10:44,211 - Processing cmudict Corpus
+2024-06-28 17:10:44,211 - ---------------------------------------------
+2024-06-28 17:10:47,115 - Model for 7-gram loaded from cmudict
+2024-06-28 17:10:47,144 - Language Model for cmudict initialized with:
+2024-06-28 17:10:47,144 - Seed: 42
+2024-06-28 17:10:47,144 - Q-gram Range: [7, 7]
+2024-06-28 17:10:47,144 - Train-Test Split Configuration: 0.99
+2024-06-28 17:10:47,144 - Training Set Size: 114336
+2024-06-28 17:10:47,144 - Testing Set Size: 1155
+2024-06-28 17:10:47,144 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:10:47,145 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:10:47,145 - Unique Character Count: 26
+2024-06-28 17:10:47,145 - Minimum Word Length: 3
+2024-06-28 17:10:47,145 - Number of Replacements per Word: 1
+2024-06-28 17:10:47,365 - Evaluated with: context_sensitive
+2024-06-28 17:10:47,365 - Model evaluation completed for: cmudict
+2024-06-28 17:10:47,365 - TOP1 ACCURACY: 57.92% | TOP1 VALIDITY: 78.18%
+2024-06-28 17:10:47,365 - TOP2 ACCURACY: 69.44% | TOP2 VALIDITY: 85.71%
+2024-06-28 17:10:47,365 - TOP3 ACCURACY: 76.71% | TOP3 VALIDITY: 90.13%
+2024-06-28 17:10:47,382 - ---------------------------------------------
+2024-06-28 17:10:47,388 - Processing brown Corpus
+2024-06-28 17:10:47,388 - ---------------------------------------------
+2024-06-28 17:10:50,283 - Model for 7-gram loaded from brown
+2024-06-28 17:10:50,294 - Language Model for brown initialized with:
+2024-06-28 17:10:50,294 - Seed: 42
+2024-06-28 17:10:50,294 - Q-gram Range: [7, 7]
+2024-06-28 17:10:50,294 - Train-Test Split Configuration: 0.99
+2024-06-28 17:10:50,294 - Training Set Size: 40795
+2024-06-28 17:10:50,294 - Testing Set Size: 413
+2024-06-28 17:10:50,294 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:10:50,294 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:10:50,295 - Unique Character Count: 26
+2024-06-28 17:10:50,295 - Minimum Word Length: 3
+2024-06-28 17:10:50,295 - Number of Replacements per Word: 1
+2024-06-28 17:10:50,355 - Evaluated with: context_sensitive
+2024-06-28 17:10:50,356 - Model evaluation completed for: brown
+2024-06-28 17:10:50,356 - TOP1 ACCURACY: 64.89% | TOP1 VALIDITY: 77.97%
+2024-06-28 17:10:50,356 - TOP2 ACCURACY: 76.27% | TOP2 VALIDITY: 85.23%
+2024-06-28 17:10:50,356 - TOP3 ACCURACY: 83.54% | TOP3 VALIDITY: 89.83%
+2024-06-28 17:10:50,362 - ---------------------------------------------
+2024-06-28 17:10:50,364 - Processing CLMET3 Corpus
+2024-06-28 17:10:50,364 - ---------------------------------------------
+2024-06-28 17:10:52,000 - Model for 7-gram loaded from CLMET3
+2024-06-28 17:10:52,048 - Language Model for CLMET3 initialized with:
+2024-06-28 17:10:52,048 - Seed: 42
+2024-06-28 17:10:52,048 - Q-gram Range: [7, 7]
+2024-06-28 17:10:52,048 - Train-Test Split Configuration: 0.99
+2024-06-28 17:10:52,049 - Training Set Size: 146993
+2024-06-28 17:10:52,049 - Testing Set Size: 1485
+2024-06-28 17:10:52,049 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:10:52,049 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:10:52,049 - Unique Character Count: 28
+2024-06-28 17:10:52,049 - Minimum Word Length: 3
+2024-06-28 17:10:52,049 - Number of Replacements per Word: 1
+2024-06-28 17:10:52,292 - Evaluated with: context_sensitive
+2024-06-28 17:10:52,292 - Model evaluation completed for: CLMET3.txt
+2024-06-28 17:10:52,292 - TOP1 ACCURACY: 62.90% | TOP1 VALIDITY: 80.81%
+2024-06-28 17:10:52,293 - TOP2 ACCURACY: 75.15% | TOP2 VALIDITY: 88.82%
+2024-06-28 17:10:52,293 - TOP3 ACCURACY: 81.48% | TOP3 VALIDITY: 92.39%
+2024-06-28 17:10:52,318 - ---------------------------------------------
+2024-06-28 17:10:52,330 - Processing sorted_tokens_lampeter Corpus
+2024-06-28 17:10:52,330 - ---------------------------------------------
+2024-06-28 17:10:52,945 - Model for 7-gram loaded from sorted_tokens_lampeter
+2024-06-28 17:10:52,955 - Language Model for sorted_tokens_lampeter initialized with:
+2024-06-28 17:10:52,956 - Seed: 42
+2024-06-28 17:10:52,956 - Q-gram Range: [7, 7]
+2024-06-28 17:10:52,956 - Train-Test Split Configuration: 0.99
+2024-06-28 17:10:52,956 - Training Set Size: 36426
+2024-06-28 17:10:52,956 - Testing Set Size: 368
+2024-06-28 17:10:52,956 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:10:52,956 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:10:52,956 - Unique Character Count: 28
+2024-06-28 17:10:52,956 - Minimum Word Length: 3
+2024-06-28 17:10:52,956 - Number of Replacements per Word: 1
+2024-06-28 17:10:53,012 - Evaluated with: context_sensitive
+2024-06-28 17:10:53,012 - Model evaluation completed for: sorted_tokens_lampeter.txt
+2024-06-28 17:10:53,012 - TOP1 ACCURACY: 67.39% | TOP1 VALIDITY: 77.99%
+2024-06-28 17:10:53,012 - TOP2 ACCURACY: 79.08% | TOP2 VALIDITY: 86.96%
+2024-06-28 17:10:53,012 - TOP3 ACCURACY: 88.59% | TOP3 VALIDITY: 93.21%
+2024-06-28 17:10:53,018 - ---------------------------------------------
+2024-06-28 17:10:53,021 - Processing sorted_tokens_openEdges Corpus
+2024-06-28 17:10:53,021 - ---------------------------------------------
+2024-06-28 17:10:53,913 - Model for 7-gram loaded from sorted_tokens_openEdges
+2024-06-28 17:10:53,933 - Language Model for sorted_tokens_openEdges initialized with:
+2024-06-28 17:10:53,933 - Seed: 42
+2024-06-28 17:10:53,933 - Q-gram Range: [7, 7]
+2024-06-28 17:10:53,933 - Train-Test Split Configuration: 0.99
+2024-06-28 17:10:53,933 - Training Set Size: 69597
+2024-06-28 17:10:53,933 - Testing Set Size: 704
+2024-06-28 17:10:53,934 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:10:53,934 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:10:53,934 - Unique Character Count: 28
+2024-06-28 17:10:53,934 - Minimum Word Length: 3
+2024-06-28 17:10:53,934 - Number of Replacements per Word: 1
+2024-06-28 17:10:54,045 - Evaluated with: context_sensitive
+2024-06-28 17:10:54,045 - Model evaluation completed for: sorted_tokens_openEdges.txt
+2024-06-28 17:10:54,045 - TOP1 ACCURACY: 63.21% | TOP1 VALIDITY: 80.68%
+2024-06-28 17:10:54,045 - TOP2 ACCURACY: 78.41% | TOP2 VALIDITY: 90.20%
+2024-06-28 17:10:54,045 - TOP3 ACCURACY: 85.51% | TOP3 VALIDITY: 93.32%
+2024-06-28 17:10:54,056 - ---------------------------------------------
+2024-06-28 17:11:31,337 - Processing cmudict Corpus
+2024-06-28 17:11:31,337 - ---------------------------------------------
+2024-06-28 17:11:34,269 - Model for 7-gram loaded from cmudict
+2024-06-28 17:11:34,296 - Language Model for cmudict initialized with:
+2024-06-28 17:11:34,296 - Seed: 42
+2024-06-28 17:11:34,296 - Q-gram Range: [7, 7]
+2024-06-28 17:11:34,296 - Train-Test Split Configuration: 0.001
+2024-06-28 17:11:34,296 - Training Set Size: 115
+2024-06-28 17:11:34,296 - Testing Set Size: 115376
+2024-06-28 17:11:34,296 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:11:34,297 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:11:34,297 - Unique Character Count: 26
+2024-06-28 17:11:34,297 - Minimum Word Length: 3
+2024-06-28 17:11:34,297 - Number of Replacements per Word: 1
+2024-06-28 17:11:49,733 - Evaluated with: context_sensitive
+2024-06-28 17:11:49,733 - Model evaluation completed for: cmudict
+2024-06-28 17:11:49,733 - TOP1 ACCURACY: 22.38% | TOP1 VALIDITY: 29.92%
+2024-06-28 17:11:49,733 - TOP2 ACCURACY: 35.42% | TOP2 VALIDITY: 44.80%
+2024-06-28 17:11:49,734 - TOP3 ACCURACY: 45.37% | TOP3 VALIDITY: 54.95%
+2024-06-28 17:11:50,949 - ---------------------------------------------
+2024-06-28 17:11:51,010 - Processing brown Corpus
+2024-06-28 17:11:51,010 - ---------------------------------------------
+2024-06-28 17:11:54,115 - Model for 7-gram loaded from brown
+2024-06-28 17:11:54,125 - Language Model for brown initialized with:
+2024-06-28 17:11:54,125 - Seed: 42
+2024-06-28 17:11:54,125 - Q-gram Range: [7, 7]
+2024-06-28 17:11:54,125 - Train-Test Split Configuration: 0.001
+2024-06-28 17:11:54,125 - Training Set Size: 41
+2024-06-28 17:11:54,125 - Testing Set Size: 41167
+2024-06-28 17:11:54,125 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:11:54,125 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:11:54,125 - Unique Character Count: 26
+2024-06-28 17:11:54,125 - Minimum Word Length: 3
+2024-06-28 17:11:54,126 - Number of Replacements per Word: 1
+2024-06-28 17:11:59,809 - Evaluated with: context_sensitive
+2024-06-28 17:11:59,810 - Model evaluation completed for: brown
+2024-06-28 17:11:59,810 - TOP1 ACCURACY: 18.04% | TOP1 VALIDITY: 21.66%
+2024-06-28 17:11:59,810 - TOP2 ACCURACY: 28.87% | TOP2 VALIDITY: 33.66%
+2024-06-28 17:11:59,810 - TOP3 ACCURACY: 38.22% | TOP3 VALIDITY: 43.51%
+2024-06-28 17:12:00,232 - ---------------------------------------------
+2024-06-28 17:12:00,253 - Processing CLMET3 Corpus
+2024-06-28 17:12:00,253 - ---------------------------------------------
+2024-06-28 17:12:02,816 - Model for 7-gram loaded from CLMET3
+2024-06-28 17:12:02,859 - Language Model for CLMET3 initialized with:
+2024-06-28 17:12:02,860 - Seed: 42
+2024-06-28 17:12:02,860 - Q-gram Range: [7, 7]
+2024-06-28 17:12:02,860 - Train-Test Split Configuration: 0.001
+2024-06-28 17:12:02,860 - Training Set Size: 148
+2024-06-28 17:12:02,860 - Testing Set Size: 148330
+2024-06-28 17:12:02,860 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:12:02,860 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:12:02,860 - Unique Character Count: 28
+2024-06-28 17:12:02,860 - Minimum Word Length: 3
+2024-06-28 17:12:02,860 - Number of Replacements per Word: 1
+2024-06-28 17:12:24,498 - Evaluated with: context_sensitive
+2024-06-28 17:12:24,498 - Model evaluation completed for: CLMET3.txt
+2024-06-28 17:12:24,498 - TOP1 ACCURACY: 25.53% | TOP1 VALIDITY: 31.82%
+2024-06-28 17:12:24,499 - TOP2 ACCURACY: 39.49% | TOP2 VALIDITY: 47.14%
+2024-06-28 17:12:24,499 - TOP3 ACCURACY: 50.04% | TOP3 VALIDITY: 57.72%
+2024-06-28 17:12:26,044 - ---------------------------------------------
+2024-06-28 17:12:26,131 - Processing sorted_tokens_lampeter Corpus
+2024-06-28 17:12:26,131 - ---------------------------------------------
+2024-06-28 17:12:27,184 - Model for 7-gram loaded from sorted_tokens_lampeter
+2024-06-28 17:12:27,194 - Language Model for sorted_tokens_lampeter initialized with:
+2024-06-28 17:12:27,194 - Seed: 42
+2024-06-28 17:12:27,195 - Q-gram Range: [7, 7]
+2024-06-28 17:12:27,195 - Train-Test Split Configuration: 0.001
+2024-06-28 17:12:27,195 - Training Set Size: 36
+2024-06-28 17:12:27,195 - Testing Set Size: 36758
+2024-06-28 17:12:27,195 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:12:27,195 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:12:27,195 - Unique Character Count: 28
+2024-06-28 17:12:27,195 - Minimum Word Length: 3
+2024-06-28 17:12:27,195 - Number of Replacements per Word: 1
+2024-06-28 17:12:32,595 - Evaluated with: context_sensitive
+2024-06-28 17:12:32,596 - Model evaluation completed for: sorted_tokens_lampeter.txt
+2024-06-28 17:12:32,596 - TOP1 ACCURACY: 22.46% | TOP1 VALIDITY: 25.59%
+2024-06-28 17:12:32,596 - TOP2 ACCURACY: 33.83% | TOP2 VALIDITY: 37.86%
+2024-06-28 17:12:32,596 - TOP3 ACCURACY: 41.55% | TOP3 VALIDITY: 46.03%
+2024-06-28 17:12:32,983 - ---------------------------------------------
+2024-06-28 17:12:33,002 - Processing sorted_tokens_openEdges Corpus
+2024-06-28 17:12:33,003 - ---------------------------------------------
+2024-06-28 17:12:34,471 - Model for 7-gram loaded from sorted_tokens_openEdges
+2024-06-28 17:12:34,491 - Language Model for sorted_tokens_openEdges initialized with:
+2024-06-28 17:12:34,491 - Seed: 42
+2024-06-28 17:12:34,491 - Q-gram Range: [7, 7]
+2024-06-28 17:12:34,491 - Train-Test Split Configuration: 0.001
+2024-06-28 17:12:34,491 - Training Set Size: 70
+2024-06-28 17:12:34,491 - Testing Set Size: 70231
+2024-06-28 17:12:34,491 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:12:34,491 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:12:34,491 - Unique Character Count: 28
+2024-06-28 17:12:34,492 - Minimum Word Length: 3
+2024-06-28 17:12:34,492 - Number of Replacements per Word: 1
+2024-06-28 17:12:44,850 - Evaluated with: context_sensitive
+2024-06-28 17:12:44,850 - Model evaluation completed for: sorted_tokens_openEdges.txt
+2024-06-28 17:12:44,850 - TOP1 ACCURACY: 23.23% | TOP1 VALIDITY: 29.38%
+2024-06-28 17:12:44,850 - TOP2 ACCURACY: 35.56% | TOP2 VALIDITY: 43.28%
+2024-06-28 17:12:44,850 - TOP3 ACCURACY: 44.95% | TOP3 VALIDITY: 53.12%
+2024-06-28 17:12:45,571 - ---------------------------------------------
+2024-06-28 17:18:54,961 - Processing cmudict Corpus
+2024-06-28 17:18:54,961 - ---------------------------------------------
+2024-06-28 17:18:58,127 - Model for 7-gram loaded from cmudict
+2024-06-28 17:18:58,154 - Language Model for cmudict initialized with:
+2024-06-28 17:18:58,154 - Seed: 42
+2024-06-28 17:18:58,154 - Q-gram Range: [7, 7]
+2024-06-28 17:18:58,154 - Train-Test Split Configuration: 0.01
+2024-06-28 17:18:58,154 - Training Set Size: 1154
+2024-06-28 17:18:58,154 - Testing Set Size: 114337
+2024-06-28 17:18:58,154 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:18:58,155 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:18:58,155 - Unique Character Count: 26
+2024-06-28 17:18:58,155 - Minimum Word Length: 3
+2024-06-28 17:18:58,155 - Number of Replacements per Word: 1
+2024-06-28 17:19:13,605 - Evaluated with: context_sensitive
+2024-06-28 17:19:13,606 - Model evaluation completed for: cmudict
+2024-06-28 17:19:13,606 - TOP1 ACCURACY: 33.84% | TOP1 VALIDITY: 42.88%
+2024-06-28 17:19:13,606 - TOP2 ACCURACY: 48.46% | TOP2 VALIDITY: 58.65%
+2024-06-28 17:19:13,606 - TOP3 ACCURACY: 58.60% | TOP3 VALIDITY: 68.35%
+2024-06-28 17:19:14,792 - ---------------------------------------------
+2024-06-28 17:19:14,855 - Processing brown Corpus
+2024-06-28 17:19:14,855 - ---------------------------------------------
+2024-06-28 17:19:17,856 - Model for 7-gram loaded from brown
+2024-06-28 17:19:17,866 - Language Model for brown initialized with:
+2024-06-28 17:19:17,866 - Seed: 42
+2024-06-28 17:19:17,866 - Q-gram Range: [7, 7]
+2024-06-28 17:19:17,867 - Train-Test Split Configuration: 0.01
+2024-06-28 17:19:17,867 - Training Set Size: 412
+2024-06-28 17:19:17,867 - Testing Set Size: 40796
+2024-06-28 17:19:17,867 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:19:17,867 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:19:17,867 - Unique Character Count: 26
+2024-06-28 17:19:17,867 - Minimum Word Length: 3
+2024-06-28 17:19:17,867 - Number of Replacements per Word: 1
+2024-06-28 17:19:23,564 - Evaluated with: context_sensitive
+2024-06-28 17:19:23,564 - Model evaluation completed for: brown
+2024-06-28 17:19:23,564 - TOP1 ACCURACY: 34.56% | TOP1 VALIDITY: 39.38%
+2024-06-28 17:19:23,564 - TOP2 ACCURACY: 48.71% | TOP2 VALIDITY: 54.37%
+2024-06-28 17:19:23,565 - TOP3 ACCURACY: 58.82% | TOP3 VALIDITY: 64.39%
+2024-06-28 17:19:23,992 - ---------------------------------------------
+2024-06-28 17:19:24,012 - Processing CLMET3 Corpus
+2024-06-28 17:19:24,012 - ---------------------------------------------
+2024-06-28 17:19:26,690 - Model for 7-gram loaded from CLMET3
+2024-06-28 17:19:26,734 - Language Model for CLMET3 initialized with:
+2024-06-28 17:19:26,735 - Seed: 42
+2024-06-28 17:19:26,735 - Q-gram Range: [7, 7]
+2024-06-28 17:19:26,735 - Train-Test Split Configuration: 0.01
+2024-06-28 17:19:26,735 - Training Set Size: 1484
+2024-06-28 17:19:26,735 - Testing Set Size: 146994
+2024-06-28 17:19:26,735 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:19:26,735 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:19:26,735 - Unique Character Count: 28
+2024-06-28 17:19:26,735 - Minimum Word Length: 3
+2024-06-28 17:19:26,735 - Number of Replacements per Word: 1
+2024-06-28 17:19:48,482 - Evaluated with: context_sensitive
+2024-06-28 17:19:48,482 - Model evaluation completed for: CLMET3.txt
+2024-06-28 17:19:48,482 - TOP1 ACCURACY: 35.75% | TOP1 VALIDITY: 43.14%
+2024-06-28 17:19:48,482 - TOP2 ACCURACY: 50.80% | TOP2 VALIDITY: 58.87%
+2024-06-28 17:19:48,482 - TOP3 ACCURACY: 60.85% | TOP3 VALIDITY: 68.50%
+2024-06-28 17:19:50,012 - ---------------------------------------------
+2024-06-28 17:19:50,098 - Processing sorted_tokens_lampeter Corpus
+2024-06-28 17:19:50,098 - ---------------------------------------------
+2024-06-28 17:19:51,142 - Model for 7-gram loaded from sorted_tokens_lampeter
+2024-06-28 17:19:51,152 - Language Model for sorted_tokens_lampeter initialized with:
+2024-06-28 17:19:51,152 - Seed: 42
+2024-06-28 17:19:51,152 - Q-gram Range: [7, 7]
+2024-06-28 17:19:51,152 - Train-Test Split Configuration: 0.01
+2024-06-28 17:19:51,153 - Training Set Size: 367
+2024-06-28 17:19:51,153 - Testing Set Size: 36427
+2024-06-28 17:19:51,153 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:19:51,153 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:19:51,153 - Unique Character Count: 28
+2024-06-28 17:19:51,153 - Minimum Word Length: 3
+2024-06-28 17:19:51,153 - Number of Replacements per Word: 1
+2024-06-28 17:19:56,782 - Evaluated with: context_sensitive
+2024-06-28 17:19:56,782 - Model evaluation completed for: sorted_tokens_lampeter.txt
+2024-06-28 17:19:56,783 - TOP1 ACCURACY: 35.22% | TOP1 VALIDITY: 39.81%
+2024-06-28 17:19:56,783 - TOP2 ACCURACY: 50.21% | TOP2 VALIDITY: 55.63%
+2024-06-28 17:19:56,783 - TOP3 ACCURACY: 60.58% | TOP3 VALIDITY: 65.94%
+2024-06-28 17:19:57,159 - ---------------------------------------------
+2024-06-28 17:19:57,177 - Processing sorted_tokens_openEdges Corpus
+2024-06-28 17:19:57,178 - ---------------------------------------------
+2024-06-28 17:19:58,650 - Model for 7-gram loaded from sorted_tokens_openEdges
+2024-06-28 17:19:58,671 - Language Model for sorted_tokens_openEdges initialized with:
+2024-06-28 17:19:58,671 - Seed: 42
+2024-06-28 17:19:58,671 - Q-gram Range: [7, 7]
+2024-06-28 17:19:58,671 - Train-Test Split Configuration: 0.01
+2024-06-28 17:19:58,671 - Training Set Size: 703
+2024-06-28 17:19:58,671 - Testing Set Size: 69598
+2024-06-28 17:19:58,671 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:19:58,671 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:19:58,671 - Unique Character Count: 28
+2024-06-28 17:19:58,671 - Minimum Word Length: 3
+2024-06-28 17:19:58,671 - Number of Replacements per Word: 1
+2024-06-28 17:20:08,805 - Evaluated with: context_sensitive
+2024-06-28 17:20:08,806 - Model evaluation completed for: sorted_tokens_openEdges.txt
+2024-06-28 17:20:08,806 - TOP1 ACCURACY: 34.80% | TOP1 VALIDITY: 42.56%
+2024-06-28 17:20:08,806 - TOP2 ACCURACY: 49.62% | TOP2 VALIDITY: 58.18%
+2024-06-28 17:20:08,806 - TOP3 ACCURACY: 59.37% | TOP3 VALIDITY: 67.69%
+2024-06-28 17:20:09,529 - ---------------------------------------------
+2024-06-28 17:20:11,400 - Processing cmudict Corpus
+2024-06-28 17:20:11,401 - ---------------------------------------------
+2024-06-28 17:20:14,312 - Model for 7-gram loaded from cmudict
+2024-06-28 17:20:14,341 - Language Model for cmudict initialized with:
+2024-06-28 17:20:14,341 - Seed: 42
+2024-06-28 17:20:14,342 - Q-gram Range: [7, 7]
+2024-06-28 17:20:14,342 - Train-Test Split Configuration: 0.0001
+2024-06-28 17:20:14,342 - Training Set Size: 11
+2024-06-28 17:20:14,342 - Testing Set Size: 115480
+2024-06-28 17:20:14,342 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:20:14,342 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:20:14,342 - Unique Character Count: 26
+2024-06-28 17:20:14,342 - Minimum Word Length: 3
+2024-06-28 17:20:14,342 - Number of Replacements per Word: 1
+2024-06-28 17:20:29,416 - Evaluated with: context_sensitive
+2024-06-28 17:20:29,416 - Model evaluation completed for: cmudict
+2024-06-28 17:20:29,417 - TOP1 ACCURACY: 11.09% | TOP1 VALIDITY: 16.35%
+2024-06-28 17:20:29,417 - TOP2 ACCURACY: 18.77% | TOP2 VALIDITY: 26.35%
+2024-06-28 17:20:29,417 - TOP3 ACCURACY: 23.30% | TOP3 VALIDITY: 32.02%
+2024-06-28 17:20:30,618 - ---------------------------------------------
+2024-06-28 17:20:30,679 - Processing brown Corpus
+2024-06-28 17:20:30,679 - ---------------------------------------------
+2024-06-28 17:20:33,595 - Model for 7-gram loaded from brown
+2024-06-28 17:20:33,605 - Language Model for brown initialized with:
+2024-06-28 17:20:33,605 - Seed: 42
+2024-06-28 17:20:33,605 - Q-gram Range: [7, 7]
+2024-06-28 17:20:33,605 - Train-Test Split Configuration: 0.0001
+2024-06-28 17:20:33,605 - Training Set Size: 4
+2024-06-28 17:20:33,606 - Testing Set Size: 41204
+2024-06-28 17:20:33,606 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:20:33,606 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:20:33,606 - Unique Character Count: 26
+2024-06-28 17:20:33,606 - Minimum Word Length: 3
+2024-06-28 17:20:33,606 - Number of Replacements per Word: 1
+2024-06-28 17:20:38,857 - Evaluated with: context_sensitive
+2024-06-28 17:20:38,857 - Model evaluation completed for: brown
+2024-06-28 17:20:38,857 - TOP1 ACCURACY: 9.23% | TOP1 VALIDITY: 12.07%
+2024-06-28 17:20:38,858 - TOP2 ACCURACY: 15.12% | TOP2 VALIDITY: 19.30%
+2024-06-28 17:20:38,858 - TOP3 ACCURACY: 19.92% | TOP3 VALIDITY: 24.65%
+2024-06-28 17:20:39,287 - ---------------------------------------------
+2024-06-28 17:20:39,306 - Processing CLMET3 Corpus
+2024-06-28 17:20:39,307 - ---------------------------------------------
+2024-06-28 17:20:41,856 - Model for 7-gram loaded from CLMET3
+2024-06-28 17:20:41,905 - Language Model for CLMET3 initialized with:
+2024-06-28 17:20:41,905 - Seed: 42
+2024-06-28 17:20:41,906 - Q-gram Range: [7, 7]
+2024-06-28 17:20:41,906 - Train-Test Split Configuration: 0.0001
+2024-06-28 17:20:41,906 - Training Set Size: 14
+2024-06-28 17:20:41,906 - Testing Set Size: 148464
+2024-06-28 17:20:41,906 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:20:41,906 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:20:41,906 - Unique Character Count: 28
+2024-06-28 17:20:41,906 - Minimum Word Length: 3
+2024-06-28 17:20:41,906 - Number of Replacements per Word: 1
+2024-06-28 17:21:02,607 - Evaluated with: context_sensitive
+2024-06-28 17:21:02,607 - Model evaluation completed for: CLMET3.txt
+2024-06-28 17:21:02,607 - TOP1 ACCURACY: 12.61% | TOP1 VALIDITY: 17.24%
+2024-06-28 17:21:02,608 - TOP2 ACCURACY: 20.75% | TOP2 VALIDITY: 26.81%
+2024-06-28 17:21:02,608 - TOP3 ACCURACY: 28.15% | TOP3 VALIDITY: 35.12%
+2024-06-28 17:21:04,158 - ---------------------------------------------
+2024-06-28 17:21:04,242 - Processing sorted_tokens_lampeter Corpus
+2024-06-28 17:21:04,242 - ---------------------------------------------
+2024-06-28 17:21:05,279 - Model for 7-gram loaded from sorted_tokens_lampeter
+2024-06-28 17:21:05,290 - Language Model for sorted_tokens_lampeter initialized with:
+2024-06-28 17:21:05,290 - Seed: 42
+2024-06-28 17:21:05,290 - Q-gram Range: [7, 7]
+2024-06-28 17:21:05,290 - Train-Test Split Configuration: 0.0001
+2024-06-28 17:21:05,290 - Training Set Size: 3
+2024-06-28 17:21:05,290 - Testing Set Size: 36791
+2024-06-28 17:21:05,291 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:21:05,291 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:21:05,291 - Unique Character Count: 28
+2024-06-28 17:21:05,291 - Minimum Word Length: 3
+2024-06-28 17:21:05,291 - Number of Replacements per Word: 1
+2024-06-28 17:21:10,302 - Evaluated with: context_sensitive
+2024-06-28 17:21:10,302 - Model evaluation completed for: sorted_tokens_lampeter.txt
+2024-06-28 17:21:10,302 - TOP1 ACCURACY: 8.42% | TOP1 VALIDITY: 10.84%
+2024-06-28 17:21:10,303 - TOP2 ACCURACY: 13.30% | TOP2 VALIDITY: 16.68%
+2024-06-28 17:21:10,303 - TOP3 ACCURACY: 18.92% | TOP3 VALIDITY: 23.07%
+2024-06-28 17:21:10,681 - ---------------------------------------------
+2024-06-28 17:21:10,699 - Processing sorted_tokens_openEdges Corpus
+2024-06-28 17:21:10,700 - ---------------------------------------------
+2024-06-28 17:21:12,152 - Model for 7-gram loaded from sorted_tokens_openEdges
+2024-06-28 17:21:12,173 - Language Model for sorted_tokens_openEdges initialized with:
+2024-06-28 17:21:12,174 - Seed: 42
+2024-06-28 17:21:12,174 - Q-gram Range: [7, 7]
+2024-06-28 17:21:12,174 - Train-Test Split Configuration: 0.0001
+2024-06-28 17:21:12,174 - Training Set Size: 7
+2024-06-28 17:21:12,174 - Testing Set Size: 70294
+2024-06-28 17:21:12,174 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:21:12,174 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:21:12,174 - Unique Character Count: 28
+2024-06-28 17:21:12,174 - Minimum Word Length: 3
+2024-06-28 17:21:12,175 - Number of Replacements per Word: 1
+2024-06-28 17:21:21,984 - Evaluated with: context_sensitive
+2024-06-28 17:21:21,984 - Model evaluation completed for: sorted_tokens_openEdges.txt
+2024-06-28 17:21:21,984 - TOP1 ACCURACY: 10.90% | TOP1 VALIDITY: 15.55%
+2024-06-28 17:21:21,985 - TOP2 ACCURACY: 17.36% | TOP2 VALIDITY: 23.76%
+2024-06-28 17:21:21,985 - TOP3 ACCURACY: 24.72% | TOP3 VALIDITY: 32.25%
+2024-06-28 17:21:22,720 - ---------------------------------------------
+2024-06-28 17:21:50,963 - Processing cmudict Corpus
+2024-06-28 17:21:50,964 - ---------------------------------------------
+2024-06-28 17:21:53,924 - Model for 7-gram loaded from cmudict
+2024-06-28 17:21:53,950 - Language Model for cmudict initialized with:
+2024-06-28 17:21:53,950 - Seed: 42
+2024-06-28 17:21:53,950 - Q-gram Range: [7, 7]
+2024-06-28 17:21:53,950 - Train-Test Split Configuration: 0.01
+2024-06-28 17:21:53,950 - Training Set Size: 1154
+2024-06-28 17:21:53,950 - Testing Set Size: 114337
+2024-06-28 17:21:53,950 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:21:53,951 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:21:53,951 - Unique Character Count: 26
+2024-06-28 17:21:53,951 - Minimum Word Length: 3
+2024-06-28 17:21:53,951 - Number of Replacements per Word: 1
+2024-06-28 17:22:09,399 - Evaluated with: context_sensitive
+2024-06-28 17:22:09,399 - Model evaluation completed for: cmudict
+2024-06-28 17:22:09,399 - TOP1 ACCURACY: 33.01% | TOP1 VALIDITY: 42.18%
+2024-06-28 17:22:09,400 - TOP2 ACCURACY: 47.99% | TOP2 VALIDITY: 58.28%
+2024-06-28 17:22:09,400 - TOP3 ACCURACY: 58.44% | TOP3 VALIDITY: 68.37%
+2024-06-28 17:22:10,578 - ---------------------------------------------
+2024-06-28 17:22:10,643 - Processing brown Corpus
+2024-06-28 17:22:10,643 - ---------------------------------------------
+2024-06-28 17:22:13,647 - Model for 7-gram loaded from brown
+2024-06-28 17:22:13,657 - Language Model for brown initialized with:
+2024-06-28 17:22:13,657 - Seed: 42
+2024-06-28 17:22:13,657 - Q-gram Range: [7, 7]
+2024-06-28 17:22:13,657 - Train-Test Split Configuration: 0.01
+2024-06-28 17:22:13,657 - Training Set Size: 412
+2024-06-28 17:22:13,657 - Testing Set Size: 40796
+2024-06-28 17:22:13,657 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:22:13,657 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:22:13,657 - Unique Character Count: 26
+2024-06-28 17:22:13,657 - Minimum Word Length: 3
+2024-06-28 17:22:13,658 - Number of Replacements per Word: 1
+2024-06-28 17:22:19,254 - Evaluated with: context_sensitive
+2024-06-28 17:22:19,254 - Model evaluation completed for: brown
+2024-06-28 17:22:19,254 - TOP1 ACCURACY: 33.74% | TOP1 VALIDITY: 38.74%
+2024-06-28 17:22:19,254 - TOP2 ACCURACY: 48.70% | TOP2 VALIDITY: 54.51%
+2024-06-28 17:22:19,255 - TOP3 ACCURACY: 59.00% | TOP3 VALIDITY: 64.55%
+2024-06-28 17:22:19,682 - ---------------------------------------------
+2024-06-28 17:22:19,702 - Processing CLMET3 Corpus
+2024-06-28 17:22:19,702 - ---------------------------------------------
+2024-06-28 17:22:22,250 - Model for 7-gram loaded from CLMET3
+2024-06-28 17:22:22,299 - Language Model for CLMET3 initialized with:
+2024-06-28 17:22:22,299 - Seed: 42
+2024-06-28 17:22:22,299 - Q-gram Range: [7, 7]
+2024-06-28 17:22:22,299 - Train-Test Split Configuration: 0.01
+2024-06-28 17:22:22,299 - Training Set Size: 1484
+2024-06-28 17:22:22,299 - Testing Set Size: 146994
+2024-06-28 17:22:22,299 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:22:22,300 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:22:22,300 - Unique Character Count: 28
+2024-06-28 17:22:22,300 - Minimum Word Length: 3
+2024-06-28 17:22:22,300 - Number of Replacements per Word: 1
+2024-06-28 17:22:43,991 - Evaluated with: context_sensitive
+2024-06-28 17:22:43,991 - Model evaluation completed for: CLMET3.txt
+2024-06-28 17:22:43,991 - TOP1 ACCURACY: 35.44% | TOP1 VALIDITY: 42.88%
+2024-06-28 17:22:43,991 - TOP2 ACCURACY: 50.69% | TOP2 VALIDITY: 58.90%
+2024-06-28 17:22:43,991 - TOP3 ACCURACY: 61.13% | TOP3 VALIDITY: 68.85%
+2024-06-28 17:22:45,538 - ---------------------------------------------
+2024-06-28 17:22:45,622 - Processing sorted_tokens_lampeter Corpus
+2024-06-28 17:22:45,622 - ---------------------------------------------
+2024-06-28 17:22:46,672 - Model for 7-gram loaded from sorted_tokens_lampeter
+2024-06-28 17:22:46,682 - Language Model for sorted_tokens_lampeter initialized with:
+2024-06-28 17:22:46,682 - Seed: 42
+2024-06-28 17:22:46,682 - Q-gram Range: [7, 7]
+2024-06-28 17:22:46,682 - Train-Test Split Configuration: 0.01
+2024-06-28 17:22:46,682 - Training Set Size: 367
+2024-06-28 17:22:46,682 - Testing Set Size: 36427
+2024-06-28 17:22:46,682 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:22:46,682 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:22:46,682 - Unique Character Count: 28
+2024-06-28 17:22:46,682 - Minimum Word Length: 3
+2024-06-28 17:22:46,683 - Number of Replacements per Word: 1
+2024-06-28 17:22:51,980 - Evaluated with: context_sensitive
+2024-06-28 17:22:51,980 - Model evaluation completed for: sorted_tokens_lampeter.txt
+2024-06-28 17:22:51,980 - TOP1 ACCURACY: 34.09% | TOP1 VALIDITY: 38.76%
+2024-06-28 17:22:51,980 - TOP2 ACCURACY: 48.82% | TOP2 VALIDITY: 54.30%
+2024-06-28 17:22:51,980 - TOP3 ACCURACY: 59.17% | TOP3 VALIDITY: 64.69%
+2024-06-28 17:22:52,357 - ---------------------------------------------
+2024-06-28 17:22:52,376 - Processing sorted_tokens_openEdges Corpus
+2024-06-28 17:22:52,377 - ---------------------------------------------
+2024-06-28 17:22:53,842 - Model for 7-gram loaded from sorted_tokens_openEdges
+2024-06-28 17:22:53,861 - Language Model for sorted_tokens_openEdges initialized with:
+2024-06-28 17:22:53,861 - Seed: 42
+2024-06-28 17:22:53,861 - Q-gram Range: [7, 7]
+2024-06-28 17:22:53,861 - Train-Test Split Configuration: 0.01
+2024-06-28 17:22:53,861 - Training Set Size: 703
+2024-06-28 17:22:53,861 - Testing Set Size: 69598
+2024-06-28 17:22:53,861 - Vowel Replacement Ratio: 0.2
+2024-06-28 17:22:53,861 - Consonant Replacement Ratio: 0.8
+2024-06-28 17:22:53,861 - Unique Character Count: 28
+2024-06-28 17:22:53,861 - Minimum Word Length: 3
+2024-06-28 17:22:53,861 - Number of Replacements per Word: 1
+2024-06-28 17:23:04,358 - Evaluated with: context_sensitive
+2024-06-28 17:23:04,358 - Model evaluation completed for: sorted_tokens_openEdges.txt
+2024-06-28 17:23:04,358 - TOP1 ACCURACY: 34.46% | TOP1 VALIDITY: 42.29%
+2024-06-28 17:23:04,358 - TOP2 ACCURACY: 49.50% | TOP2 VALIDITY: 58.04%
+2024-06-28 17:23:04,358 - TOP3 ACCURACY: 59.48% | TOP3 VALIDITY: 67.69%
+2024-06-28 17:23:05,085 - ---------------------------------------------
