@@ -1,8 +1,6 @@
-# Optimized Python code with enhanced comments and some structural improvements.
-
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import accuracy_score
 from pathlib import Path
 
@@ -20,11 +18,11 @@ def load_and_preprocess(path):
         tuple: A tuple containing the features DataFrame and target series.
     """
     df = pd.read_csv(path)
-    df['Word_Length'] = df['Original_Word'].str.len() # Create a new column for word length
-    df['Missing_Letter_Index'] = df['Original_Word'].str.find("_") # Find the index of the missing letter
+    df['Word_Length'] = df['Original_Word'].str.len()  # Create a new column for word length
+    df['Missing_Letter_Index'] = df['Original_Word'].str.find("_")  # Find the index of the missing letter
     df['Relative_Position'] = df['Missing_Letter_Index'] / df['Word_Length'].clip(lower=1)  # Avoid division by zero
-    df['Top1_Predicted_Letter_is_Vowel'] = df['Top1_Predicted_Letter'].apply(is_vowel) # Check if the predicted letter is a vowel
-    df['Correct_Letter_is_Vowel'] = df['Correct_Letter(s)'].apply(is_vowel) # Check if the correct letter is a vowel
+    df['Top1_Predicted_Letter_is_Vowel'] = df['Top1_Predicted_Letter'].apply(is_vowel)  # Check if the predicted letter is a vowel
+    df['Correct_Letter_is_Vowel'] = df['Correct_Letter(s)'].apply(is_vowel)  # Check if the correct letter is a vowel
 
     features = df[['Word_Length', 'Relative_Position', 'Top1_Predicted_Letter_is_Vowel', 'Correct_Letter_is_Vowel']]
     target = df['Top1_Is_Accurate']
@@ -77,4 +75,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

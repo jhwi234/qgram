@@ -14,6 +14,9 @@ class Letters(Enum):
 def is_vowel(char):
     return char.lower() in Letters.VOWELS.value
 
+def count_vowels(word):
+    return sum(1 for char in word if is_vowel(char))
+
 def preprocess_data(file_path):
     data = pd.read_csv(file_path)
     data['Missing_Letter_Position'] = data['Tested_Word'].apply(lambda x: x.find('_') if isinstance(x, str) else -1)
@@ -26,6 +29,9 @@ def preprocess_data(file_path):
         data['is_vowel'] = (data['letter_type'] == 'vowel').astype(int)
     else:
         data['is_vowel'] = 0  # Default value if 'Correct_Letter(s)' is missing
+    
+    # Add number of vowels in the word
+    data['Num_Vowels'] = data['Original_Word'].apply(lambda x: count_vowels(x) if isinstance(x, str) else 0)
     
     # Ensure 'Top1_Is_Accurate' is numeric and drop any potential NaN values
     data['Top1_Is_Accurate'] = pd.to_numeric(data['Top1_Is_Accurate'], errors='coerce')
@@ -47,13 +53,14 @@ def run_logistic_regression(data, dataset_name):
         print(f"Insufficient variability in 'is_vowel' for {dataset_name} dataset. Skipping regression.")
         return
     
-    formula = 'Top1_Is_Accurate ~ is_vowel + Word_Length + Normalized_Missing_Letter_Position'
+    formula = 'Top1_Is_Accurate ~ is_vowel + Word_Length + Normalized_Missing_Letter_Position + Num_Vowels + Word_Length*Num_Vowels'
     model = smf.logit(formula=formula, data=data).fit()
     print(f"Regression Summary for {dataset_name}:\n")
     print(model.summary())
     
     # Cross-validation with a more complex model
-    X = data[['is_vowel', 'Word_Length', 'Normalized_Missing_Letter_Position']]
+    X = data[['is_vowel', 'Word_Length', 'Normalized_Missing_Letter_Position', 'Num_Vowels']]
+    X['Word_Length:Num_Vowels'] = data['Word_Length'] * data['Num_Vowels']
     y = data['Top1_Is_Accurate']
     rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
     cv_scores = cross_val_score(rf_model, X, y, cv=5)
