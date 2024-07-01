@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, log_loss
 from pathlib import Path
 
 # Define function to check if a letter is a vowel
@@ -58,6 +58,7 @@ def logistic_regression_analysis(dataset_name, file_path):
     
     # Make predictions
     y_pred = model.predict(X_test)
+    y_pred_proba = model.predict_proba(X_test)[:, 1]
     
     # Evaluate the model
     accuracy = accuracy_score(y_test, y_pred)
@@ -67,9 +68,17 @@ def logistic_regression_analysis(dataset_name, file_path):
     coefficients = model.coef_[0]
     intercept = model.intercept_[0]
     
+    # Calculate log-likelihood for the model and null model
+    log_likelihood_model = -log_loss(y_test, y_pred_proba, normalize=False)
+    log_likelihood_null = -log_loss(y_test, np.ones_like(y_test) * y_test.mean(), normalize=False)
+    
+    # Calculate pseudo R-squared
+    pseudo_r_squared = 1 - (log_likelihood_model / log_likelihood_null)
+    
     # Print the evaluation metrics and model coefficients
     print(f'\n{dataset_name} Dataset Analysis:')
     print(f'Accuracy: {accuracy:.4f}')
+    print(f'Pseudo R-squared: {pseudo_r_squared:.4f}')
     print('Classification Report:')
     print(report)
     print('Model Coefficients:')

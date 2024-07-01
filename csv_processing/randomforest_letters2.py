@@ -90,6 +90,8 @@ dataset_paths = {
 
 # Run analysis for each dataset
 top_features_dict = {}
+combined_df = pd.DataFrame()
+
 for name, path in dataset_paths.items():
     print(f"Running analysis for {name} dataset...")
     importance_df = run_analysis_excluding_confidence(path)
@@ -98,6 +100,10 @@ for name, path in dataset_paths.items():
         print(f"Feature importance for {name} dataset:")
         print(importance_df)
         print("\n" + "="*80 + "\n")
+        
+        # Combine datasets for overall analysis
+        df = pd.read_csv(path)
+        combined_df = pd.concat([combined_df, df], ignore_index=True)
 
 # Define top letters to analyze based on feature importance
 top_letters = ['n', 'y', 'd', 't', 'w', 'm', 'u']
@@ -113,3 +119,40 @@ plot_feature_importance(melted_df)
 
 # Perform ANOVA to compare importance scores for 'n', 'y', and 'd'
 perform_anova(top_features_df, ['n', 'y', 'd'])
+
+# Analyze combined dataset
+combined_df = create_top1_letter_features(combined_df)
+
+# Ensure only binary letter columns are selected, excluding Top1_Confidence
+binary_columns = [col for col in combined_df.columns if col.startswith('Top1_') and col != 'Top1_Confidence' and combined_df[col].dtype in [np.int64, np.float64]]
+
+# Define features and target for combined dataset
+features_combined = combined_df[binary_columns]
+target_combined = combined_df['Top1_Is_Accurate']
+
+# Split the combined data into training and testing sets
+X_train_combined, X_test_combined, y_train_combined, y_test_combined = train_test_split(features_combined, target_combined, test_size=0.3, random_state=42)
+
+# Train the Random Forest model on the combined dataset
+rf_model_combined = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_model_combined.fit(X_train_combined, y_train_combined)
+
+# Extract feature importance for combined dataset
+feature_importances_combined = rf_model_combined.feature_importances_
+feature_names_combined = features_combined.columns
+
+# Combine the results for combined dataset
+importance_df_combined = pd.DataFrame({'Feature': feature_names_combined, 'Importance': feature_importances_combined})
+importance_df_combined.sort_values(by='Importance', ascending=False, inplace=True)
+
+print("Feature importance for combined dataset:")
+print(importance_df_combined)
+
+# Plot the feature importance for combined dataset
+plt.figure(figsize=(12, 8))
+sns.barplot(data=importance_df_combined, x='Feature', y='Importance')
+plt.title('Feature Importance of Letters in Combined Dataset')
+plt.xlabel('Letter')
+plt.ylabel('Importance')
+plt.xticks(rotation=45)
+plt.show()

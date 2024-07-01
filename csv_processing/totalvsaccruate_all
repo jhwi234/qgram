@@ -11,18 +11,24 @@ datasets = {
 }
 
 # Combine all datasets into one DataFrame
-combined_data = pd.DataFrame()
-
-for name, path in datasets.items():
-    data = pd.read_csv(path)
-    combined_data = pd.concat([combined_data, data], ignore_index=True)
+combined_data = pd.concat([pd.read_csv(path) for path in datasets.values()], ignore_index=True)
 
 # Plot the distribution of predicted letters and their accuracies
 plt.figure(figsize=(12, 6))
+
+# Count the occurrences of each predicted letter
 predicted_letter_counts = combined_data['Top1_Predicted_Letter'].value_counts().sort_index()
-plt.bar(predicted_letter_counts.index, predicted_letter_counts.values, label='Total Predictions', alpha=0.7)
+
+# Count the occurrences of accurate predictions for each letter
 accurate_predicted_letter_counts = combined_data[combined_data['Top1_Is_Accurate']]['Top1_Predicted_Letter'].value_counts().sort_index()
+
+# Plot total predictions
+plt.bar(predicted_letter_counts.index, predicted_letter_counts.values, label='Total Predictions', alpha=0.7)
+
+# Plot accurate predictions
 plt.bar(accurate_predicted_letter_counts.index, accurate_predicted_letter_counts.values, label='Accurate Predictions', alpha=0.7)
+
+# Add title and labels
 plt.title('Distribution of Predicted Letters and Their Accuracies (Combined Datasets)')
 plt.xlabel('Predicted Letter')
 plt.ylabel('Number of Predictions')
@@ -30,4 +36,6 @@ plt.legend()
 plt.grid(axis='y', linestyle='--', alpha=0.7)
 plt.xticks(rotation=45)
 plt.tight_layout()
+
+# Show the plot
 plt.show()
