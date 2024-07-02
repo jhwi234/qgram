@@ -17,7 +17,7 @@ dataset_paths = {
     "Brown": Path('data/outputs/csv/brown_context_sensitive_split0.5_qrange7-7_prediction.csv')
 }
 
-def load_data(filepath):
+def load_data(filepath: Path) -> pd.DataFrame:
     """
     Load data from a CSV file.
     """
@@ -27,26 +27,25 @@ def load_data(filepath):
         return data
     except FileNotFoundError:
         logging.error(f"File not found: {filepath}")
-        return None
+        return pd.DataFrame()
 
-def prepare_data(data):
+def prepare_data(data: pd.DataFrame) -> pd.DataFrame:
     """
     Prepare data by calculating word length and normalized missing letter index.
     """
     required_columns = {'Top1_Is_Accurate', 'Tested_Word'}
     if not required_columns.issubset(data.columns):
         logging.error("Required columns are missing")
-        return None
+        return pd.DataFrame()
 
     # Calculate lengths of each word and the normalized index of the missing letter
     data['Word_Length'] = data['Tested_Word'].str.len()
-    data['Normalized_Missing_Index'] = data['Tested_Word'].apply(
-        lambda word: word.index('_') / (len(word) - 1) if '_' in word else np.nan
-    )
+    data['Normalized_Missing_Index'] = data['Tested_Word'].str.find('_') / (data['Word_Length'] - 1)
+    data.replace({'Normalized_Missing_Index': {np.inf: np.nan, -np.inf: np.nan}}, inplace=True)
     
     return data
 
-def fit_model(X, y, n_splines=15):
+def fit_model(X: pd.DataFrame, y: pd.Series, n_splines: int = 15) -> LogisticGAM:
     """
     Fit a logistic GAM model.
     """
@@ -58,7 +57,7 @@ def fit_model(X, y, n_splines=15):
         logging.error(f"Error fitting model: {str(e)}")
         return None
 
-def adjust_y_axis(proba):
+def adjust_y_axis(proba: np.ndarray):
     """
     Adjust the y-axis based on the median of the predicted probabilities.
     """
@@ -66,7 +65,7 @@ def adjust_y_axis(proba):
     margin = 0.30
     plt.ylim([max(0, center_point - margin), min(1, center_point + margin)])
 
-def plot_results(XX, proba, X, y, title, config, output_path):
+def plot_results(XX: np.ndarray, proba: np.ndarray, X: np.ndarray, y: np.ndarray, title: str, config: dict, output_path: Path):
     """
     Plot the results of the GAM model predictions against the actual data.
     """
@@ -82,26 +81,25 @@ def plot_results(XX, proba, X, y, title, config, output_path):
     if config.get('dynamic_range', True):
         adjust_y_axis(proba)
     plt.tight_layout()
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(output_path)
     plt.close()
 
-def process_dataset(name, path, config):
+def process_dataset(name: str, path: Path, config: dict):
     """
     Process each dataset: load data, prepare it, fit the model, and plot results.
     """
-    output_dir = Path('output/gams')
-    output_dir.mkdir(parents=True, exist_ok=True)
     data = load_data(path)
-    if data is not None:
+    if not data.empty:
         prepared_data = prepare_data(data)
-        if prepared_data is not None:
+        if not prepared_data.empty:
             X = prepared_data[['Normalized_Missing_Index']].dropna()
             y = prepared_data.loc[X.index, 'Top1_Is_Accurate']
             gam = fit_model(X, y)
             if gam:
                 XX = np.linspace(0, 1, 1000)[:, None]
                 proba = gam.predict_proba(XX)
-                output_path = output_dir / f"{name}_GAM_df.png"
+                output_path = Path('output/gams') / f"{name}_GAM_df.png"
                 plot_results(XX.ravel(), proba, X.to_numpy().ravel(), y, f'Effect of Normalized Missing Index on Prediction Accuracy in {name}', config, output_path)
 
 default_plot_config = {

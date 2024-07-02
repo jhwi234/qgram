@@ -27,7 +27,7 @@ def plot_normalized_stacked_histogram(ax, dataset, base_color, label):
     total_counts[total_counts == 0] = np.inf
     valid_proportions = valid_counts / total_counts
     invalid_proportions = invalid_counts / total_counts
-    ax.bar(bins[:-1], valid_proportions, width=np.diff(bins), align='edge', color=base_color, alpha=0.75, label=f'Valid (Count: {valid_counts.sum()})', edgecolor='black')
+    ax.bar(bins[:-1], valid_proportions, width=np.diff(bins), align='edge', color=base_color, alpha=0.50, label=f'Valid (Count: {valid_counts.sum()})', edgecolor='black')
     ax.bar(bins[:-1], invalid_proportions, width=np.diff(bins), align='edge', color='gray', alpha=0.65, label=f'Invalid (Count: {invalid_counts.sum()})', bottom=valid_proportions, edgecolor='black')
     
     ax.set_xlabel('Top 1 Confidence')

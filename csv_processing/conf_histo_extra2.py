@@ -11,7 +11,7 @@ def load_dataset(path):
         print(f"File not found: {path}")
         return pd.DataFrame()  # Return an empty DataFrame if file is not found
 
-def plot_normalized_stacked_histogram(ax, dataset, base_color, label, column_name, threshold=0.75, bins=30):
+def plot_normalized_stacked_histogram(ax, dataset, base_color, label, column_name, threshold=0.50, bins=30):
     """Plotting function for normalized stacked histograms with enhancements."""
     if dataset.empty:
         ax.text(0.5, 0.5, 'Data Unavailable', horizontalalignment='center', verticalalignment='center', transform=ax.transAxes)
