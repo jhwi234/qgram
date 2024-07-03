@@ -3700,3 +3700,373 @@ Intersection Count Train-Test: 0
 Spearman Correlation Train-Correct Pred: 0
 Spearman Correlation Train-Incorrect Pred: 0
 Spearman Correlation Train-Test: 0
+Error processing brown: [Errno 2] No such file or directory: '/home/johnwin/projects/qgram/data/outputs/csv/brown_context_sensitive_split0.5_qrange6-6_prediction.csv'
+Error processing CLMET3: [Errno 2] No such file or directory: '/home/johnwin/projects/qgram/data/outputs/csv/CLMET3_context_sensitive_split0.5_qrange6-6_prediction.csv'
+Error processing cmudict: [Errno 2] No such file or directory: '/home/johnwin/projects/qgram/data/outputs/csv/cmudict_context_sensitive_split0.5_qrange6-6_prediction.csv'
+Error processing gutenberg: [Errno 2] No such file or directory: '/home/johnwin/projects/qgram/data/outputs/csv/gutenberg_context_sensitive_split0.5_qrange6-6_prediction.csv'
+Error processing inaugural: [Errno 2] No such file or directory: '/home/johnwin/projects/qgram/data/outputs/csv/inaugural_context_sensitive_split0.5_qrange6-6_prediction.csv'
+Error processing reuters: [Errno 2] No such file or directory: '/home/johnwin/projects/qgram/data/outputs/csv/reuters_context_sensitive_split0.5_qrange6-6_prediction.csv'
+Error processing brown: 'Correct_Letter'
+Error processing CLMET3: 'Correct_Letter'
+Error processing cmudict: 'Correct_Letter'
+Error processing gutenberg: [Errno 2] No such file or directory: '/home/johnwin/projects/qgram/data/outputs/csv/gutenberg_context_sensitive_split0.5_qrange7-7_prediction.csv'
+Error processing inaugural: [Errno 2] No such file or directory: '/home/johnwin/projects/qgram/data/outputs/csv/inaugural_context_sensitive_split0.5_qrange7-7_prediction.csv'
+Error processing reuters: [Errno 2] No such file or directory: '/home/johnwin/projects/qgram/data/outputs/csv/reuters_context_sensitive_split0.5_qrange7-7_prediction.csv'
+Error processing brown: 'Config' object has no attribute 'seed'
+Error processing CLMET3: 'Config' object has no attribute 'seed'
+Error processing cmudict: 'Config' object has no attribute 'seed'
+Error processing sorted_tokens_lampeter: 'Config' object has no attribute 'seed'
+Error processing sorted_tokens_openEdges: 'Config' object has no attribute 'seed'
+Error processing brown: File '/home/johnwin/projects/qgram/data/corpora/brown.txt' does not exist and NLTK corpus 'brown' not found.
+Error processing CLMET3: 'Config' object has no attribute 'min_word_length'
+Error processing cmudict: File '/home/johnwin/projects/qgram/data/corpora/cmudict.txt' does not exist and NLTK corpus 'cmudict' not found.
+Error processing sorted_tokens_lampeter: 'Config' object has no attribute 'min_word_length'
+Error processing sorted_tokens_openEdges: 'Config' object has no attribute 'min_word_length'
+Error processing brown: 'Config' object has no attribute 'q_range'
+Error processing CLMET3: 'Config' object has no attribute 'q_range'
+Error processing cmudict: 'Config' object has no attribute 'q_range'
+Error processing sorted_tokens_lampeter: 'Config' object has no attribute 'q_range'
+Error processing sorted_tokens_openEdges: 'Config' object has no attribute 'q_range'
+Model for 7-gram loaded from brown
+Language Model for brown initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 20604
+Testing Set Size: 20604
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 26
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing brown: 'Config' object has no attribute 'qgram_range'
+Model for 7-gram loaded from CLMET3
+Language Model for CLMET3 initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 74239
+Testing Set Size: 74239
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing CLMET3: 'Config' object has no attribute 'qgram_range'
+Model for 7-gram loaded from cmudict
+Language Model for cmudict initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 57745
+Testing Set Size: 57746
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 26
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing cmudict: 'Config' object has no attribute 'qgram_range'
+Model for 7-gram loaded from sorted_tokens_lampeter
+Language Model for sorted_tokens_lampeter initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 18397
+Testing Set Size: 18397
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing sorted_tokens_lampeter: 'Config' object has no attribute 'qgram_range'
+Model for 7-gram loaded from sorted_tokens_openEdges
+Language Model for sorted_tokens_openEdges initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 35150
+Testing Set Size: 35151
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing sorted_tokens_openEdges: 'Config' object has no attribute 'qgram_range'
+Model for 7-gram loaded from brown
+Language Model for brown initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 20604
+Testing Set Size: 20604
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 26
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing brown: argument of type 'int' is not iterable
+Model for 7-gram loaded from CLMET3
+Language Model for CLMET3 initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 74239
+Testing Set Size: 74239
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing CLMET3: argument of type 'int' is not iterable
+Model for 7-gram loaded from cmudict
+Language Model for cmudict initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 57745
+Testing Set Size: 57746
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 26
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing cmudict: argument of type 'int' is not iterable
+Model for 7-gram loaded from sorted_tokens_lampeter
+Language Model for sorted_tokens_lampeter initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 18397
+Testing Set Size: 18397
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing sorted_tokens_lampeter: argument of type 'int' is not iterable
+Model for 7-gram loaded from sorted_tokens_openEdges
+Language Model for sorted_tokens_openEdges initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 35150
+Testing Set Size: 35151
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing sorted_tokens_openEdges: argument of type 'int' is not iterable
+Model for 6-gram loaded from brown
+Language Model for brown initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6]
+Train-Test Split Configuration: 0.5
+Training Set Size: 20604
+Testing Set Size: 20604
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 26
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing brown: argument of type 'int' is not iterable
+Model for 6-gram loaded from CLMET3
+Language Model for CLMET3 initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6]
+Train-Test Split Configuration: 0.5
+Training Set Size: 74239
+Testing Set Size: 74239
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing CLMET3: argument of type 'int' is not iterable
+Model for 6-gram loaded from cmudict
+Language Model for cmudict initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6]
+Train-Test Split Configuration: 0.5
+Training Set Size: 57745
+Testing Set Size: 57746
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 26
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing cmudict: argument of type 'int' is not iterable
+Model for 6-gram loaded from sorted_tokens_lampeter
+Language Model for sorted_tokens_lampeter initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6]
+Train-Test Split Configuration: 0.5
+Training Set Size: 18397
+Testing Set Size: 18397
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing sorted_tokens_lampeter: argument of type 'int' is not iterable
+Model for 6-gram loaded from sorted_tokens_openEdges
+Language Model for sorted_tokens_openEdges initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6]
+Train-Test Split Configuration: 0.5
+Training Set Size: 35150
+Testing Set Size: 35151
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing sorted_tokens_openEdges: argument of type 'int' is not iterable
+Model for 7-gram loaded from brown
+Language Model for brown initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 20604
+Testing Set Size: 20604
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 26
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+Error processing brown: argument of type 'int' is not iterable
+Model for 7-gram loaded from brown
+Language Model for brown initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 20604
+Testing Set Size: 20604
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 26
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0.7506
+
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 0.7505
+
+Intersection Count Train-Incorrect Pred: 0.0000
+Intersection Count Train-Test: 0.1159
+
+Spearman Correlation Train-Incorrect Pred: 0.0000
+Spearman Correlation Train-Test: 0.0636
+Model for 7-gram loaded from CLMET3
+Language Model for CLMET3 initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 74239
+Testing Set Size: 74239
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0.7991
+
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 0.7991
+
+Intersection Count Train-Incorrect Pred: 0.0000
+Intersection Count Train-Test: 0.0910
+
+Spearman Correlation Train-Incorrect Pred: 0.0000
+Spearman Correlation Train-Test: 0.0960
+Model for 7-gram loaded from cmudict
+Language Model for cmudict initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 57745
+Testing Set Size: 57746
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 26
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0.7815
+
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 0.7814
+
+Intersection Count Train-Incorrect Pred: 0.0000
+Intersection Count Train-Test: 0.0984
+
+Spearman Correlation Train-Incorrect Pred: 0.0000
+Spearman Correlation Train-Test: 0.0426
+Model for 7-gram loaded from sorted_tokens_lampeter
+Language Model for sorted_tokens_lampeter initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 18397
+Testing Set Size: 18397
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+
+--------------------------------------------------
+sorted_tokens_lampeter Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0.7549
+
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 0.7548
+
+Intersection Count Train-Incorrect Pred: 0.0000
+Intersection Count Train-Test: 0.1170
+
+Spearman Correlation Train-Incorrect Pred: 0.0000
+Spearman Correlation Train-Test: 0.1045
+Model for 7-gram loaded from sorted_tokens_openEdges
+Language Model for sorted_tokens_openEdges initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 35150
+Testing Set Size: 35151
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+
+--------------------------------------------------
+sorted_tokens_openEdges Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0.7812
+
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 0.7811
+
+Intersection Count Train-Incorrect Pred: 0.0000
+Intersection Count Train-Test: 0.1062
+
+Spearman Correlation Train-Incorrect Pred: 0.0000
+Spearman Correlation Train-Test: 0.1438
