@@ -4070,3 +4070,138 @@ Intersection Count Train-Test: 0.1062
 
 Spearman Correlation Train-Incorrect Pred: 0.0000
 Spearman Correlation Train-Test: 0.1438
+Model for 7-gram loaded from brown
+Language Model for brown initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 20604
+Testing Set Size: 20604
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 26
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+
+--------------------------------------------------
+brown Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0.7504
+
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 0.7503
+
+Intersection Count Train-Incorrect Pred: 0.0000
+Intersection Count Train-Test: 0.1157
+
+Spearman Correlation Train-Incorrect Pred: 0.0000
+Spearman Correlation Train-Test: 0.0606
+Model for 7-gram loaded from CLMET3
+Language Model for CLMET3 initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 74239
+Testing Set Size: 74239
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+
+--------------------------------------------------
+CLMET3 Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0.7982
+
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 0.7982
+
+Intersection Count Train-Incorrect Pred: 0.0000
+Intersection Count Train-Test: 0.0904
+
+Spearman Correlation Train-Incorrect Pred: 0.0000
+Spearman Correlation Train-Test: 0.0905
+Model for 7-gram loaded from cmudict
+Language Model for cmudict initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 57745
+Testing Set Size: 57746
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 26
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+
+--------------------------------------------------
+cmudict Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0.7823
+
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 0.7822
+
+Intersection Count Train-Incorrect Pred: 0.0000
+Intersection Count Train-Test: 0.0985
+
+Spearman Correlation Train-Incorrect Pred: 0.0000
+Spearman Correlation Train-Test: 0.0433
+Model for 7-gram loaded from sorted_tokens_lampeter
+Language Model for sorted_tokens_lampeter initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 18397
+Testing Set Size: 18397
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+
+--------------------------------------------------
+sorted_tokens_lampeter Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0.7523
+
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 0.7522
+
+Intersection Count Train-Incorrect Pred: 0.0000
+Intersection Count Train-Test: 0.1163
+
+Spearman Correlation Train-Incorrect Pred: 0.0000
+Spearman Correlation Train-Test: 0.1037
+Model for 7-gram loaded from sorted_tokens_openEdges
+Language Model for sorted_tokens_openEdges initialized with:
+Seed: 42
+Q-gram Range: [2, 3, 4, 5, 6, 7]
+Train-Test Split Configuration: 0.5
+Training Set Size: 35150
+Testing Set Size: 35151
+Vowel Replacement Ratio: 0.2
+Consonant Replacement Ratio: 0.8
+Unique Character Count: 28
+Minimum Word Length: 3
+Number of Replacements per Word: 1
+
+--------------------------------------------------
+sorted_tokens_openEdges Corpus Analysis
+--------------------------------------------------
+Dice Coefficient Train-Incorrect Pred: 0.0000
+Dice Coefficient Train-Test: 0.7816
+
+Frequency Similarity Train-Incorrect Pred: 0.5000
+Frequency Similarity Train-Test: 0.7816
+
+Intersection Count Train-Incorrect Pred: 0.0000
+Intersection Count Train-Test: 0.1065
+
+Spearman Correlation Train-Incorrect Pred: 0.0000
+Spearman Correlation Train-Test: 0.1463

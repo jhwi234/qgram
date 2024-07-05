@@ -68,26 +68,29 @@ def run(corpus_name, config):
     """
     Process a given corpus with the specified configuration and log the results.
     """
-    formatted_corpus_name = CorpusManager.format_corpus_name(corpus_name)
-    logging.info(f'Processing {formatted_corpus_name} Corpus')
-    logging.info('-' * 45)
+    try:
+        formatted_corpus_name = CorpusManager.format_corpus_name(corpus_name)
+        logging.info(f'Processing {formatted_corpus_name} Corpus')
+        logging.info('-' * 45)
 
-    corpus_manager = CorpusManager(formatted_corpus_name, config)
-    CorpusManager.add_to_global_corpus(corpus_manager.corpus)
+        corpus_manager = CorpusManager(formatted_corpus_name, config)
+        CorpusManager.add_to_global_corpus(corpus_manager.corpus)
 
-    eval_model = EvaluateModel(corpus_manager)
-    prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
+        eval_model = EvaluateModel(corpus_manager)
+        prediction_method = getattr(eval_model.predictor, config.prediction_method_name)
 
-    evaluation_metrics, predictions = eval_model.evaluate_character_predictions(prediction_method)
+        evaluation_metrics, predictions = eval_model.evaluate_character_predictions(prediction_method)
 
-    # Log evaluation results using the new function
-    log_evaluation_results(evaluation_metrics, corpus_name, prediction_method.__name__)
+        # Log evaluation results using the new function
+        log_evaluation_results(evaluation_metrics, corpus_name, prediction_method.__name__)
 
-    # Export details and summary
-    eval_model.export_prediction_details_to_csv(predictions, prediction_method.__name__)
-    eval_model.save_summary_stats_txt(evaluation_metrics, predictions, prediction_method.__name__)
+        # Export details and summary
+        eval_model.export_prediction_details_to_csv(predictions, prediction_method.__name__)
+        eval_model.save_summary_stats_txt(evaluation_metrics, predictions, prediction_method.__name__)
 
-    logging.info('-' * 45)
+        logging.info('-' * 45)
+    except Exception as e:
+        logging.error(f"Error processing corpus {corpus_name}: {e}", exc_info=True)
 
 def main():
     """Setup logging and create necessary directories."""

@@ -7,37 +7,33 @@ from enum import Enum
 import nltk
 import kenlm
 
-# Enum to define constants for vowels and consonants
 class Letters(Enum):
-    VOWELS = 'aeèéiîouyæœ'  # Vowel characters
-    CONSONANTS = 'bcdfghjklmnpqrstvwxzȝ'  # Consonant characters
+    VOWELS = 'aeèéiîouyæœ'
+    CONSONANTS = 'bcdfghjklmnpqrstvwxzȝ'
 
     @staticmethod
     def is_vowel(char):
-        return char in Letters.VOWELS.value  # Check if character is a vowel
+        return char in Letters.VOWELS.value
 
     @staticmethod
     def is_consonant(char):
-        return char in Letters.CONSONANTS.value  # Check if character is a consonant
+        return char in Letters.CONSONANTS.value
 
 # Function to build language models with KenLM for specified q-gram sizes
 def build_kenlm_model(corpus_name, q, corpus_path, model_directory) -> tuple[int, str]:
-    arpa_file = model_directory / f"{corpus_name}_{q}gram.arpa"  # ARPA file path
-    binary_file = model_directory / f"{corpus_name}_{q}gram.klm"  # Binary file path
+    arpa_file = model_directory / f"{corpus_name}_{q}gram.arpa"
+    binary_file = model_directory / f"{corpus_name}_{q}gram.klm"
 
-    # Build the ARPA model file
     if not run_command(['lmplz', '--discount_fallback', '-o', str(q), '--text', str(corpus_path), '--arpa', str(arpa_file)],
-                       "lmplz failed to generate ARPA model"):
+                       f"lmplz failed to generate {q}-gram ARPA model for {corpus_name}"):
         return q, None
 
-    # Convert the ARPA model to binary format
     if not run_command(['build_binary', '-s', str(arpa_file), str(binary_file)],
-                       "build_binary failed to convert ARPA model to binary format"):
+                       f"build_binary failed to convert {q}-gram ARPA model to binary format for {corpus_name}"):
         return q, None
 
     return q, str(binary_file)
 
-# Function to run a command as a subprocess and log any errors
 def run_command(command, error_message):
     try:
         subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=True)
@@ -46,16 +42,15 @@ def run_command(command, error_message):
         logging.error(f"{error_message}: {e.stderr.decode()}")
         return False
 
-# Class to manage the corpus and handle data processing
 class CorpusManager:
-    CLEAN_PATTERN = reg.compile(r'\b\p{L}+(?:-\p{L}+)*\b')  # Regex pattern to extract words
+    CLEAN_PATTERN = reg.compile(r'\b\p{L}+(?:-\p{L}+)*\b')
 
     @staticmethod
     def format_corpus_name(corpus_name) -> str:
         parts = corpus_name.replace('.txt', '').split('_')
         return parts[0] if len(parts) > 1 and parts[0] == parts[1] else corpus_name.replace('.txt', '')
 
-    unique_words_all_corpora = set()  # Static variable to store unique words from all corpora
+    unique_words_all_corpora = set()
 
     @staticmethod
     def add_to_global_corpus(unique_words):
@@ -75,15 +70,12 @@ class CorpusManager:
         self.prepare_datasets()
         self.generate_and_load_models()
 
-    # Extract unique characters from the corpus
     def extract_unique_characters(self) -> set:
         return {char for word in self.corpus for char in word}
 
-    # Clean the text by extracting words and filtering based on minimum length
     def clean_text(self, text: str) -> set[str]:
         return {part.lower() for word in self.CLEAN_PATTERN.findall(text) for part in word.split('-') if len(part) >= self.config.min_word_length}
 
-    # Load the corpus from a text file or NLTK corpus
     def load_corpus(self) -> set[str]:
         file_path = self.config.corpus_dir / f'{self.corpus_name}.txt'
         if file_path.is_file():
@@ -101,14 +93,12 @@ class CorpusManager:
 
         return self.corpus
 
-    # Shuffle and split the corpus into training and test sets
     def _shuffle_and_split_corpus(self) -> tuple[set[str], set[str]]:
         shuffled_corpus = list(self.corpus)
         self.rng.shuffle(shuffled_corpus)
         train_size = int(len(self.corpus) * self.config.split_config)
         return set(shuffled_corpus[:train_size]), set(shuffled_corpus[train_size:])
 
-    # Prepare training and test datasets from the corpus
     def prepare_datasets(self):
         self.train_set, unprocessed_test_set = self._shuffle_and_split_corpus()
         formatted_train_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_train_set.txt'
@@ -129,14 +119,12 @@ class CorpusManager:
             self.save_set_to_file(self.test_set, f'{self.corpus_name}_formatted_test_set.txt')
             self.save_set_to_file(self.all_words, f'{self.corpus_name}_all_words.txt')
 
-    # Generate a formatted corpus file for KenLM training
     def generate_formatted_corpus(self, data_set, formatted_corpus_path) -> Path:
         formatted_text = '\n'.join(' '.join(word) for word in data_set)
         with formatted_corpus_path.open('w', encoding='utf-8') as f:
             f.write(formatted_text)
         return formatted_corpus_path
 
-    # Generate and load KenLM models for the corpus
     def generate_models_from_corpus(self, corpus_path):
         model_directory = self.config.model_dir / self.corpus_name
         model_directory.mkdir(parents=True, exist_ok=True)
@@ -152,13 +140,11 @@ class CorpusManager:
         if model_loaded:
             logging.info(f'Model for {q}-gram loaded from {self.corpus_name}')
 
-    # Generate and load models if not already loaded
     def generate_and_load_models(self):
         formatted_train_set_path = self.config.sets_dir / f'{self.corpus_name}_formatted_train_set.txt'
         self.generate_formatted_corpus(self.train_set, formatted_train_set_path)
         self.generate_models_from_corpus(formatted_train_set_path)
 
-    # Replace letters in the word with underscores
     def _replace_letters(self, word, num_replacements) -> tuple[str, list[str]]:
         modified_word = word
         missing_letters = []
@@ -168,7 +154,6 @@ class CorpusManager:
                 missing_letters.append(missing_letter)
         return modified_word, missing_letters
 
-    # Replace a random letter in the word based on configuration
     def _replace_random_letter(self, word) -> tuple[str, str]:
         vowel_indices = [i for i, letter in enumerate(word) if Letters.is_vowel(letter)]
         consonant_indices = [i for i, letter in enumerate(word) if Letters.is_consonant(letter)]
@@ -183,11 +168,9 @@ class CorpusManager:
 
         return modified_word, missing_letter
     
-    # Check if the word has any replaceable letters
     def has_replaceable_letter(self, word) -> bool:
         return any(Letters.is_vowel(letter) for letter in word) or any(Letters.is_consonant(letter) for letter in word)
 
-    # Save a dataset to a file
     def save_set_to_file(self, data_set, file_name):
         file_path = self.config.sets_dir / file_name
         with file_path.open('w', encoding='utf-8') as file:
